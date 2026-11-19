@@ -1,0 +1,24 @@
+<view class="page home-page">
+  <view wx:if="{{loading}}" class="loading">正在整理你的生活清单…</view>
+  <block wx:else>
+    <view wx:if="{{error}}" class="error">{{error}}</view>
+    <view class="hero">
+      <text class="eyebrow">给“改天”一个轻轻的结尾</text>
+      <view class="display hero-title">想做，很久了。
+今天，<text class="hero-accent">轻轻开始。</text></view>
+      <view class="muted hero-copy">不用找搭子，不必连续打卡。先去生活，再决定要不要留下故事。</view>
+      <view class="hero-lines" aria-hidden="true"><view class="line-one" /><view class="line-two" /><view class="meeting-dot" /></view>
+      <view class="hero-note">独立行动　·　分享由你　·　没有排名</view>
+    </view>
+    <view class="section-heading"><text class="eyebrow">今天可以做的小事</text><view class="display section-title">哪一件，已经在心里放了很久？</view><view wx:if="{{user}}" class="muted greeting">你好，{{user.displayName}}。不需要一次改变很多。</view></view>
+    <view class="activity-list">
+      <view wx:for="{{activities}}" wx:key="id" class="activity-item" hover-class="activity-hover" data-id="{{item.id}}" bindtap="openActivity" role="button" aria-label="打开{{item.title}}">
+        <view class="glyph glyph-{{item.id}}">{{item.glyph}}</view>
+        <view class="activity-copy"><view class="meta"><text>{{item.category}}</text><text>{{item.duration}}</text></view><view class="display activity-title">{{item.title}}</view><view class="muted activity-invitation">{{item.invitation}}</view></view>
+        <view class="activity-side"><text wx:if="{{item.status}}" class="badge">{{item.status}}</text><text class="arrow">→</text></view>
+      </view>
+    </view>
+    <view class="principles"><view class="display principle-title">行动在前，连接在后。</view><view class="muted">完成与写故事是两件事。正文默认私密，只有主动分享的同主题经历才会相遇。</view></view>
+  </block>
+  <view class="safe-bottom" />
+</view>

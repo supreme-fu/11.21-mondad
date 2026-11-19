@@ -1,0 +1,22 @@
+<view class="page records-page">
+  <view wx:if="{{loading}}" class="loading">正在打开你的行动档案…</view>
+  <block wx:elif="{{user}}">
+    <text class="eyebrow">只属于 {{user.displayName}} 的行动档案</text>
+    <view class="display records-title">我做过的事，
+不需要排成成绩。</view>
+    <view class="muted records-intro">这里没有连续天数和完成率。每一份记录都可以保留、撤回分享或删除正文。</view>
+    <view wx:if="{{error}}" class="error">{{error}}</view>
+    <view wx:if="{{records.length === 0}}" class="empty"><view class="display empty-title">这里还很安静</view><view class="muted">从一件真正想做的事开始，你可以只完成，不留下故事。</view></view>
+    <view wx:else class="record-list">
+      <view wx:for="{{records}}" wx:key="participationId" class="record-item" data-index="{{index}}" bindtap="openRecord" hover-class="activity-hover" role="button">
+        <view class="glyph glyph-{{item.activity.id}}">{{item.activity.category[0]}}</view>
+        <view class="record-copy"><view class="meta"><text>{{item.activity.category}}</text></view><view class="display record-title">{{item.activity.title}}</view><view class="record-badges"><text class="badge">{{item.completion ? '自报完成' : item.participationStatus === 'left' ? '已暂时离开' : '约定进行中'}}</text><text wx:if="{{item.completion}}" class="badge">{{item.completion.reflection.visibility === 'shared' ? '感受已分享' : '感受仅自己可见'}}</text><text wx:if="{{item.completion && item.completion.receipt.status !== 'not_requested'}}" class="badge">{{item.completion.receipt.mode === 'simulation' ? '模拟凭证' : '测试网凭证'}}</text></view><view wx:if="{{item.completion && item.completion.reflection.text}}" class="muted record-reflection">“{{item.completion.reflection.text}}”</view></view><text class="arrow">→</text>
+      </view>
+    </view>
+    <view class="account-panel"><text class="eyebrow">演示身份</text><view class="account-buttons"><button class="secondary" data-account="a" bindtap="switchAccount">切换到阿黎</button><button class="secondary" data-account="b" bindtap="switchAccount">切换到小舟</button></view></view>
+    <view class="account-panel"><text class="eyebrow">徽章预览</text><view class="display danger-title">只作纪念的器物，不作攀比的奖章。</view><view class="muted">徽章只是设计侧的系列预览：点开一枚看三维造型，不代表获得，也不对应 NFT 或任何奖励。</view><button class="secondary" bindtap="openBadges">去看徽章预览</button></view>
+    <view class="account-panel danger"><text class="eyebrow">账户与删除</text><view class="display danger-title">离开，也应该是一件清楚的事。</view><view class="muted">真实链上历史无法由平台单方面抹除，正文从未写入链上。</view><button class="secondary danger-button" bindtap="removeAccount">注销当前演示账户</button></view>
+  </block>
+  <view wx:else class="account-gate"><text class="eyebrow">选择演示身份</text><view class="display account-gate-title">从哪一个身份继续？</view><view wx:if="{{error}}" class="error">{{error}}</view><button class="primary account-choice" data-account="a" bindtap="switchAccount">以阿黎的身份继续</button><button class="secondary account-choice" data-account="b" bindtap="switchAccount">以小舟的身份继续</button></view>
+  <view class="safe-bottom" />
+</view>

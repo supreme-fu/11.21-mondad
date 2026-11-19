@@ -1,0 +1,22 @@
+.hero { padding: 48rpx 0 72rpx; }
+.hero-title { margin-top: 24rpx; font-size: 70rpx; line-height: 1.25; white-space: pre-line; letter-spacing: -2rpx; }
+.hero-accent { color: #52765f; }
+.hero-copy { margin-top: 32rpx; max-width: 620rpx; font-size: 30rpx; }
+.hero-lines { position: relative; height: 190rpx; margin: 40rpx 0 16rpx; overflow: hidden; }
+.line-one, .line-two { position: absolute; left: 8%; top: 52%; width: 85%; height: 2rpx; background: #52765f; transform: rotate(-13deg); }
+.line-two { background: #df8a68; transform: rotate(16deg); }
+.meeting-dot { position: absolute; left: 49%; top: 44%; width: 24rpx; height: 24rpx; border: 8rpx solid var(--paper); border-radius: 50%; background: var(--accent); }
+.hero-note { color: var(--muted); font-size: 24rpx; }
+.section-heading { margin-bottom: 32rpx; }
+.section-title { margin-top: 16rpx; font-size: 43rpx; line-height: 1.4; }
+.greeting { margin-top: 16rpx; font-size: 25rpx; }
+.activity-item { display: flex; align-items: center; gap: 24rpx; padding: 36rpx 0; border-top: 2rpx solid var(--line); }
+.activity-item:last-child { border-bottom: 2rpx solid var(--line); }
+.activity-hover { background: #e9f0e7; }
+.activity-copy { min-width: 0; flex: 1; }
+.activity-title { margin-top: 8rpx; font-size: 34rpx; line-height: 1.45; }
+.activity-invitation { margin-top: 8rpx; font-size: 24rpx; line-height: 1.55; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+.activity-side { display: flex; flex-direction: column; align-items: flex-end; gap: 16rpx; }
+.arrow { display: flex; width: 72rpx; height: 72rpx; align-items: center; justify-content: center; border: 2rpx solid var(--line); border-radius: 50%; }
+.principles { padding: 88rpx 0 32rpx; }
+.principle-title { margin-bottom: 20rpx; font-size: 43rpx; }

@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="zh">
+<head>
+  <meta charset="utf-8" />
+  <title>徽章离线渲染台</title>
+  <style>
+    html, body { margin: 0; background: #10141a; }
+    #stage { display: block; width: 1200px; height: 1200px; }
+  </style>
+</head>
+<body>
+  <canvas id="stage" width="1200" height="1200"></canvas>
+  <script type="module">
+    import * as THREE from 'three';
+    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+    import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+
+    // 不使用 HDRI 文件：环境反射由 RoomEnvironment 程序化生成，一次 PMREM 即可，
+    // 这样导出的缩略图与 Web/小程序查看器用的是同一套低成本光照。
+    const canvas = document.getElementById('stage');
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, preserveDrawingBuffer: true });
+    renderer.setPixelRatio(1);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.05;
+
+    const pmrem = new THREE.PMREMGenerator(renderer);
+    const environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+    const scene = new THREE.Scene();
+    scene.environment = environment;
+
+    scene.add(new THREE.AmbientLight(0xffffff, 0.22));
+    const key = new THREE.DirectionalLight(0xfff1dd, 2.0); key.position.set(2.4, 3.0, 4.2);
+    const fill = new THREE.DirectionalLight(0xcfe0f2, 0.85); fill.position.set(-3.4, 0.6, 2.4);
+    const side = new THREE.DirectionalLight(0xffffff, 0.9); side.position.set(4.5, 0.8, 0.2);
+    const rim = new THREE.DirectionalLight(0xffffff, 1.2); rim.position.set(-1.2, 2.2, -3.6);
+    scene.add(key, fill, side, rim);
+
+    const camera = new THREE.PerspectiveCamera(34, 1, 0.05, 100);
+    const loader = new GLTFLoader();
+    const cache = new Map();
+
+    const views = {
+      front: new THREE.Vector3(0, 0, 1),
+      side: new THREE.Vector3(1, 0, 0),
+      back: new THREE.Vector3(0, 0, -1),
+      quarter: new THREE.Vector3(0.78, 0.5, 1).normalize(),
+      top: new THREE.Vector3(0.15, 1, 0.25).normalize(),
+    };
+
+    async function load(id) {
+      if (!cache.has(id)) cache.set(id, loader.loadAsync(`/models/${id}.glb`));
+      return cache.get(id);
+    }
+
+    async function render(id, view, size, background) {
+      const gltf = await load(id);
+      const model = gltf.scene.clone(true);
+      const box = new THREE.Box3().setFromObject(model);
+      const center = box.getCenter(new THREE.Vector3());
+      const radius = box.getSize(new THREE.Vector3()).length() / 2;
+      model.position.sub(center);
+      const wrapper = new THREE.Group();
+      wrapper.add(model);
+      scene.add(wrapper);
+
+      const direction = views[view] || views.front;
+      const distance = (radius / Math.sin(THREE.MathUtils.degToRad(camera.fov / 2))) * 1.04;
+      camera.aspect = 1;
+      camera.position.copy(direction).multiplyScalar(distance);
+      camera.lookAt(0, 0, 0);
+      camera.updateProjectionMatrix();
+
+      renderer.setSize(size, size, false);
+      scene.background = background ? new THREE.Color(background) : null;
+      renderer.render(scene, camera);
+      const dataUrl = renderer.domElement.toDataURL('image/png');
+      scene.remove(wrapper);
+      scene.background = null;
+      return dataUrl;
+    }
+
+    window.badgeRenderer = {
+      ready: true,
+      render,
+      async stats(id) {
+        const gltf = await load(id);
+        let meshes = 0, vertices = 0, triangles = 0;
+        gltf.scene.traverse((object) => {
+          if (!object.isMesh) return;
+          meshes += 1;
+          const position = object.geometry.getAttribute('position');
+          vertices += position.count;
+          triangles += object.geometry.getIndex() ? object.geometry.getIndex().count / 3 : position.count / 3;
+        });
+        const box = new THREE.Box3().setFromObject(gltf.scene);
+        return { meshes, vertices, triangles, size: box.getSize(new THREE.Vector3()).toArray() };
+      },
+    };
+  </script>
+</body>
+</html>

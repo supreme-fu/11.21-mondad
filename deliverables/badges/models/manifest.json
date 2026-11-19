@@ -1,0 +1,252 @@
+[
+  {
+    "id": "reading",
+    "name": "阅读 · 一页之间",
+    "material": "鼠尾草珐琅 / 黄铜书签",
+    "series": "task",
+    "file": "models/reading.glb",
+    "bytes": 180952,
+    "meshes": 14,
+    "triangles": 4844,
+    "vertices": 6060,
+    "bounds": {
+      "min": [
+        -0.772,
+        -0.772,
+        -0.116
+      ],
+      "max": [
+        0.772,
+        0.951,
+        0.2226
+      ]
+    },
+    "previousBytes": 917880,
+    "previousVertices": 27361
+  },
+  {
+    "id": "cooking",
+    "name": "做饭 · 烟火日常",
+    "material": "赤铜炖锅 / 奶油搪瓷",
+    "series": "task",
+    "file": "models/cooking.glb",
+    "bytes": 179700,
+    "meshes": 13,
+    "triangles": 5964,
+    "vertices": 5648,
+    "bounds": {
+      "min": [
+        -0.772,
+        -0.772,
+        -0.116
+      ],
+      "max": [
+        0.772,
+        0.951,
+        0.3114
+      ]
+    },
+    "previousBytes": 485424,
+    "previousVertices": 13483
+  },
+  {
+    "id": "travel",
+    "name": "旅行 · 去有风的地方",
+    "material": "青钛金属 / 罗盘金",
+    "series": "task",
+    "file": "models/travel.glb",
+    "bytes": 142388,
+    "meshes": 12,
+    "triangles": 4676,
+    "vertices": 4425,
+    "bounds": {
+      "min": [
+        -0.772,
+        -0.772,
+        -0.116
+      ],
+      "max": [
+        0.772,
+        0.951,
+        0.1765
+      ]
+    },
+    "previousBytes": 345744,
+    "previousVertices": 9524
+  },
+  {
+    "id": "meeting",
+    "name": "相见 · 环环相扣",
+    "material": "玫瑰金轨迹 / 柔光珍珠",
+    "series": "task",
+    "file": "models/meeting.glb",
+    "bytes": 152188,
+    "meshes": 13,
+    "triangles": 5872,
+    "vertices": 4411,
+    "bounds": {
+      "min": [
+        -0.772,
+        -0.772,
+        -0.116
+      ],
+      "max": [
+        0.772,
+        0.951,
+        0.2474
+      ]
+    },
+    "previousBytes": 254024,
+    "previousVertices": 6196
+  },
+  {
+    "id": "contract",
+    "name": "链上 · 完成声明",
+    "material": "拉丝钛金属 / 演示编号",
+    "series": "chain",
+    "file": "models/contract.glb",
+    "bytes": 202864,
+    "meshes": 12,
+    "triangles": 4472,
+    "vertices": 7344,
+    "bounds": {
+      "min": [
+        -0.772,
+        -0.6686,
+        -0.116
+      ],
+      "max": [
+        0.772,
+        0.911,
+        0.1645
+      ]
+    },
+    "previousBytes": 1317276,
+    "previousVertices": 40343
+  },
+  {
+    "id": "bronze10",
+    "name": "10 次 · 铜色起步",
+    "material": "暖铜 / 拉丝内盘",
+    "series": "milestone",
+    "file": "models/bronze10.glb",
+    "bytes": 111616,
+    "meshes": 10,
+    "triangles": 2336,
+    "vertices": 3918,
+    "bounds": {
+      "min": [
+        -0.772,
+        -0.6686,
+        -0.116
+      ],
+      "max": [
+        0.772,
+        0.911,
+        0.1715
+      ]
+    },
+    "previousBytes": 383256,
+    "previousVertices": 11501
+  },
+  {
+    "id": "silver50",
+    "name": "50 次 · 银色回响",
+    "material": "镜面银 / 细刻外圈",
+    "series": "milestone",
+    "file": "models/silver50.glb",
+    "bytes": 133944,
+    "meshes": 10,
+    "triangles": 2676,
+    "vertices": 4818,
+    "bounds": {
+      "min": [
+        -0.772,
+        -0.6686,
+        -0.116
+      ],
+      "max": [
+        0.772,
+        0.911,
+        0.1715
+      ]
+    },
+    "previousBytes": 455024,
+    "previousVertices": 13721
+  },
+  {
+    "id": "gold100",
+    "name": "100 次 · 金色共识",
+    "material": "镜面金 / 浮雕数字",
+    "series": "milestone",
+    "file": "models/gold100.glb",
+    "bytes": 124848,
+    "meshes": 10,
+    "triangles": 2580,
+    "vertices": 4410,
+    "bounds": {
+      "min": [
+        -0.772,
+        -0.6686,
+        -0.116
+      ],
+      "max": [
+        0.772,
+        0.911,
+        0.1715
+      ]
+    },
+    "previousBytes": 347440,
+    "previousVertices": 10337
+  },
+  {
+    "id": "platinum100",
+    "name": "100 次 · 白金珍藏",
+    "material": "冷色白金 / 深岩刻度盘",
+    "series": "milestone",
+    "file": "models/platinum100.glb",
+    "bytes": 124888,
+    "meshes": 10,
+    "triangles": 2580,
+    "vertices": 4410,
+    "bounds": {
+      "min": [
+        -0.772,
+        -0.6686,
+        -0.116
+      ],
+      "max": [
+        0.772,
+        0.911,
+        0.1715
+      ]
+    },
+    "previousBytes": 347468,
+    "previousVertices": 10337
+  },
+  {
+    "id": "diamond100",
+    "name": "100 次 · 钻石微光",
+    "material": "折射晶体 / 白金底座",
+    "series": "milestone",
+    "file": "models/diamond100.glb",
+    "bytes": 126608,
+    "meshes": 11,
+    "triangles": 2588,
+    "vertices": 4434,
+    "bounds": {
+      "min": [
+        -0.772,
+        -0.6686,
+        -0.116
+      ],
+      "max": [
+        0.772,
+        0.911,
+        0.4161
+      ]
+    },
+    "previousBytes": 146700,
+    "previousVertices": 4037
+  }
+]

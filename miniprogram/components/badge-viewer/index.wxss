@@ -1,0 +1,5 @@
+/* 查看器本体由 xr-frame 接管，这里只兜底浅色背景，避免 WebGL 初始化前出现白屏。 */
+.badge-viewer {
+  display: block;
+  background: #f3f7f2;
+}

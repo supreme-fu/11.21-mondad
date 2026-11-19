@@ -1,0 +1,21 @@
+{
+  "chainId": 10143,
+  "sponsor": "0x076b535117754140Fd381858976143a05c029b04",
+  "attestor": "0x4Baa6B8C1e6E40c1692e1aEC4Dbc3c46D92C4cCc",
+  "contracts": {
+    "DemoRewardToken": {
+      "address": "0xAEc92f5A8D121b6e3FaFcB429dC4B7Cc24781353",
+      "transactionHash": "0x27485f76ce117ccfad83f581250144435bcf2a15c9c4b19fa868c41cbf015d29",
+      "status": "confirmed"
+    },
+    "ReadingChallenge": {
+      "address": "0x3ed53Ec76b80F4f387401C3e86C1be06b4682ed2",
+      "transactionHash": "0x4d584c9d1fa52ba47ea80fd8c15e5373a84e3c85c5fcb7cf7f166cb514caa164",
+      "status": "confirmed"
+    },
+    "ReadingBadge": {
+      "address": "0xf584037417B6A4734656641904B009C0BAB4E720",
+      "status": "confirmed"
+    }
+  }
+}

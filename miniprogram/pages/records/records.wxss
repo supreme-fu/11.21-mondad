@@ -1,0 +1,13 @@
+.records-title { margin-top: 28rpx; font-size: 58rpx; line-height: 1.35; white-space: pre-line; }
+.records-intro { margin: 28rpx 0 56rpx; }
+.record-item { display: flex; align-items: flex-start; gap: 22rpx; padding: 36rpx 0; border-top: 2rpx solid var(--line); }
+.record-copy { min-width: 0; flex: 1; }
+.record-title { margin-top: 8rpx; font-size: 34rpx; }
+.record-badges { display: flex; flex-wrap: wrap; gap: 10rpx; margin-top: 16rpx; }
+.record-reflection { margin-top: 20rpx; font-size: 25rpx; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; }
+.record-item .arrow { flex: 0 0 auto; display: flex; width: 64rpx; height: 64rpx; align-items: center; justify-content: center; border: 2rpx solid var(--line); border-radius: 50%; }
+.account-panel { margin-top: 48rpx; padding: 32rpx; border-radius: 28rpx; background: var(--soft); }
+.account-buttons { display: flex; gap: 16rpx; margin-top: 24rpx; }
+.account-buttons button { flex: 1; padding: 0 12rpx; font-size: 25rpx; }
+.danger-title { margin: 16rpx 0; font-size: 36rpx; }
+.danger-button { margin-top: 28rpx; color: #9b4135; }

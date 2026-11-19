@@ -1,0 +1,31 @@
+<!--
+  单枚徽章的 xr-frame 查看器。官方参照：
+  miniprogram-demo/packageXRFrame/components/xr-gltf-damageHelmet/index.wxml（gltf + camera-orbit-control）
+  miniprogram-demo/packageXRFrame/components/template/xr-template-loading/index.js（loadAsset / releaseAsset）
+
+  约定：
+  - 列表页不实例化本组件，只有详情页挂载，模型随详情页一起按需加载；
+  - 资源通过 scene.assets.loadAsset 动态加载，assetId 固定为 badge-gltf；
+  - xr-gltf 用 wx:if 门控，释放时先摘掉节点再 releaseAsset，避免野指针。
+-->
+<xr-scene id="xr-scene" bind:ready="handleReady" bind:pause="handlePause" bind:resume="handleResume">
+  <xr-assets bind:progress="handleAssetsProgress" bind:loaded="handleAssetsLoaded" />
+  <xr-node>
+    <xr-node node-id="camera-target" position="0 0 0" />
+    <xr-node wx:if="{{gltfLoaded}}">
+      <xr-gltf id="badge-model" node-id="badge-model" model="badge-gltf" position="0 0 0" rotation="0 0 0" scale="1 1 1" />
+    </xr-node>
+    <xr-camera
+      id="camera" node-id="camera"
+      position="0 0 3" clear-color="0.955 0.965 0.955 1"
+      near="0.05" far="100"
+      target="camera-target"
+      camera-orbit-control=""
+    />
+  </xr-node>
+  <xr-node node-id="lights">
+    <xr-light type="ambient" color="1 1 1" intensity="0.35" />
+    <xr-light type="directional" rotation="35 140 0" color="1 1 1" intensity="2.2" />
+    <xr-light type="directional" rotation="20 -120 0" color="1 1 1" intensity="1.1" />
+  </xr-node>
+</xr-scene>

@@ -1,0 +1,4 @@
+{
+  "desc": "Do Something 演示原型，不用于索引。",
+  "rules": [{ "action": "disallow", "page": "*" }]
+}

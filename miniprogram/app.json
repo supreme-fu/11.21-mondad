@@ -1,0 +1,32 @@
+{
+  "pages": [
+    "pages/home/home",
+    "pages/activity/activity",
+    "pages/complete/complete",
+    "pages/records/records",
+    "pages/about/about",
+    "pages/badges/badges",
+    "pages/badge-detail/badge-detail"
+  ],
+  "window": {
+    "navigationBarTitleText": "Do Something",
+    "navigationBarBackgroundColor": "#f3f7f2",
+    "navigationBarTextStyle": "black",
+    "backgroundColor": "#f3f7f2",
+    "backgroundTextStyle": "dark"
+  },
+  "tabBar": {
+    "color": "#66776d",
+    "selectedColor": "#203f32",
+    "backgroundColor": "#f3f7f2",
+    "borderStyle": "white",
+    "list": [
+      { "pagePath": "pages/home/home", "text": "发现" },
+      { "pagePath": "pages/records/records", "text": "记录" },
+      { "pagePath": "pages/about/about", "text": "边界" }
+    ]
+  },
+  "style": "v2",
+  "lazyCodeLoading": "requiredComponents",
+  "sitemapLocation": "sitemap.json"
+}

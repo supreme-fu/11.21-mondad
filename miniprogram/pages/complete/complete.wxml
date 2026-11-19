@@ -1,0 +1,54 @@
+<view class="page complete-page">
+  <view wx:if="{{loading}}" class="loading">正在打开这条记录…</view>
+  <block wx:elif="{{record}}">
+    <view wx:if="{{error}}" class="error">{{error}}</view>
+    <block wx:if="{{!record.completion}}">
+      <view class="glyph glyph-{{record.activity.id}} declare-glyph">{{record.activity.category[0]}}</view>
+      <text class="eyebrow">不需要照片，不需要证明</text>
+      <view class="display declare-title">先承认：
+你已经去做了。</view>
+      <view class="muted declare-copy">{{record.activity.completionHint}}</view>
+      <view class="declare-panel"><view class="display declare-panel-title">我完成了「{{record.activity.title}}」</view><view class="muted">点击后只为你记下这次行动，不会自动公开感受，也不强制生成链上凭证。</view><button class="primary declare-button" loading="{{pending}}" bindtap="declare">确认我已完成</button><view class="declare-note">即使之后登记失败，这次完成也依然有效。</view></view>
+    </block>
+    <block wx:else>
+      <text class="badge">自报完成 · 无需自证</text>
+      <view class="display complete-title">这件事，已经算数。</view>
+      <view class="muted complete-copy">「{{record.activity.title}}」不要求你再证明什么。接下来的记录与分享，都由你决定。</view>
+      <view class="echo-panel"><text class="echo-eyebrow">行动之后，一段经历与你相遇</text><view class="display echo-title">原来，也有人回应了这件事。</view><view wx:if="{{echoLoading}}" class="echo-loading">正在翻看同路人留下的字条…</view><block wx:elif="{{echo}}"><view class="echo-quote">“{{echo.text}}”</view><view class="echo-author">{{echo.displayName}}<text wx:if="{{echo.isExample}}" class="example-badge">示例内容</text></view><button wx:if="{{echoTotal > 1}}" class="ghost echo-next" bindtap="nextEcho">再翻看一张同路人的字条</button></block><view wx:else class="echo-empty">这里暂时还没有可展示的经历。你的私密记录不会被用来填补空白。</view><view class="echo-boundary">这里只停留同主题下自愿敞开的文字。不必寒暄，看见即是重逢。</view></view>
+      <view wx:if="{{record.activity.id === 'reading'}}" class="form-panel reading-lab-panel">
+        <text class="eyebrow">《小王子》共读核验 · MONAD EIP-712</text>
+        <view class="display panel-title">共读进度与激励领取</view>
+        <view wx:if="{{readingLoading}}" class="muted">正在加载共读核验状态…</view>
+        <block wx:elif="{{readingChallenge}}">
+          <view class="reading-summary-row">
+            <text class="badge">覆盖率 {{readingChallenge.coveragePercent}}% · {{readingChallenge.lastChapterCompleted ? '末章已完成' : '末章未完成'}}</text>
+            <text class="reading-earned">累计 {{readingChallenge.earnedDsdemo}} DSDEMO</text>
+          </view>
+          <view class="reading-progress-bar"><view class="reading-progress-fill" style="width: {{readingChallenge.coveragePercent}}%;" /></view>
+          <view class="reading-presets">
+            <button class="ghost reading-preset-btn" size="mini" disabled="{{readingPending || readingChallenge.readingClaimed}}" data-preset="baseline" bindtap="syncReadingPreset">62% · 报名基线</button>
+            <button class="ghost reading-preset-btn" size="mini" disabled="{{readingPending || readingChallenge.readingClaimed}}" data-preset="partial" bindtap="syncReadingPreset">80% · 末章未完成</button>
+            <button class="ghost reading-preset-btn" size="mini" disabled="{{readingPending || readingChallenge.readingClaimed}}" data-preset="complete" bindtap="syncReadingPreset">88% · 末章已完成</button>
+          </view>
+          <view wx:if="{{!readingChallenge.readingClaimed && !readingChallenge.canClaimReading}}" class="notice">{{readingChallenge.readingBlockedReason}}</view>
+          <view wx:if="{{readingError}}" class="error">{{readingError}}</view>
+          <view class="reading-claim-block">
+            <button wx:if="{{!readingChallenge.readingClaimed}}" class="primary" disabled="{{readingPending || !readingChallenge.canClaimReading}}" loading="{{readingPending}}" data-kind="reading" bindtap="claimReadingReward">领取阅读奖励（10 DSDEMO + 共读勋章）</button>
+            <view wx:else class="receipt-id"><text>阅读奖已领取 · ReadingBadge #{{readingChallenge.badgeTokenId}}</text><text user-select>{{readingChallenge.readingProofDigest}}</text></view>
+          </view>
+          <view class="reading-claim-block">
+            <button wx:if="{{!readingChallenge.hasReflection && !readingChallenge.reviewClaimed}}" class="secondary" disabled="{{readingPending}}" bindtap="fillSampleLittlePrinceReview">填入《小王子》书评示例并保存</button>
+            <button wx:if="{{!readingChallenge.reviewClaimed}}" class="secondary" disabled="{{readingPending || !readingChallenge.canClaimReview}}" loading="{{readingPending}}" data-kind="review" bindtap="claimReadingReward">领取书评奖励（2 DSDEMO）</button>
+            <view wx:else class="receipt-id"><text>书评奖已叠加领取 +2 DSDEMO（原文链下可删）</text><text user-select>{{readingChallenge.reviewProofDigest}}</text></view>
+          </view>
+          <view class="receipt-id"><text>ReadingChallenge · Monad Testnet (10143)</text><text user-select>{{readingChallenge.contracts.readingChallenge.address}}</text></view>
+        </block>
+      </view>
+      <view class="form-panel"><text class="eyebrow">可选，不影响完成</text><view class="display panel-title">留一句此刻的感受</view><label class="form-label" for="reflection">你的感受（最多 500 字）</label><textarea id="reflection" class="textarea" value="{{text}}" maxlength="500" bindinput="onTextInput" placeholder="可以不写。如果愿意，留下一句给未来的自己……" /><view class="count">{{text.length}} / 500</view><view class="share-row"><view class="share-copy"><text>允许同主题完成者看到</text><view class="muted">默认关闭，随时可以撤回。</view></view><switch checked="{{shared}}" bindchange="onShareChange" color="#315c47" /></view><view class="notice">{{shared ? '保存后，其他同主题完成者可能看到这段文字。' : '当前仅自己可见，私密正文不会用于制造相似经历。'}}</view><view class="actions"><button class="primary" loading="{{pending}}" bindtap="saveReflection">保存感受与选择</button><button wx:if="{{record.completion.reflection.text || text}}" class="ghost" bindtap="deleteReflection">删除正文</button></view></view>
+      <view class="form-panel receipt-panel"><text class="eyebrow">独立申请，不自动上链</text><view class="display panel-title">完成凭证</view><view class="badge receipt-status">{{record.completion.receipt.status === 'confirmed' ? (record.completion.receipt.mode === 'simulation' ? '本地模拟已登记（非链上）' : '完成声明已登记') : record.completion.receipt.status === 'failed' ? '登记失败，完成仍然有效' : record.completion.receipt.status === 'not_requested' ? '尚未申请' : '登记处理中'}}</view><view class="muted receipt-copy">只登记随机 32 字节编号，不包含姓名、活动名、正文、正文哈希、图片或定位。</view><view wx:if="{{record.completion.receipt.receiptId}}" class="receipt-id"><text>凭证编号</text><text user-select>{{record.completion.receipt.receiptId}}</text></view><view wx:if="{{record.completion.receipt.status === 'not_requested' || record.completion.receipt.status === 'failed'}}"><view class="share-row consent"><view class="share-copy"><text>我理解凭证边界</text><view class="muted">{{record.completion.receipt.mode === 'simulation' ? '当前仅生成本地模拟记录，不是真实链上交易。' : '真实测试网记录确认后无法由平台删除，正文不会上链。'}}</view></view><switch checked="{{acknowledged}}" bindchange="onAcknowledgeChange" color="#315c47" /></view><button class="secondary receipt-button" loading="{{pending}}" bindtap="requestReceipt">{{record.completion.receipt.status === 'failed' ? '使用同一编号重试' : record.completion.receipt.mode === 'simulation' ? '申请本地模拟凭证' : '申请测试网凭证'}}</button></view></view>
+      <view class="deletion-note">正文与凭证分开保存。删除正文不会撤销现实行为，也不会抹除已确认的公开链历史。</view>
+    </block>
+  </block>
+  <view wx:else class="empty"><view class="display empty-title">没有找到这条约定</view><view class="muted">{{error}}</view></view>
+  <view class="safe-bottom" />
+</view>

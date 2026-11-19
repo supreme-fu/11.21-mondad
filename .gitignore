@@ -1,0 +1,39 @@
+# 依赖
+node_modules/
+
+# 环境与密钥
+.env
+.env.*
+!.env.example
+
+# 本地数据库与 SQLite 伴随文件
+*.db
+*.db-shm
+*.db-wal
+server/data/
+
+# 构建产物
+dist/
+build/
+*.tsbuildinfo
+contracts/artifacts/
+contracts/cache/
+contracts/typechain-types/
+integrations/teammate-chain/artifacts/
+
+# 队友仓库的独立检出
+/teammate-review-20261119/
+
+# 测试产物
+test-results/
+playwright-report/
+playwright/.cache/
+.last-run.json
+coverage/
+
+# 系统与编辑器
+.DS_Store
+
+# 私有微信小程序配置（project.config.json 可提交，私有配置不提交）
+miniprogram/project.private.config.json
+miniprogram/node_modules/

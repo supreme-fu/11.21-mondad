@@ -1,0 +1,20 @@
+{
+  "name": "do-something-contracts",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "test": "hardhat test",
+    "compile": "hardhat compile",
+    "preflight:monad": "hardhat run scripts/preflight.ts --network monadTestnet",
+    "deploy:monad": "hardhat run scripts/deploy.ts --network monadTestnet",
+    "verify:monad": "hardhat run scripts/verify-receipt.ts --network monadTestnet",
+    "register:monad": "hardhat run scripts/register-receipt.ts --network monadTestnet"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^6.1.0",
+    "@types/node": "^24.10.1",
+    "hardhat": "^2.26.3",
+    "typescript": "^5.9.3",
+    "tsx": "^4.20.6"
+  }
+}

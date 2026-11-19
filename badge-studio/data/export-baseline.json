@@ -1,0 +1,17 @@
+{
+  "note": "修复前实测：badge-studio/public/models/*.glb（2026-11-10 11:42 导出，含 Euler[π/2,0,π/6] 倾斜轴、做饭锅体穿背板、相见/旅行同深度交叉、阅读纹路未继承旋转），由 scripts/_stats.mjs 实测字节与脚本导出的顶点数统计得出。",
+  "measuredAt": "2026-11-10T14:55:00+08:00",
+  "badges": {
+    "reading": { "bytes": 917880, "vertices": 27361, "triangles": 12336 },
+    "cooking": { "bytes": 485424, "vertices": 13483, "triangles": 9576 },
+    "travel": { "bytes": 345744, "vertices": 9524, "triangles": 7040 },
+    "meeting": { "bytes": 254024, "vertices": 6196, "triangles": 7972 },
+    "contract": { "bytes": 1317276, "vertices": 40343, "triangles": 15400 },
+    "bronze10": { "bytes": 383256, "vertices": 11501, "triangles": 4576 },
+    "silver50": { "bytes": 455024, "vertices": 13721, "triangles": 5356 },
+    "gold100": { "bytes": 347440, "vertices": 10337, "triangles": 4268 },
+    "platinum100": { "bytes": 347468, "vertices": 10337, "triangles": 4268 },
+    "diamond100": { "bytes": 146700, "vertices": 4037, "triangles": 2168 }
+  },
+  "totalBytes": 5000236
+}

@@ -1,0 +1,23 @@
+{
+  "name": "do-something-prototype",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.18"
+  },
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "build": "npm run build --prefix app && npm run build --prefix server",
+    "start": "node server/dist/index.js",
+    "lint": "npm run lint --prefix app",
+    "test": "npm run test --prefix server && npm run test --prefix contracts && npm run test:miniprogram",
+    "test:miniprogram": "cd server && ./node_modules/.bin/tsx --test ../tests/miniprogram/*.test.ts",
+    "test:evm": "npm run compile --prefix contracts && node scripts/test-evm-provider.mjs",
+    "test:e2e": "playwright test",
+    "test:all": "npm test && npm run test:evm && npm run test:e2e"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.56.1"
+  }
+}

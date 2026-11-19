@@ -1,0 +1,797 @@
+#root { min-height: 100dvh; }
+
+.home-hero { @apply grid items-center gap-10 py-12 md:grid-cols-[1.02fr_.98fr] md:py-20; }
+.hero-copy { @apply relative z-[1]; }
+.hero-copy h1 { @apply mt-4 font-display font-semibold; font-size: clamp(2.5rem, 5.5vw, 4.5rem); line-height: 1.12; letter-spacing: -.035em; }
+.hero-copy h1 em { color: oklch(var(--moss-700)); font-style: normal; }
+.hero-description { @apply mt-6 max-w-xl text-base leading-relaxed text-muted-foreground md:text-lg; }
+.hero-actions { @apply mt-8 flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:gap-4; }
+.hero-actions svg, .text-link svg, .primary-link svg { @apply size-4; }
+.hero-assurances { @apply mt-8 flex flex-wrap gap-x-5 gap-y-2 text-sm text-muted-foreground; }
+.hero-assurances li { @apply flex items-center gap-1.5; }
+.hero-assurances svg { @apply size-4; color: oklch(var(--moss-700)); }
+.meeting-mark { @apply relative grid w-full items-center; min-height: 360px; }
+.meeting-mark > * { grid-area: 1 / 1; }
+.meeting-mark > svg { @apply h-auto w-full overflow-visible; }
+.meeting-mark path { fill: none; stroke-width: 1.7; stroke-linecap: round; }
+.path-one { stroke: oklch(var(--moss-700)); }
+.path-two { stroke: oklch(var(--accent) / .72); stroke-dasharray: 5 9; }
+.meeting-dot { fill: oklch(var(--accent)); stroke: oklch(var(--paper-50)); stroke-width: 7; }
+.orbit-dot { fill: oklch(var(--moss-300)); }
+.path-note { @apply flex w-fit items-center gap-2 rounded-full border bg-card px-4 py-2 text-xs shadow-soft sm:text-sm; }
+.path-note svg { @apply size-4; color: oklch(var(--moss-700)); }
+.path-note-one { @apply self-start justify-self-start; margin: 18% 0 0 2%; transform: rotate(-3deg); }
+.path-note-two { @apply self-end justify-self-end; margin: 0 0 17% 0; transform: rotate(2deg); }
+.mark-caption { @apply self-end justify-self-center text-xs tracking-wide text-muted-foreground; }
+.themes-section { @apply py-12 md:py-20; scroll-margin-top: 130px; }
+.section-heading-row { @apply mb-8 flex flex-col gap-5 md:mb-10 md:flex-row md:items-end md:justify-between; }
+.section-heading-row h2 { @apply mt-3 max-w-2xl; }
+.section-heading-row > p { @apply text-sm text-muted-foreground md:text-right; }
+.activity-list { @apply border-t; }
+.activity-row { @apply grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-4 border-b py-6 transition-colors duration-150 md:gap-7 md:py-8; }
+.activity-row:hover { background: oklch(var(--secondary) / .52); }
+.activity-row-copy { min-width: 0; }
+.activity-meta { @apply flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground; }
+.activity-meta span { @apply inline-flex items-center gap-1; }
+.activity-meta svg { @apply size-3.5; }
+.activity-row h3 { @apply mt-2 font-display text-xl leading-snug md:text-2xl; }
+.activity-row-copy > p { @apply mt-2 hidden max-w-2xl text-sm text-muted-foreground sm:block; }
+.activity-row-action { @apply flex items-center gap-2 md:gap-4; }
+.activity-row-action .badge { @apply hidden sm:inline-flex; }
+.activity-arrow { @apply grid size-11 place-items-center rounded-full border transition-transform duration-150; }
+.activity-arrow svg { @apply size-4; }
+.activity-row:hover .activity-arrow { transform: translateX(4px); background: oklch(var(--primary)); color: oklch(var(--primary-foreground)); }
+.how-section { @apply grid gap-10 py-12 md:grid-cols-[.75fr_1.25fr] md:py-20; }
+.how-intro h2 { @apply mt-3; }
+.how-intro > p:last-child { @apply mt-5 max-w-md text-muted-foreground; }
+.principle-list { @apply grid gap-7 sm:grid-cols-3; }
+.principle-list article { @apply border-t pt-5; }
+.principle-list svg { @apply size-6; color: oklch(var(--moss-700)); stroke-width: 1.5; }
+.principle-list h3 { @apply mt-5 font-display text-xl; }
+.principle-list p { @apply mt-3 text-sm leading-relaxed text-muted-foreground; }
+.home-closing { @apply py-16 text-center md:py-24; }
+.home-closing > p { @apply mx-auto max-w-3xl font-display text-2xl leading-relaxed md:text-4xl; }
+.home-closing .text-link { @apply mt-6; }
+
+.page-loading { @apply flex min-h-[50dvh] items-center justify-center gap-2 text-muted-foreground; }
+.back-link { @apply inline-flex min-h-11 items-center gap-2 text-sm text-muted-foreground hover:text-foreground; }
+.back-link svg { @apply size-4; }
+.activity-page { @apply py-6 md:py-10; }
+.activity-hero { @apply grid gap-10 border-b py-8 md:grid-cols-[1.1fr_.9fr] md:py-14; }
+.activity-hero > div > .activity-glyph { @apply mb-7; }
+.activity-hero h1 { @apply mt-5 max-w-2xl font-display text-4xl leading-tight tracking-tight md:text-6xl; }
+.activity-hero > div > p { @apply mt-5 max-w-xl text-lg leading-relaxed text-muted-foreground; }
+.promise-panel { @apply flex flex-col items-start justify-center rounded-2xl bg-secondary p-6 md:p-9; }
+.promise-panel h2 { @apply mt-3 font-display text-2xl md:text-3xl; }
+.promise-panel > p { @apply mb-6 mt-4 text-muted-foreground; }
+.leave-button { @apply mt-3 min-h-11 rounded-lg px-2 text-sm text-muted-foreground underline-offset-4 hover:underline disabled:opacity-50; }
+.activity-rules { @apply grid gap-10 border-b py-12 md:grid-cols-2 md:py-16; }
+.activity-rules article > span { @apply text-sm font-medium; color: oklch(var(--moss-700)); }
+.activity-rules h2 { @apply mt-3 max-w-md font-display text-2xl leading-snug; }
+.activity-rules p { @apply mt-4 max-w-xl leading-relaxed text-muted-foreground; }
+.rule-note { @apply mt-6 flex max-w-lg items-start gap-2 text-sm; }
+.rule-note svg { @apply mt-1 size-4 shrink-0; color: oklch(var(--moss-700)); }
+.data-preview { @apply py-12 md:py-16; }
+.data-preview h2 { @apply mt-3; }
+.data-preview-list { @apply my-8 grid gap-5 md:grid-cols-2; }
+.data-preview-list article { @apply flex gap-4 border-t pt-5; }
+.data-preview-list svg { @apply mt-1 size-6 shrink-0; color: oklch(var(--moss-700)); }
+.data-preview-list h3 { @apply font-display text-xl; }
+.data-preview-list p { @apply mt-2 text-sm text-muted-foreground; }
+
+.declare-page, .completion-page { @apply py-6 md:py-10; }
+.declare-layout { @apply grid items-center gap-10 py-10 md:grid-cols-2 md:py-16; }
+.declare-layout > div > .activity-glyph { @apply mb-6; }
+.declare-layout h1 { @apply mt-4 font-display text-4xl leading-tight md:text-6xl; }
+.declare-layout > div > p { @apply mt-5 max-w-lg text-muted-foreground; }
+.declare-card { @apply flex flex-col items-start rounded-2xl border bg-card p-6 shadow-soft md:p-9; }
+.declare-card .soft-icon { @apply mx-0; }
+.declare-card h2 { @apply mt-6 font-display text-2xl; }
+.declare-card p { @apply my-4 text-muted-foreground; }
+.declare-card code { @apply rounded bg-secondary px-1.5 py-0.5 text-sm; }
+.declare-card small { @apply mt-4 text-xs text-muted-foreground; }
+.completion-header { @apply flex items-start justify-between gap-5 py-8 md:py-12; }
+.completion-header h1 { @apply mt-5 font-display text-4xl leading-tight md:text-6xl; }
+.completion-header p { @apply mt-4 max-w-2xl text-muted-foreground; }
+.completion-header .activity-glyph { @apply hidden sm:grid; }
+.echo-panel { @apply relative grid overflow-hidden rounded-2xl bg-primary text-primary-foreground md:grid-cols-[.38fr_1fr]; }
+.echo-visual { @apply relative hidden min-h-64 items-center justify-center p-6 md:flex; }
+.echo-visual svg { @apply h-full max-h-56 w-full overflow-visible; }
+.echo-curve-one { fill: none; stroke: oklch(var(--primary-foreground) / .42); stroke-width: 1.75; stroke-linecap: round; }
+.echo-curve-two { fill: none; stroke: oklch(var(--accent) / .85); stroke-width: 1.75; stroke-dasharray: 5 8; stroke-linecap: round; }
+.echo-node-outer { fill: oklch(var(--primary-foreground) / .14); }
+.echo-node-core { fill: oklch(var(--accent)); }
+.echo-content { @apply relative p-6 md:p-10; }
+.echo-content .eyebrow { color: oklch(var(--paper-100)); }
+.echo-content h2 { @apply mt-3 max-w-xl font-display text-[1.35rem] md:text-3xl; }
+.echo-content blockquote { @apply relative mt-6 max-w-3xl border-l-2 pl-5; border-color: oklch(var(--accent) / .65); }
+.echo-content blockquote p { @apply font-display text-xl leading-relaxed md:text-2xl; }
+.echo-content blockquote footer { @apply mt-4 flex items-center gap-3 text-sm; color: oklch(var(--paper-100) / .9); }
+.echo-content .badge { color: oklch(var(--moss-900)); }
+.echo-boundary { @apply mt-7 flex items-start gap-2 text-xs; color: oklch(var(--paper-100) / .85); }
+.echo-boundary svg { @apply mt-0.5 size-4 shrink-0; }
+.echo-empty { @apply mt-5 max-w-xl; }
+.completion-panels { @apply mt-8 grid gap-6 lg:grid-cols-2; }
+.reflection-editor, .receipt-panel { @apply rounded-2xl border bg-card p-6 md:p-8; }
+.panel-heading { @apply mb-6 flex items-start justify-between gap-4; }
+.panel-heading h2 { @apply mt-2 font-display text-2xl; }
+.panel-heading > svg { @apply size-6; color: oklch(var(--moss-700)); }
+.reflection-editor > label:first-of-type { @apply text-sm font-medium; }
+.reflection-textarea { @apply min-h-40 resize-y leading-relaxed; }
+.character-count { @apply mt-1 text-right text-xs text-muted-foreground; font-variant-numeric: tabular-nums; }
+.share-check { @apply mt-4; }
+.share-check span { @apply flex flex-col; }
+.share-check small { @apply mt-1 text-xs text-muted-foreground; }
+.visibility-note { @apply mt-3 flex items-start gap-2 rounded-xl bg-secondary p-3 text-xs text-muted-foreground; }
+.visibility-note svg { @apply mt-0.5 size-4 shrink-0; }
+.form-actions { @apply mt-5 flex flex-col items-start gap-2 sm:flex-row sm:flex-wrap; }
+.receipt-status { @apply inline-flex items-center gap-2 rounded-full bg-secondary px-3 py-1.5 text-sm font-medium; }
+.status-dot { @apply size-2 rounded-full bg-muted-foreground; }
+.receipt-confirmed .status-dot { background: oklch(var(--moss-700)); }
+.receipt-failed .status-dot { background: oklch(var(--destructive)); }
+.receipt-explanation { @apply my-5 text-sm leading-relaxed text-muted-foreground; }
+.receipt-id { @apply flex flex-col gap-1 border-t py-3 text-xs text-muted-foreground; }
+.receipt-id code { @apply break-all text-sm text-foreground; font-variant-numeric: tabular-nums; }
+.receipt-consent { @apply my-5; }
+.processing-note { @apply mt-5 flex items-center gap-2 text-sm text-muted-foreground; }
+.completion-footer { @apply mt-8 flex flex-col gap-3 border-t py-6 text-sm text-muted-foreground md:flex-row md:items-center; }
+.completion-footer > svg { @apply size-5 shrink-0; }
+.completion-footer p { @apply flex-1; }
+
+.records-page { @apply py-10 md:py-16; }
+.records-header { @apply grid gap-6 border-b pb-10 md:grid-cols-[1.2fr_.8fr] md:items-end; }
+.records-header h1 { @apply mt-4 font-display text-4xl leading-tight md:text-6xl; }
+.records-header > p { @apply max-w-md text-muted-foreground; }
+.record-list { @apply mb-12; }
+.record-item { @apply grid grid-cols-[auto_minmax(0,1fr)_auto] gap-4 border-b py-7 md:gap-6; }
+.record-main h2 { @apply mt-2 font-display text-xl md:text-2xl; }
+.record-badges { @apply mt-3 flex flex-wrap gap-2; }
+.record-badges svg { @apply size-3.5; }
+.record-reflection { @apply mt-4 max-w-2xl text-sm text-muted-foreground; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.record-no-reflection { @apply mt-4 text-sm text-muted-foreground; }
+.record-action { @apply grid size-11 place-items-center rounded-full border transition-colors hover:bg-primary hover:text-primary-foreground; }
+.record-action svg { @apply size-4; }
+.account-danger { @apply flex scroll-mt-36 flex-col items-start gap-6 rounded-2xl bg-secondary p-6 md:flex-row md:items-center md:justify-between md:p-8; }
+.account-danger h2 { @apply mt-2 font-display text-2xl; }
+.account-danger p:last-child { @apply mt-3 max-w-2xl text-sm text-muted-foreground; }
+.delete-dialog { @apply max-h-[90dvh] overflow-y-auto rounded-2xl p-6; }
+.delete-dialog [data-slot='dialog-title'] { @apply font-display text-2xl; }
+.delete-boundaries { @apply grid gap-3 py-3; }
+.delete-boundaries p { @apply flex items-start gap-3 text-sm leading-relaxed; }
+.delete-boundaries svg { @apply mt-1 size-4 shrink-0; }
+
+.about-page { @apply py-12 md:py-20; }
+.about-hero { @apply max-w-5xl border-b pb-12 md:pb-16; }
+.about-hero h1 { @apply mt-4 font-display text-4xl leading-tight tracking-tight md:text-6xl; }
+.about-hero > p:last-child { @apply mt-6 max-w-2xl text-lg leading-relaxed text-muted-foreground; }
+.about-principles { @apply grid gap-8 border-b py-12 md:grid-cols-2; }
+.about-principles svg { @apply size-7; color: oklch(var(--moss-700)); }
+.about-principles h2 { @apply mt-5 font-display text-2xl; }
+.about-principles p { @apply mt-3 max-w-lg text-muted-foreground; }
+.chain-explainer { @apply border-b py-12 md:py-16; }
+.chain-explainer > div:first-child > p:last-child { @apply mt-5 max-w-3xl text-muted-foreground; }
+.chain-explainer h2 { @apply mt-3; }
+.boundary-table { @apply mt-8 border-t; }
+.boundary-row { @apply grid gap-3 border-b py-5 text-sm md:grid-cols-[.55fr_1.2fr_1fr] md:gap-6; }
+.boundary-row > span:first-child { @apply flex items-center gap-2 font-medium; }
+.boundary-row svg { @apply size-5; }
+.boundary-heading { @apply hidden text-xs text-muted-foreground md:grid; }
+.simulation-explainer { @apply my-12 flex items-start gap-5 rounded-2xl bg-secondary p-6 md:p-8; }
+.simulation-explainer .soft-icon { @apply mx-0 shrink-0 bg-card; }
+.simulation-explainer h2 { @apply font-display text-2xl; }
+.simulation-explainer p { @apply mt-2 text-muted-foreground; }
+.deletion-explainer { @apply py-4 md:py-8; }
+.deletion-explainer h2 { @apply mt-3; }
+.deletion-explainer ul { @apply mt-7 grid gap-4 md:grid-cols-2; }
+.deletion-explainer li { @apply flex items-start gap-2 text-muted-foreground; }
+.deletion-explainer li svg { @apply mt-1 size-4 shrink-0; color: oklch(var(--moss-700)); }
+.about-closing { @apply mt-16 flex flex-col items-start gap-7 border-t pt-12 md:flex-row md:items-end md:justify-between; }
+.about-closing h2 { @apply max-w-3xl font-display text-3xl leading-snug md:text-4xl; }
+.not-found { @apply mt-16; }
+.not-found h1 { @apply mt-3 font-display text-4xl; }
+
+/* 徽章系列预览页：借鉴 holo-card-studio 的分层藏品闪卡陈列，首屏零 WebGL / 零 three.js。 */
+.atelier-diamond {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border: 1.25px solid currentColor;
+  transform: rotate(45deg);
+  margin-right: 0.55rem;
+  vertical-align: middle;
+}
+.badges-page { @apply py-10 md:py-16; }
+.badges-header { @apply grid gap-7 border-b pb-10 md:grid-cols-[1.15fr_.85fr] md:items-end; }
+.badges-header .eyebrow { @apply flex items-center; }
+.badges-header h1 { @apply mt-4 font-display text-4xl leading-tight md:text-6xl; }
+.badges-atelier-bar {
+  @apply mt-6 inline-flex items-center gap-3 text-[0.7rem] tracking-[0.2em] text-muted-foreground uppercase;
+}
+.badges-atelier-bar i { @apply inline-block h-px w-7; background: oklch(var(--moss-700) / .55); }
+.badges-header-aside { @apply grid gap-4 md:justify-self-end md:max-w-md; }
+.badges-header-aside > p:first-child { @apply text-muted-foreground; }
+.badges-header-hint {
+  @apply flex items-start gap-2.5 rounded-xl border px-3.5 py-2.5 text-xs leading-relaxed text-muted-foreground;
+  background: oklch(var(--secondary) / .65);
+}
+.badges-header-hint svg { @apply mt-0.5 size-4 shrink-0; color: oklch(var(--moss-700)); }
+
+.badge-group { @apply border-b py-10 md:py-12; }
+.badge-group-head { @apply flex flex-col gap-3 md:flex-row md:items-end md:justify-between; }
+.badge-group-index {
+  @apply block text-[0.68rem] font-medium tracking-[0.22em] uppercase;
+  color: oklch(var(--moss-700));
+}
+.badge-group-head h2 { @apply mt-1 font-display text-2xl md:text-3xl; }
+.badge-group-head p { @apply max-w-md text-sm text-muted-foreground; }
+
+.badge-grid { @apply mt-7 grid grid-cols-2 gap-4 sm:grid-cols-2 sm:gap-5 md:grid-cols-3 lg:grid-cols-4; }
+.badge-grid-milestone { @apply lg:grid-cols-5; }
+.badge-grid li { @apply min-w-0; }
+
+.badge-chain-layout { @apply mt-7 grid gap-6 md:grid-cols-[minmax(220px,280px)_minmax(0,1fr)] md:items-stretch; }
+.badge-chain-layout .badge-grid { @apply mt-0 grid-cols-1 sm:grid-cols-1 md:grid-cols-1 lg:grid-cols-1; }
+.badge-chain-placard {
+  @apply flex flex-col justify-center rounded-2xl border p-6 md:p-8;
+  background: oklch(var(--secondary) / .55);
+}
+.badge-chain-placard-tag {
+  @apply text-[0.68rem] font-medium tracking-[0.2em] uppercase;
+  color: oklch(var(--moss-700));
+}
+.badge-chain-placard h3 { @apply mt-3 font-display text-2xl leading-snug; }
+.badge-chain-placard > p { @apply mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground; }
+.badge-chain-specs { @apply mt-6 grid gap-3 border-t pt-4 sm:grid-cols-3; }
+.badge-chain-specs dt { @apply text-[0.7rem] text-muted-foreground; }
+.badge-chain-specs dd { @apply mt-1 text-xs font-medium text-foreground; }
+
+/* 单张藏品闪卡：CSS 3D 倾角 + 视差浮雕层 + 视图虹彩扫光 */
+.holo-card {
+  --mx: 50%;
+  --my: 38%;
+  --rx: 0deg;
+  --ry: 0deg;
+  --px: 0;
+  --py: 0;
+  --foil-active: 0;
+  --chamber-top: #1b2528;
+  --chamber-bottom: #0f1518;
+  --chamber-line: rgba(212, 183, 124, 0.34);
+  @apply relative flex h-full w-full flex-col rounded-2xl border bg-card p-2.5 text-left;
+  transform-style: preserve-3d;
+  transform: perspective(920px) rotateX(var(--rx)) rotateY(var(--ry));
+  transition: transform 240ms cubic-bezier(.22, 1, .36, 1), box-shadow 240ms ease, border-color 200ms ease;
+  box-shadow: 0 12px 32px oklch(var(--foreground) / .06);
+}
+.holo-card:hover {
+  border-color: var(--badge-accent, oklch(var(--moss-700)));
+  box-shadow: 0 22px 46px oklch(var(--foreground) / .12), 0 0 0 1px rgba(var(--badge-glow, 140, 160, 150), .24);
+}
+.holo-card:focus-visible { @apply ring-2 ring-ring outline-none; }
+.holo-card:active { transform: perspective(920px) rotateX(var(--rx)) rotateY(var(--ry)) scale(0.99); }
+
+.holo-card-shell {
+  @apply flex h-full w-full flex-col rounded-[0.875rem] border p-2;
+  border-color: oklch(var(--border) / .75);
+}
+.holo-card-head {
+  @apply flex items-center justify-between gap-2 pb-2 text-[0.62rem] tracking-[0.16em] text-muted-foreground uppercase;
+}
+.holo-card-edition { @apply font-medium; color: oklch(var(--moss-700)); font-variant-numeric: tabular-nums; }
+.holo-card-en { @apply truncate opacity-80; }
+
+.holo-card-chamber {
+  @apply relative aspect-square w-full overflow-hidden rounded-xl border;
+  border-color: var(--chamber-line);
+  background:
+    radial-gradient(circle at 50% 44%, rgba(var(--badge-glow, 130, 155, 145), 0.28) 0%, transparent 66%),
+    linear-gradient(160deg, var(--chamber-top) 0%, var(--chamber-bottom) 100%);
+}
+.holo-chamber-bg {
+  @apply pointer-events-none absolute inset-0 flex items-center justify-center;
+  transform: translate3d(calc(var(--px) * -8px), calc(var(--py) * -8px), 0);
+  transition: transform 240ms cubic-bezier(.22, 1, .36, 1);
+}
+.holo-chamber-filigree {
+  @apply size-[88%] opacity-65;
+  color: var(--badge-accent, #d4b77c);
+}
+.holo-chamber-filigree .filigree-ring { fill: none; stroke: currentColor; stroke-width: 0.7; opacity: 0.42; }
+.holo-chamber-filigree .filigree-ring-dashed { fill: none; stroke: currentColor; stroke-width: 0.65; stroke-dasharray: 2.5 4.5; opacity: 0.34; }
+.holo-chamber-filigree .filigree-arc { fill: none; stroke: currentColor; stroke-width: 0.85; opacity: 0.45; }
+.holo-chamber-filigree .filigree-arc-dashed { fill: none; stroke: currentColor; stroke-width: 0.8; stroke-dasharray: 3 4; opacity: 0.32; }
+.holo-chamber-filigree .filigree-node { fill: currentColor; opacity: 0.7; }
+
+.holo-chamber-specimen {
+  @apply relative z-[1] flex size-full items-center justify-center p-2.5;
+  transform: translate3d(calc(var(--px) * 9px), calc(var(--py) * 9px), 0) scale(1.02);
+  transition: transform 240ms cubic-bezier(.22, 1, .36, 1);
+}
+.badge-thumb {
+  @apply size-full object-contain;
+  filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.45));
+}
+
+/* 虹彩箔膜与星芒微粒（参考 holo-card-studio spectrum + sweep） */
+.holo-chamber-foil {
+  @apply pointer-events-none absolute inset-0 z-[2];
+  opacity: calc(0.16 + var(--foil-active) * 0.44);
+  mix-blend-mode: color-dodge;
+  background-image:
+    radial-gradient(circle at var(--mx) var(--my), rgba(255, 246, 214, 0.42) 0%, rgba(255, 118, 178, 0.16) 24%, rgba(86, 178, 255, 0.14) 48%, transparent 74%),
+    repeating-linear-gradient(125deg, rgba(255, 92, 158, 0.16) 0%, rgba(255, 216, 89, 0.18) 16%, rgba(71, 168, 255, 0.16) 32%, rgba(255, 255, 255, 0.08) 46%, rgba(255, 92, 158, 0.16) 62%),
+    radial-gradient(circle at 22% 28%, rgba(255, 255, 255, 0.35) 0 1px, transparent 1.5px),
+    radial-gradient(circle at 76% 68%, rgba(190, 232, 255, 0.42) 0 1px, transparent 1.5px),
+    radial-gradient(circle at 64% 24%, rgba(255, 224, 148, 0.4) 0 1px, transparent 1.5px);
+  background-position: center, var(--mx) var(--my), 0 0, 0 0, 0 0;
+  background-size: 100% 100%, 220% 220%, 100% 100%, 100% 100%, 100% 100%;
+  transition: opacity 220ms ease;
+}
+.holo-chamber-glint {
+  @apply pointer-events-none absolute inset-0 z-[3];
+  opacity: calc(0.1 + var(--foil-active) * 0.55);
+  background: radial-gradient(280px circle at var(--mx) var(--my), rgba(255, 255, 255, 0.22), transparent 55%);
+  transition: opacity 220ms ease;
+}
+
+.holo-card-plate { @apply flex flex-1 flex-col pt-3 px-0.5 pb-0.5; }
+.badge-card-title { @apply font-display text-[0.98rem] font-semibold leading-snug; }
+.badge-card-material { @apply mt-1 text-[0.72rem] leading-snug text-muted-foreground; }
+.holo-card-foot { @apply mt-auto flex items-end justify-between gap-2 border-t pt-2.5 mt-3; border-color: oklch(var(--border) / .65); }
+.badge-card-series { @apply text-[0.63rem] leading-snug text-muted-foreground; }
+.holo-card-cta {
+  @apply inline-flex shrink-0 items-center gap-0.5 text-[0.68rem] font-medium transition-transform duration-150;
+  color: oklch(var(--moss-700));
+}
+.holo-card-cta svg { @apply size-3; }
+.holo-card:hover .holo-card-cta { transform: translate(1px, -1px); }
+
+.badges-note { @apply py-10 md:py-14; }
+.badges-note h2 { @apply mt-3 font-display text-3xl md:text-4xl; }
+.badges-note p:not(.eyebrow) { @apply mt-4 max-w-2xl text-muted-foreground; }
+.badges-note .primary-link { @apply mt-6; }
+.badges-source { @apply flex items-center gap-2 border-t pt-6 text-xs text-muted-foreground; }
+.badges-source svg { @apply size-4 shrink-0; }
+.records-badges-entry { @apply mb-12 flex scroll-mt-36 flex-col items-start gap-6 rounded-2xl bg-secondary p-6 md:flex-row md:items-center md:justify-between md:p-8; }
+.records-badges-entry h2 { @apply mt-2 font-display text-2xl; }
+.records-badges-entry p:last-of-type { @apply mt-3 max-w-2xl text-sm text-muted-foreground; }
+.badge-retry { @apply mt-4 rounded-full border px-4 py-2 text-sm transition-colors hover:bg-secondary; }
+
+/* 详情弹窗：全息器物赏鉴台（双栏布局，仅加载当前选中一枚的 GLB）。 */
+.badge-dialog {
+  --stage-top: #182226;
+  --stage-bottom: #0d1316;
+  @apply flex flex-col max-h-[92dvh] w-[calc(100vw-1.5rem)] max-w-[calc(100vw-1.5rem)] overflow-y-auto overflow-x-hidden rounded-2xl p-4 sm:max-w-xl md:max-w-4xl md:p-6;
+}
+.badge-dialog-grid { @apply grid gap-5 md:grid-cols-[1.02fr_.98fr] md:items-start md:gap-7; }
+.badge-stage-column { @apply min-w-0 md:sticky md:top-0; }
+.badge-stage-frame {
+  @apply relative flex flex-col items-center rounded-2xl border p-3.5 md:p-4;
+  border-color: rgba(212, 183, 124, 0.28);
+  background:
+    radial-gradient(circle at 50% 45%, rgba(var(--badge-glow, 130, 155, 145), 0.24) 0%, transparent 66%),
+    linear-gradient(165deg, var(--stage-top) 0%, var(--stage-bottom) 100%);
+  color: #e8e2d5;
+}
+.badge-stage-topbar {
+  @apply flex w-full items-center justify-between text-[0.65rem] tracking-[0.2em] uppercase;
+  color: rgba(232, 226, 213, 0.72);
+}
+.badge-view-pill {
+  @apply rounded-full border px-2.5 py-0.5 text-[0.62rem];
+  border-color: rgba(212, 183, 124, 0.35);
+  color: #e7cf9c;
+}
+.badge-edition-code { font-variant-numeric: tabular-nums; }
+.badge-stage-vertical {
+  @apply pointer-events-none absolute right-2.5 top-1/2 hidden -translate-y-1/2 text-[0.55rem] tracking-[0.26em] uppercase md:block;
+  writing-mode: vertical-rl;
+  color: rgba(232, 226, 213, 0.28);
+}
+.badge-stage {
+  @apply relative my-2 aspect-square w-full max-h-[min(44vh,360px)] max-w-[min(100%,360px)] overflow-hidden rounded-xl;
+  touch-action: none;
+  cursor: grab;
+  background:
+    radial-gradient(circle at 50% 48%, rgba(255, 255, 255, 0.06) 0%, transparent 58%),
+    radial-gradient(circle at 50% 50%, transparent 62%, rgba(0, 0, 0, 0.35) 100%);
+}
+.badge-stage:active { cursor: grabbing; }
+.badge-viewer-canvas { @apply block size-full; }
+.badge-stage-overlay {
+  @apply absolute inset-0 flex flex-col items-center justify-center gap-3 p-6 text-center text-sm;
+  color: #e8e2d5;
+  background: rgba(13, 19, 22, 0.88);
+}
+.badge-stage-overlay svg { @apply size-6; color: #d4b77c; }
+.badge-stage-overlay small { @apply text-xs opacity-75; }
+.badge-stage-error { @apply gap-4; }
+.badge-stage-error svg { @apply size-7; color: oklch(var(--destructive)); }
+.badge-stage-caption {
+  @apply mt-1 text-center text-[0.68rem] tracking-wide;
+  color: rgba(232, 226, 213, 0.62);
+}
+
+.badge-atelier-column { @apply flex min-w-0 flex-col gap-4; }
+.badge-atelier-header { @apply text-left; }
+.badge-atelier-eyebrow {
+  @apply flex items-center text-[0.68rem] font-medium tracking-[0.22em] uppercase;
+  color: oklch(var(--moss-700));
+}
+.badge-dialog-title { @apply font-display text-2xl md:text-3xl shrink-0; }
+.badge-dialog-meta { @apply flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs shrink-0; }
+.badge-dialog-series { @apply rounded-full bg-secondary px-2.5 py-1 font-medium text-foreground; }
+.badge-poetic-note { @apply text-sm leading-relaxed text-muted-foreground border-l-2 pl-3.5; border-color: var(--badge-accent, oklch(var(--moss-700))); }
+
+.badge-action-bar { @apply flex flex-wrap items-center gap-2; }
+.badge-action-btn { @apply h-9 gap-1.5 rounded-full px-3.5 text-xs; }
+
+.badge-light-studio {
+  @apply rounded-xl border p-3.5;
+  background: oklch(var(--secondary) / .55);
+}
+.badge-light-heading {
+  @apply flex items-center gap-2 text-[0.68rem] font-medium tracking-[0.18em] text-muted-foreground uppercase;
+}
+.badge-light-heading svg { @apply size-3.5; color: oklch(var(--moss-700)); }
+.badge-sliders { @apply mt-3 grid gap-2.5; }
+.badge-slider-item { @apply grid gap-1 text-xs text-muted-foreground; }
+.badge-slider-head { @apply flex items-center justify-between; }
+.badge-slider-item output { @apply font-medium text-foreground; font-variant-numeric: tabular-nums; }
+.badge-slider-item input[type='range'] {
+  @apply h-1.5 w-full cursor-pointer accent-current;
+  color: oklch(var(--moss-700));
+}
+
+.badge-dialog-footer { @apply grid gap-2 shrink-0; }
+.badge-disclaimer { @apply flex items-start gap-2 rounded-xl bg-secondary p-3 text-xs leading-relaxed text-muted-foreground; }
+.badge-disclaimer svg { @apply mt-0.5 size-3.5 shrink-0; }
+
+@media (max-width: 640px) {
+  .badges-page { @apply py-8; }
+  .badges-header h1 { @apply text-[2.1rem] leading-snug; }
+  .badges-note h2 { @apply text-2xl; }
+  .badge-grid { @apply gap-3; }
+  .holo-card { @apply rounded-xl p-1.5; }
+  .holo-card-shell { @apply rounded-[0.625rem] p-1.5; }
+  .holo-card-head { @apply pb-1.5 text-[0.55rem]; }
+  .holo-card-plate { @apply pt-2 px-0.5; }
+  .badge-card-title { @apply text-[0.86rem]; }
+  .badge-card-material { @apply text-[0.66rem]; }
+  .holo-card-foot { @apply mt-2 pt-2; }
+  .badge-card-series { @apply text-[0.6rem]; }
+  .holo-card-cta { @apply hidden; }
+  .badge-dialog { @apply p-3.5; }
+  .badge-stage-frame { @apply p-2.5; }
+  .badge-stage { @apply max-h-[260px] max-w-[260px] rounded-lg; }
+  .badge-dialog-title { @apply text-xl; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .holo-card,
+  .holo-chamber-bg,
+  .holo-chamber-specimen {
+    transform: none !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .meeting-mark { min-height: 290px; }
+  .path-note { max-width: 82%; }
+  .path-note-one { margin-top: 12%; }
+  .path-note-two { margin-bottom: 12%; }
+  .activity-row .activity-glyph, .record-item .activity-glyph { @apply size-11 rounded-xl; }
+  .activity-row .activity-glyph svg, .record-item .activity-glyph svg { @apply size-5; }
+  .activity-row { @apply gap-3 py-5; }
+  .activity-row-action { @apply self-center; }
+  .record-item { @apply gap-3; }
+  .record-badges .badge { @apply px-2; }
+}
+
+/* 首页精简引导与关于页官网入口 */
+.home-closing-compact { @apply mt-4 border-t py-12 md:py-16; }
+.home-closing-compact > p { @apply font-display text-xl leading-relaxed md:text-3xl; }
+.home-closing-links { @apply mt-6 flex flex-wrap items-center justify-center gap-x-8 gap-y-2; }
+.about-intro-banner {
+  @apply mt-8 flex flex-col items-start justify-between gap-4 rounded-2xl border p-5 md:flex-row md:items-center md:p-6;
+  background: oklch(var(--secondary) / .7);
+}
+.about-intro-banner strong { @apply block font-display text-lg text-foreground; }
+.about-intro-banner span { @apply mt-1 block text-sm text-muted-foreground; }
+
+/* 主题详情页往期完成记录 */
+.activity-latest-link { @apply mt-3 text-sm; }
+.activity-history { @apply border-b py-10 md:py-12; }
+.activity-history-head { @apply flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between; }
+.activity-history-head h2 { @apply mt-2 font-display text-2xl md:text-3xl; }
+.activity-history-list { @apply mt-6 grid gap-4 md:grid-cols-2; }
+.activity-history-item {
+  @apply flex flex-col gap-2.5 rounded-2xl border bg-card p-5 transition-colors;
+}
+.activity-history-item:hover { background: oklch(var(--secondary) / .5); }
+.activity-history-meta { @apply flex flex-wrap items-center gap-2 text-xs text-muted-foreground; }
+.activity-history-item > p { @apply text-sm leading-relaxed; color: oklch(var(--foreground) / .9); }
+.activity-history-link { @apply mt-auto inline-flex items-center gap-1.5 pt-1 text-xs font-medium; color: oklch(var(--moss-700)); }
+.activity-history-link svg { @apply size-3.5; }
+
+/* 完成页：再翻看一张字条 & 纪念器物点亮高光 */
+.echo-content blockquote footer { @apply flex-wrap; }
+.echo-next-btn {
+  @apply ml-auto inline-flex min-h-8 items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors;
+  border-color: oklch(var(--primary-foreground) / .35);
+  color: oklch(var(--primary-foreground));
+  background: oklch(var(--primary-foreground) / .1);
+}
+.echo-next-btn:hover:not(:disabled) { background: oklch(var(--primary-foreground) / .2); }
+.echo-next-btn:disabled { opacity: .6; }
+.echo-next-btn svg { @apply size-3.5; }
+
+.completion-badge-spotlight {
+  @apply mt-8 grid items-center gap-6 rounded-2xl border p-6 md:grid-cols-[1.2fr_.8fr] md:p-8;
+  background: oklch(var(--secondary) / .6);
+}
+.completion-badge-copy .eyebrow { @apply inline-flex items-center gap-1.5; }
+.completion-badge-copy .eyebrow svg { @apply size-4; }
+.completion-badge-copy h2 { @apply mt-3 font-display text-2xl md:text-3xl; }
+.completion-badge-copy > p { @apply mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground; }
+.completion-badge-actions { @apply mt-5 flex flex-wrap gap-3; }
+.completion-badge-card-wrap { @apply mx-auto w-full max-w-[260px]; }
+.completion-footer-links { @apply flex flex-wrap items-center gap-x-6 gap-y-2; }
+
+/* 个人生活档案页：上下文摘要与三维器物档案架 */
+.life-context-summary {
+  @apply my-8 grid gap-6 rounded-2xl border p-6 md:grid-cols-[1.2fr_.8fr] md:items-center md:p-8;
+  background: oklch(var(--secondary) / .65);
+}
+.life-context-copy .eyebrow { @apply inline-flex items-center gap-1.5; }
+.life-context-copy .eyebrow svg { @apply size-4; }
+.life-context-copy h2 { @apply mt-2 font-display text-2xl md:text-3xl; }
+.life-context-copy p { @apply mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground; }
+.life-context-metrics { @apply grid grid-cols-3 gap-3; }
+.life-context-metrics > div { @apply rounded-xl border bg-card p-3.5 text-center; }
+.life-context-metrics dt { @apply text-[0.7rem] text-muted-foreground; }
+.life-context-metrics dd { @apply mt-1 font-display text-xl font-semibold md:text-2xl; font-variant-numeric: tabular-nums; }
+
+.records-badge-archive { @apply my-10 border-b pb-10; }
+.records-archive-head { @apply flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between; }
+.records-archive-head .eyebrow { @apply inline-flex items-center gap-1.5; }
+.records-archive-head .eyebrow svg { @apply size-4; }
+.records-archive-head h2 { @apply mt-2 font-display text-2xl md:text-3xl; }
+.records-archive-grid { @apply mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5; }
+.records-archive-grid li { @apply min-w-0; }
+
+.records-timeline-head { @apply flex flex-wrap items-baseline justify-between gap-2 pb-4; }
+.records-timeline-head h2 { @apply font-display text-2xl; }
+.records-timeline-head span { @apply text-xs text-muted-foreground; }
+
+/* 闪卡点亮状态角标 */
+.holo-status-pill {
+  @apply mb-1.5 inline-flex w-fit items-center rounded-full px-2 py-0.5 text-[0.62rem] font-medium;
+}
+.holo-status-pill.is-unlocked {
+  background: oklch(var(--moss-700) / .14);
+  color: oklch(var(--moss-700));
+}
+.holo-status-pill.is-dormant {
+  background: oklch(var(--secondary));
+  color: oklch(var(--muted-foreground));
+}
+.holo-card-unlocked {
+  border-color: rgba(var(--badge-glow, 118, 150, 128), .55);
+}
+.holo-card-dormant .holo-chamber-specimen {
+  opacity: .72;
+  filter: saturate(.75);
+}
+
+/* 3D 弹窗右侧：档案溯源与跨应用门户 */
+.badge-provenance { @apply grid gap-3; }
+.badge-provenance-block { @apply rounded-xl border bg-card p-3.5; }
+.badge-provenance-head { @apply flex flex-wrap items-center justify-between gap-2; }
+.badge-provenance-title { @apply inline-flex items-center gap-1.5 text-xs font-semibold text-foreground; }
+.badge-provenance-title svg { @apply size-3.5; color: oklch(var(--moss-700)); }
+.badge-provenance-pill {
+  @apply rounded-full bg-secondary px-2 py-0.5 text-[0.65rem] font-medium text-muted-foreground;
+}
+.badge-provenance-pill.is-unlocked {
+  background: oklch(var(--moss-700) / .15);
+  color: oklch(var(--moss-700));
+}
+.badge-provenance-list { @apply mt-2.5 grid gap-2; }
+.badge-provenance-record {
+  @apply block rounded-lg border p-2.5 transition-colors hover:bg-secondary;
+  background: oklch(var(--secondary) / .45);
+}
+.badge-provenance-meta { @apply flex flex-wrap items-center justify-between gap-1 text-[0.68rem] text-muted-foreground; }
+.badge-provenance-meta code { @apply rounded bg-card px-1.5 py-0.5 text-[0.65rem] text-foreground; }
+.badge-provenance-record-title { @apply mt-1 text-xs font-medium text-foreground; }
+.badge-provenance-quote { @apply mt-1 line-clamp-2 text-[0.72rem] text-muted-foreground; }
+.badge-provenance-empty { @apply mt-2.5 flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground; }
+.badge-provenance-link {
+  @apply inline-flex items-center gap-1 font-medium underline-offset-4 hover:underline;
+  color: oklch(var(--moss-700));
+}
+.badge-provenance-link svg { @apply size-3.5; }
+
+.badge-portal-concept { background: oklch(var(--secondary) / .45); }
+.badge-concept-tag {
+  @apply inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[0.62rem] font-medium;
+  background: oklch(var(--accent) / .14);
+  color: oklch(var(--moss-900));
+}
+.badge-concept-tag svg { @apply size-3; }
+.badge-portal-platforms { @apply mt-2.5 flex flex-wrap gap-1.5; }
+.badge-portal-chip {
+  @apply rounded-full border bg-card px-2.5 py-0.5 text-[0.68rem] font-medium text-foreground;
+}
+.badge-portal-summary { @apply mt-2 text-xs leading-relaxed text-muted-foreground; }
+.badge-portal-role { @apply mt-1.5 text-[0.68rem] font-medium; color: oklch(var(--moss-700)); }
+
+@media (max-width: 640px) {
+  .life-context-metrics { @apply grid-cols-3 gap-2; }
+  .life-context-metrics > div { @apply p-2.5; }
+  .life-context-metrics dd { @apply text-lg; }
+  .records-archive-grid { @apply gap-3; }
+}
+
+/* 读书主题详情页：《小王子》共读实验预告卡 */
+.reading-preview-card {
+  @apply mt-8 grid gap-5 rounded-2xl border bg-card p-6 md:p-7;
+}
+.reading-preview-head {
+  @apply flex flex-col gap-3 md:flex-row md:items-start md:justify-between;
+}
+.reading-preview-head .eyebrow { @apply inline-flex items-center gap-1.5; }
+.reading-preview-head .eyebrow svg { @apply size-4; }
+.reading-preview-head h2 { @apply mt-2 font-display text-2xl md:text-3xl; }
+.reading-preview-head p { @apply mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground; }
+.reading-chain-pill {
+  @apply inline-flex w-fit shrink-0 items-center rounded-full border px-3 py-1 text-xs font-medium;
+  background: oklch(var(--secondary));
+  color: oklch(var(--moss-700));
+}
+.reading-preview-rules {
+  @apply grid gap-4 md:grid-cols-2;
+}
+.reading-preview-rule {
+  @apply rounded-xl border p-4;
+  background: oklch(var(--secondary) / .55);
+}
+.reading-preview-rule-title {
+  @apply flex items-center gap-2 text-sm text-foreground;
+}
+.reading-preview-rule-title svg { @apply size-4 shrink-0; color: oklch(var(--moss-700)); }
+.reading-preview-rule p { @apply mt-2 text-xs leading-relaxed text-muted-foreground; }
+
+.reading-contract-links { @apply flex flex-wrap gap-2; }
+.reading-contract-chip {
+  @apply inline-flex max-w-full items-center gap-1.5 rounded-full border bg-card px-3 py-1.5 text-xs text-foreground transition-colors hover:bg-secondary;
+}
+.reading-contract-chip code { @apply text-[0.7rem] text-muted-foreground; }
+.reading-contract-chip svg { @apply size-3.5 shrink-0 text-muted-foreground; }
+
+/* 完成页：《小王子》共读核验实验室 */
+.reading-lab {
+  @apply mt-8 grid gap-6 rounded-2xl border bg-card p-6 md:p-8;
+}
+.reading-lab-loading {
+  @apply flex items-center gap-2.5 text-sm text-muted-foreground;
+}
+.reading-lab-loading svg { @apply size-4 animate-spin; }
+.reading-lab-header {
+  @apply flex flex-col gap-4 border-b pb-5 md:flex-row md:items-start md:justify-between;
+}
+.reading-lab-header .eyebrow { @apply inline-flex items-center gap-1.5; }
+.reading-lab-header .eyebrow svg { @apply size-4; }
+.reading-lab-header h2 { @apply mt-2 font-display text-2xl md:text-3xl; }
+.reading-lab-header p { @apply mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground; }
+.reading-lab-earned {
+  @apply flex shrink-0 flex-col rounded-xl border px-4 py-3 text-left md:text-right;
+  background: oklch(var(--secondary) / .7);
+}
+.reading-lab-earned span { @apply text-xs text-muted-foreground; }
+.reading-lab-earned strong { @apply mt-1 font-display text-2xl font-semibold; color: oklch(var(--moss-700)); font-variant-numeric: tabular-nums; }
+.reading-lab-earned small { @apply mt-1 text-[0.7rem] text-muted-foreground; }
+
+.reading-lab-section { @apply grid gap-3.5; }
+.reading-lab-section-head {
+  @apply flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between;
+}
+.reading-lab-section-head h3 { @apply text-base font-semibold text-foreground; }
+.reading-lab-section-head p { @apply mt-0.5 text-xs text-muted-foreground; }
+.reading-threshold-badge {
+  @apply inline-flex w-fit items-center rounded-full px-3 py-1 text-xs font-medium;
+}
+.reading-threshold-badge.is-ready {
+  background: oklch(var(--moss-700) / .15);
+  color: oklch(var(--moss-700));
+}
+.reading-threshold-badge.is-locked {
+  background: oklch(var(--accent) / .15);
+  color: oklch(var(--moss-900));
+}
+
+.reading-progress-track {
+  @apply h-2.5 w-full overflow-hidden rounded-full;
+  background: oklch(var(--secondary));
+}
+.reading-progress-fill {
+  @apply h-full rounded-full transition-all duration-300;
+  background: oklch(var(--moss-700));
+}
+
+.reading-preset-group { @apply flex flex-wrap gap-2; }
+.reading-lock-notice {
+  @apply flex items-start gap-2 rounded-xl border px-3.5 py-2.5 text-xs leading-relaxed;
+  background: oklch(var(--accent) / .12);
+  color: oklch(var(--foreground));
+}
+.reading-lock-notice svg { @apply mt-0.5 size-4 shrink-0; color: oklch(var(--coral-500)); }
+
+.reading-lab-rewards { @apply grid gap-4 md:grid-cols-2; }
+.reading-reward-card {
+  @apply flex min-w-0 flex-col gap-3 rounded-xl border p-4;
+  background: oklch(var(--secondary) / .45);
+}
+.reading-reward-head { @apply flex flex-wrap items-center justify-between gap-2; }
+.reading-reward-tag {
+  @apply inline-flex items-center gap-1.5 text-xs font-medium;
+  color: oklch(var(--moss-700));
+}
+.reading-reward-tag svg { @apply size-3.5 shrink-0; }
+.reading-claimed-pill {
+  @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[0.68rem] font-medium;
+  background: oklch(var(--moss-700) / .16);
+  color: oklch(var(--moss-700));
+}
+.reading-claimed-pill svg { @apply size-3; }
+.reading-reward-card h3 { @apply font-display text-lg text-foreground; }
+.reading-reward-card > p { @apply text-xs leading-relaxed text-muted-foreground; }
+.reading-reward-actions { @apply mt-auto flex flex-col gap-2 pt-1; }
+.reading-reward-actions button { @apply w-full justify-center whitespace-normal text-center h-auto min-h-9 py-2; }
+
+.reading-proof-box {
+  @apply mt-auto grid gap-2 rounded-lg border bg-card p-3 text-xs;
+}
+.reading-proof-box > div { @apply grid gap-0.5 min-w-0; }
+.reading-proof-box span { @apply text-[0.68rem] text-muted-foreground; }
+.reading-proof-box strong { @apply text-sm font-semibold; color: oklch(var(--moss-700)); }
+.reading-proof-box code {
+  @apply block break-all rounded px-2 py-1 text-[0.68rem] text-foreground;
+  background: oklch(var(--secondary) / .65);
+}
+
+.reading-privacy-note {
+  @apply flex items-start gap-1.5 text-[0.72rem] leading-relaxed text-muted-foreground;
+}
+.reading-privacy-note svg { @apply mt-0.5 size-3.5 shrink-0; }
+
+.reading-ledger-summary {
+  @apply grid gap-3 rounded-xl border p-4;
+  background: oklch(var(--secondary) / .4);
+}
+.reading-ledger-head {
+  @apply flex flex-wrap items-center justify-between gap-2 text-xs font-medium text-foreground;
+}
+.reading-ledger-head > span:first-child { @apply inline-flex items-center gap-1.5; }
+.reading-ledger-head svg { @apply size-3.5; color: oklch(var(--moss-700)); }
+.reading-ledger-grid {
+  @apply grid gap-3 sm:grid-cols-2 lg:grid-cols-4;
+}
+.reading-ledger-grid > div {
+  @apply min-w-0 rounded-lg border bg-card p-2.5;
+}
+.reading-ledger-grid dt { @apply text-[0.68rem] text-muted-foreground; }
+.reading-ledger-grid dd { @apply mt-1 text-xs font-medium text-foreground break-all; }
+
+/* 3D 器物弹窗右侧：Reading 合约锚点 */
+.badge-contract-anchors { @apply mt-3 grid gap-2; }
+.badge-contract-anchor {
+  @apply block min-w-0 rounded-lg border bg-card p-2.5 transition-colors hover:bg-secondary;
+}
+.badge-contract-anchor-head { @apply flex flex-wrap items-baseline justify-between gap-1.5; }
+.badge-contract-anchor-head strong { @apply text-xs font-semibold text-foreground; }
+.badge-contract-anchor-head span { @apply text-[0.66rem] text-muted-foreground; }
+.badge-contract-anchor-addr { @apply mt-1 flex items-center justify-between gap-2 text-[0.68rem]; }
+.badge-contract-anchor-addr code { @apply break-all text-foreground; }
+.badge-contract-anchor-addr svg { @apply size-3.5 shrink-0 text-muted-foreground; }

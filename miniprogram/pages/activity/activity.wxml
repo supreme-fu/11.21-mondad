@@ -1,0 +1,28 @@
+<view class="page activity-page">
+  <view wx:if="{{loading}}" class="loading">正在打开这个约定…</view>
+  <block wx:elif="{{activity}}">
+    <view class="glyph glyph-{{activity.id}} activity-glyph">{{activity.category[0]}}</view>
+    <view class="meta"><text>{{activity.category}}</text><text>{{activity.duration}}</text></view>
+    <view class="display activity-title">{{activity.title}}</view>
+    <view class="muted activity-invitation">{{activity.invitation}}</view>
+    <view class="promise">
+      <text class="eyebrow">一个轻轻的约定</text>
+      <view class="display promise-title">{{activity.activeParticipation ? '约定在这里，不催你。' : activity.completionCount > 0 ? '这件事已经算数。' : '准备好时，再开始。'}}</view>
+      <view class="muted">{{activity.completionCount > 0 ? '你已回应过这个约定 ' + activity.completionCount + ' 次。每一次行动都算数。' : '接受不代表必须完成，也不会产生倒计时、公开排名或失败记录。'}}</view>
+      <block wx:if="{{activity.activeParticipation}}">
+        <button class="primary promise-button" bindtap="complete">我完成了</button>
+        <button class="ghost" disabled="{{pending}}" bindtap="leave">暂时离开这个约定</button>
+      </block>
+      <block wx:else>
+        <button class="primary promise-button" loading="{{pending}}" bindtap="join">{{activity.completionCount > 0 ? '再次接受这个约定' : '接受这个约定'}}</button>
+        <button wx:if="{{activity.participation && activity.participation.completionId}}" class="ghost" bindtap="complete">查看最近一次完成与回响</button>
+      </block>
+    </view>
+    <view wx:if="{{error}}" class="error">{{error}}</view>
+    <view class="rule rules"><text class="eyebrow">怎样算完成</text><view class="display rule-title">由你向自己确认，无需向他人自证。</view><view class="muted">{{activity.completionHint}}</view><view class="notice">首版只需要自报完成，不上传照片、定位或第三方证明。</view></view>
+    <view class="rule rules"><text class="eyebrow">关于这个主题</text><view class="display rule-title">允许按自己的生活替换答案。</view><view class="muted">{{activity.description}}</view></view>
+    <view class="rule data-note"><text class="eyebrow">生活内容与凭证，分开处理</text><view class="muted">记录保存在服务端，只代表你向自己守了一次约。只有你知情申请后，才登记不含正文的随机凭证编号；当前默认为本地模拟。</view></view>
+  </block>
+  <view wx:else class="error">{{error || '这个主题暂时不可见。'}}</view>
+  <view class="safe-bottom" />
+</view>

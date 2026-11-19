@@ -1,0 +1,240 @@
+/* 夜色回信：完整暗色语义令牌 */
+:root[data-theme='night'], .theme-night {
+  --paper-50: 0.23 0.025 235;
+  --paper-100: 0.29 0.035 235;
+  --moss-300: 0.44 0.055 190;
+  --moss-700: 0.82 0.07 165;
+  --moss-900: 0.91 0.025 180;
+  --coral-500: 0.77 0.12 72;
+  --ink-muted: 0.72 0.025 220;
+  --background: var(--paper-50);
+  --foreground: var(--moss-900);
+  --card: 0.27 0.03 235;
+  --card-foreground: var(--moss-900);
+  --popover: var(--card);
+  --popover-foreground: var(--moss-900);
+  --primary: 0.83 0.075 155;
+  --primary-foreground: 0.23 0.035 235;
+  --secondary: var(--paper-100);
+  --secondary-foreground: var(--moss-900);
+  --muted: 0.32 0.035 235;
+  --muted-foreground: var(--ink-muted);
+  --accent: var(--coral-500);
+  --accent-foreground: 0.25 0.03 55;
+  --destructive: 0.68 0.16 25;
+  --destructive-foreground: 0.97 0.01 25;
+  --border: 0.41 0.04 230;
+  --input: 0.55 0.05 230;
+  --ring: var(--coral-500);
+}
+:root[data-theme='night'] .activity-glyph-cooking, .theme-night .activity-glyph-cooking { background: oklch(.36 .05 60); }
+:root[data-theme='night'] .activity-glyph-meeting, .theme-night .activity-glyph-meeting { background: oklch(.35 .05 225); }
+:root[data-theme='night'] .activity-glyph-reading, .theme-night .activity-glyph-reading { background: oklch(.35 .05 155); }
+:root[data-theme='night'] .activity-glyph-outing, .theme-night .activity-glyph-outing { background: oklch(.35 .04 285); }
+:root[data-theme='night'] .activity-row:hover { background: oklch(var(--secondary) / .7); }
+:root[data-theme='night'] .meeting-dot { stroke: oklch(var(--paper-50)); }
+:root[data-theme='night'] .shadow-soft, :root[data-theme='night'] .path-note { box-shadow: 0 18px 60px oklch(.12 .03 235 / .3); }
+:root[data-theme='night'] .badge-stage, .theme-night .badge-stage {
+  background: radial-gradient(circle at 50% 46%, rgba(255, 255, 255, 0.05) 0%, transparent 60%), radial-gradient(circle at 50% 50%, transparent 62%, rgba(0, 0, 0, 0.45) 100%);
+}
+:root[data-theme='night'] .holo-card, .theme-night .holo-card {
+  --chamber-top: #101722;
+  --chamber-bottom: #080c12;
+  --chamber-line: rgba(212, 183, 124, 0.36);
+  box-shadow: 0 18px 46px rgba(0, 0, 0, 0.36);
+}
+:root[data-theme='night'] .badge-dialog, .theme-night .badge-dialog {
+  --stage-top: #111924;
+  --stage-bottom: #070b11;
+}
+
+/* 纸片行动：粗描边、错位纸片与明亮色组 */
+:root[data-theme='paper'], .theme-paper {
+  --paper-50: 0.98 0.008 210;
+  --paper-100: 0.94 0.035 150;
+  --moss-300: 0.81 0.12 145;
+  --moss-700: 0.46 0.12 150;
+  --moss-900: 0.3 0.055 180;
+  --coral-500: 0.65 0.2 32;
+  --ink-muted: 0.43 0.03 200;
+  --primary: 0.48 0.12 150;
+  --primary-foreground: 0.98 0.008 150;
+  --accent: var(--coral-500);
+  --secondary: var(--paper-100);
+  --border: 0.62 0.07 180;
+  --ring: 0.66 0.15 230;
+}
+:root[data-theme='paper'] body, .theme-paper { font-family: 'DM Sans', 'PingFang SC', 'Microsoft YaHei', sans-serif; }
+:root[data-theme='paper'] h1, :root[data-theme='paper'] h2, :root[data-theme='paper'] h3,
+:root[data-theme='paper'] .font-display, :root[data-theme='paper'] .section-title,
+:root[data-theme='paper'] .activity-row h3, :root[data-theme='paper'] .record-main h2 {
+  font-family: 'DM Sans', 'Yuanti SC', 'PingFang SC', sans-serif;
+  letter-spacing: -.02em;
+}
+:root[data-theme='paper'] .activity-list { border-top: 0; }
+:root[data-theme='paper'] .activity-row { border: 2px solid oklch(var(--moss-900) / .75); border-radius: 18px; margin-bottom: 14px; padding: 18px; background: oklch(var(--card)); box-shadow: 4px 4px 0 oklch(var(--moss-900) / .12); }
+:root[data-theme='paper'] .activity-row:nth-child(2n) { transform: rotate(.35deg); }
+:root[data-theme='paper'] .activity-row:nth-child(2n+1) { transform: rotate(-.25deg); }
+:root[data-theme='paper'] .activity-row:hover { transform: translateY(-2px) rotate(0); background: oklch(var(--card)); }
+:root[data-theme='paper'] .promise-panel, :root[data-theme='paper'] .reflection-editor,
+:root[data-theme='paper'] .receipt-panel, :root[data-theme='paper'] .declare-card,
+:root[data-theme='paper'] .reading-preview-card, :root[data-theme='paper'] .reading-lab,
+:root[data-theme='paper'] .account-danger { border: 2px solid oklch(var(--moss-900) / .7); box-shadow: 5px 5px 0 oklch(var(--moss-900) / .1); }
+:root[data-theme='paper'] .primary-link, :root[data-theme='paper'] button { border-radius: 13px; }
+:root[data-theme='paper'] .echo-panel { border-radius: 20px 20px 20px 4px; }
+:root[data-theme='paper'] .path-note { border-width: 2px; border-radius: 12px; }
+:root[data-theme='paper'] .meeting-dot { stroke-width: 4; }
+:root[data-theme='paper'] .holo-card {
+  --chamber-top: #1c2826;
+  --chamber-bottom: #111817;
+  border: 2px solid oklch(var(--moss-900) / .78);
+  border-radius: 18px;
+  box-shadow: 5px 5px 0 oklch(var(--moss-900) / .14);
+}
+:root[data-theme='paper'] .holo-card:hover {
+  box-shadow: 7px 7px 0 oklch(var(--moss-900) / .2);
+}
+:root[data-theme='paper'] .badge-chain-placard {
+  border: 2px solid oklch(var(--moss-900) / .72);
+  box-shadow: 5px 5px 0 oklch(var(--moss-900) / .1);
+}
+
+/* 奶油温柔：暖象牙、浅杏与柔软圆角 */
+:root[data-theme='cream'], .theme-cream {
+  --paper-50: 0.965 0.032 88;
+  --paper-100: 0.925 0.045 82;
+  --moss-300: 0.84 0.065 72;
+  --moss-700: 0.51 0.065 62;
+  --moss-900: 0.35 0.045 62;
+  --coral-500: 0.72 0.105 55;
+  --ink-muted: 0.47 0.032 68;
+  --background: var(--paper-50);
+  --foreground: var(--moss-900);
+  --card: 0.987 0.018 90;
+  --card-foreground: var(--moss-900);
+  --popover: var(--card);
+  --popover-foreground: var(--moss-900);
+  --primary: 0.43 0.06 62;
+  --primary-foreground: 0.98 0.018 88;
+  --secondary: var(--paper-100);
+  --secondary-foreground: var(--moss-900);
+  --muted: 0.91 0.035 82;
+  --muted-foreground: var(--ink-muted);
+  --accent: var(--coral-500);
+  --accent-foreground: 0.99 0.01 70;
+  --border: 0.85 0.04 78;
+  --input: 0.74 0.05 70;
+  --ring: var(--coral-500);
+}
+:root[data-theme='cream'] .activity-list { border-top: 0; }
+:root[data-theme='cream'] .activity-row { margin-bottom: 16px; padding: 20px; border: 0; border-radius: 28px; background: oklch(var(--card)); box-shadow: 0 12px 34px oklch(.45 .05 65 / .07); }
+:root[data-theme='cream'] .activity-row:hover { background: oklch(var(--card)); box-shadow: 0 16px 38px oklch(.45 .05 65 / .12); }
+:root[data-theme='cream'] .promise-panel, :root[data-theme='cream'] .reflection-editor,
+:root[data-theme='cream'] .receipt-panel, :root[data-theme='cream'] .declare-card,
+:root[data-theme='cream'] .account-danger, :root[data-theme='cream'] .simulation-explainer { border: 0; border-radius: 30px; box-shadow: 0 14px 40px oklch(.45 .05 65 / .06); }
+:root[data-theme='cream'] .echo-panel { border-radius: 32px 32px 32px 12px; }
+:root[data-theme='cream'] .path-note { border: 0; border-radius: 999px; }
+:root[data-theme='cream'] .activity-glyph { border-radius: 35%; }
+:root[data-theme='cream'] .activity-glyph-cooking, .theme-cream .activity-glyph-cooking { background: oklch(.9 .07 75); }
+:root[data-theme='cream'] .activity-glyph-meeting, .theme-cream .activity-glyph-meeting { background: oklch(.9 .04 55); }
+:root[data-theme='cream'] .activity-glyph-reading, .theme-cream .activity-glyph-reading { background: oklch(.9 .045 95); }
+:root[data-theme='cream'] .activity-glyph-outing, .theme-cream .activity-glyph-outing { background: oklch(.9 .035 45); }
+.theme-cream .preview-button { border-radius: 999px; }
+:root[data-theme='cream'] .holo-card {
+  --chamber-top: #2c231e;
+  --chamber-bottom: #1b1511;
+  --chamber-line: rgba(235, 198, 148, 0.34);
+  border: 0;
+  border-radius: 26px;
+  box-shadow: 0 14px 40px oklch(.45 .05 65 / .08);
+}
+:root[data-theme='cream'] .holo-card-shell { border-radius: 20px; border-color: oklch(var(--border) / .55); }
+:root[data-theme='cream'] .holo-card-chamber { border-radius: 16px; }
+:root[data-theme='cream'] .badge-dialog { --stage-top: #2a211c; --stage-bottom: #17120e; }
+:root[data-theme='cream'] .badge-chain-placard { border: 0; border-radius: 28px; box-shadow: 0 14px 40px oklch(.45 .05 65 / .06); }
+
+/* 莫兰迪：低饱和灰绿、灰粉与克制层次 */
+:root[data-theme='morandi'], .theme-morandi {
+  --paper-50: 0.935 0.016 165;
+  --paper-100: 0.885 0.022 160;
+  --moss-300: 0.73 0.035 155;
+  --moss-700: 0.48 0.04 160;
+  --moss-900: 0.34 0.026 170;
+  --coral-500: 0.65 0.055 28;
+  --ink-muted: 0.45 0.02 170;
+  --background: var(--paper-50);
+  --foreground: var(--moss-900);
+  --card: 0.955 0.013 165;
+  --card-foreground: var(--moss-900);
+  --popover: var(--card);
+  --popover-foreground: var(--moss-900);
+  --primary: 0.46 0.042 160;
+  --primary-foreground: 0.96 0.012 165;
+  --secondary: var(--paper-100);
+  --secondary-foreground: var(--moss-900);
+  --muted: 0.865 0.02 160;
+  --muted-foreground: var(--ink-muted);
+  --accent: var(--coral-500);
+  --accent-foreground: 0.97 0.012 30;
+  --border: 0.78 0.025 165;
+  --input: 0.66 0.03 165;
+  --ring: var(--coral-500);
+}
+:root[data-theme='morandi'] .activity-list { border-top: 0; }
+:root[data-theme='morandi'] .activity-row { margin-bottom: 10px; padding: 18px 20px; border: 1px solid oklch(var(--border) / .65); border-radius: 10px; background: oklch(var(--card) / .65); }
+:root[data-theme='morandi'] .activity-row:nth-child(2n) { background: oklch(var(--secondary) / .72); }
+:root[data-theme='morandi'] .activity-row:hover { background: oklch(var(--muted)); }
+:root[data-theme='morandi'] .promise-panel, :root[data-theme='morandi'] .reflection-editor,
+:root[data-theme='morandi'] .receipt-panel, :root[data-theme='morandi'] .declare-card,
+:root[data-theme='morandi'] .account-danger, :root[data-theme='morandi'] .simulation-explainer { border-radius: 12px; }
+:root[data-theme='morandi'] .primary-link, :root[data-theme='morandi'] button { border-radius: 10px; }
+:root[data-theme='morandi'] .echo-panel { border-radius: 12px; }
+:root[data-theme='morandi'] .path-note { border-radius: 8px; }
+:root[data-theme='morandi'] .activity-glyph { border-radius: 10px; }
+:root[data-theme='morandi'] .activity-glyph-cooking, .theme-morandi .activity-glyph-cooking { background: oklch(.82 .04 65); }
+:root[data-theme='morandi'] .activity-glyph-meeting, .theme-morandi .activity-glyph-meeting { background: oklch(.81 .025 215); }
+:root[data-theme='morandi'] .activity-glyph-reading, .theme-morandi .activity-glyph-reading { background: oklch(.8 .035 145); }
+:root[data-theme='morandi'] .activity-glyph-outing, .theme-morandi .activity-glyph-outing { background: oklch(.8 .025 285); }
+.theme-morandi .preview-button { border-radius: 8px; }
+:root[data-theme='morandi'] .holo-card {
+  --chamber-top: #232c2b;
+  --chamber-bottom: #161c1b;
+  --chamber-line: rgba(212, 195, 168, 0.3);
+  border-radius: 12px;
+}
+:root[data-theme='morandi'] .holo-card-shell { border-radius: 9px; }
+:root[data-theme='morandi'] .holo-card-chamber { border-radius: 8px; }
+:root[data-theme='morandi'] .badge-dialog { --stage-top: #222b2a; --stage-bottom: #141a19; }
+
+/* 可预览主题画廊 */
+.designs-page { @apply py-12 md:py-20; }
+.designs-header { @apply max-w-4xl border-b pb-10; }
+.designs-header h1 { @apply mt-4 font-display text-4xl leading-tight tracking-tight md:text-6xl; }
+.designs-header > p:last-child { @apply mt-5 max-w-2xl text-muted-foreground; }
+.theme-grid { @apply mt-10 grid gap-8 lg:grid-cols-3; }
+.theme-option { @apply flex min-w-0 flex-col items-start; }
+.theme-option-active .theme-preview { outline: 3px solid oklch(var(--ring) / .65); outline-offset: 4px; }
+.theme-preview { @apply relative w-full overflow-hidden rounded-2xl border; aspect-ratio: 4 / 4.7; background: oklch(var(--background)); color: oklch(var(--foreground)); }
+.preview-top { @apply flex items-center justify-between border-b px-5 py-4; }
+.preview-top svg { @apply size-5; }
+.preview-brand { @apply font-display text-sm font-semibold; }
+.preview-body { @apply relative z-[1] p-5; }
+.preview-kicker { @apply text-[10px] text-muted-foreground; }
+.preview-body h2 { @apply mt-4 font-display text-4xl leading-tight; }
+.preview-body p { @apply mt-4 max-w-[15rem] text-xs text-muted-foreground; }
+.preview-button { @apply mt-5 inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-[11px] text-primary-foreground; }
+.preview-button svg { @apply size-3; }
+.preview-path { @apply absolute bottom-5 left-5 right-5 h-20; }
+.preview-path i { @apply absolute bottom-3 left-0 h-px w-full origin-left; background: oklch(var(--moss-700)); transform: rotate(-13deg); }
+.preview-path i:nth-child(2) { background: oklch(var(--accent)); transform: rotate(10deg); }
+.preview-path b { @apply absolute bottom-8 left-1/2 size-3 rounded-full; background: oklch(var(--accent)); }
+.theme-paper .preview-body h2 { font-family: 'DM Sans', 'Yuanti SC', 'PingFang SC', sans-serif; }
+.theme-paper .preview-button { border-radius: 9px; }
+.theme-option-copy { @apply mt-6 flex w-full items-start justify-between gap-3; }
+.theme-option-copy h2 { @apply mt-1 font-display text-2xl; }
+.theme-option > p { @apply mt-3 text-sm text-muted-foreground; }
+.theme-option > .theme-detail { @apply mb-5 mt-1 text-xs; }
+.designs-note { @apply mt-16 border-t pt-10; }
+.designs-note h2 { @apply font-display text-3xl; }
+.designs-note p { @apply mt-3 max-w-2xl text-muted-foreground; }
+.designs-note .primary-link { @apply mt-6; }

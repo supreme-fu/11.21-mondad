@@ -1,0 +1,23 @@
+{
+  "description": "Do Something 微信小程序演示版",
+  "compileType": "miniprogram",
+  "miniprogramRoot": "./",
+  "projectname": "do-something-demo",
+  "appid": "touristappid",
+  "setting": {
+    "es6": true,
+    "enhance": true,
+    "postcss": true,
+    "minified": true,
+    "urlCheck": false,
+    "coverView": true,
+    "ignoreUploadUnusedFiles": false
+  },
+  "packOptions": {
+    "ignore": [
+      { "type": "folder", "value": "node_modules" },
+      { "type": "folder", "value": "dist" },
+      { "type": "folder", "value": "tests" }
+    ]
+  }
+}

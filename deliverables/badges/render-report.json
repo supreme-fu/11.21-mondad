@@ -1,0 +1,336 @@
+{
+  "generatedAt": "2026-11-10T09:34:58.183Z",
+  "badges": [
+    {
+      "id": "reading",
+      "meshes": 11,
+      "triangles": 3800,
+      "vertices": 5115,
+      "bounds": [
+        1.54,
+        1.721,
+        0.3351
+      ],
+      "files": [
+        {
+          "path": "../deliverables/badges/images/reading.png",
+          "bytes": 244247,
+          "view": "quarter"
+        },
+        {
+          "path": "../deliverables/badges/images/reading-front.png",
+          "bytes": 297727,
+          "view": "front"
+        },
+        {
+          "path": "../deliverables/badges/images/reading-side.png",
+          "bytes": 91975,
+          "view": "side"
+        },
+        {
+          "path": "../deliverables/badges/images/reading-back.png",
+          "bytes": 250901,
+          "view": "back"
+        }
+      ]
+    },
+    {
+      "id": "cooking",
+      "meshes": 11,
+      "triangles": 4860,
+      "vertices": 4755,
+      "bounds": [
+        1.54,
+        1.721,
+        0.4264
+      ],
+      "files": [
+        {
+          "path": "../deliverables/badges/images/cooking.png",
+          "bytes": 276602,
+          "view": "quarter"
+        },
+        {
+          "path": "../deliverables/badges/images/cooking-front.png",
+          "bytes": 328556,
+          "view": "front"
+        },
+        {
+          "path": "../deliverables/badges/images/cooking-side.png",
+          "bytes": 103383,
+          "view": "side"
+        },
+        {
+          "path": "../deliverables/badges/images/cooking-back.png",
+          "bytes": 246401,
+          "view": "back"
+        }
+      ]
+    },
+    {
+      "id": "travel",
+      "meshes": 10,
+      "triangles": 3668,
+      "vertices": 3588,
+      "bounds": [
+        1.54,
+        1.721,
+        0.2915
+      ],
+      "files": [
+        {
+          "path": "../deliverables/badges/images/travel.png",
+          "bytes": 252825,
+          "view": "quarter"
+        },
+        {
+          "path": "../deliverables/badges/images/travel-front.png",
+          "bytes": 328917,
+          "view": "front"
+        },
+        {
+          "path": "../deliverables/badges/images/travel-side.png",
+          "bytes": 91215,
+          "view": "side"
+        },
+        {
+          "path": "../deliverables/badges/images/travel-back.png",
+          "bytes": 238555,
+          "view": "back"
+        }
+      ]
+    },
+    {
+      "id": "meeting",
+      "meshes": 9,
+      "triangles": 4528,
+      "vertices": 3364,
+      "bounds": [
+        1.54,
+        1.721,
+        0.3584
+      ],
+      "files": [
+        {
+          "path": "../deliverables/badges/images/meeting.png",
+          "bytes": 246567,
+          "view": "quarter"
+        },
+        {
+          "path": "../deliverables/badges/images/meeting-front.png",
+          "bytes": 302877,
+          "view": "front"
+        },
+        {
+          "path": "../deliverables/badges/images/meeting-side.png",
+          "bytes": 91594,
+          "view": "side"
+        },
+        {
+          "path": "../deliverables/badges/images/meeting-back.png",
+          "bytes": 245942,
+          "view": "back"
+        }
+      ]
+    },
+    {
+      "id": "contract",
+      "meshes": 10,
+      "triangles": 3848,
+      "vertices": 6885,
+      "bounds": [
+        1.54,
+        1.5778,
+        0.2795
+      ],
+      "files": [
+        {
+          "path": "../deliverables/badges/images/contract.png",
+          "bytes": 276958,
+          "view": "quarter"
+        },
+        {
+          "path": "../deliverables/badges/images/contract-front.png",
+          "bytes": 341986,
+          "view": "front"
+        },
+        {
+          "path": "../deliverables/badges/images/contract-side.png",
+          "bytes": 90848,
+          "view": "side"
+        },
+        {
+          "path": "../deliverables/badges/images/contract-back.png",
+          "bytes": 207564,
+          "view": "back"
+        }
+      ]
+    },
+    {
+      "id": "bronze10",
+      "meshes": 8,
+      "triangles": 1712,
+      "vertices": 3459,
+      "bounds": [
+        1.54,
+        1.5778,
+        0.2865
+      ],
+      "files": [
+        {
+          "path": "../deliverables/badges/images/bronze10.png",
+          "bytes": 255488,
+          "view": "quarter"
+        },
+        {
+          "path": "../deliverables/badges/images/bronze10-front.png",
+          "bytes": 323459,
+          "view": "front"
+        },
+        {
+          "path": "../deliverables/badges/images/bronze10-side.png",
+          "bytes": 92849,
+          "view": "side"
+        },
+        {
+          "path": "../deliverables/badges/images/bronze10-back.png",
+          "bytes": 216855,
+          "view": "back"
+        }
+      ]
+    },
+    {
+      "id": "silver50",
+      "meshes": 8,
+      "triangles": 2052,
+      "vertices": 4359,
+      "bounds": [
+        1.54,
+        1.5778,
+        0.2865
+      ],
+      "files": [
+        {
+          "path": "../deliverables/badges/images/silver50.png",
+          "bytes": 251052,
+          "view": "quarter"
+        },
+        {
+          "path": "../deliverables/badges/images/silver50-front.png",
+          "bytes": 288939,
+          "view": "front"
+        },
+        {
+          "path": "../deliverables/badges/images/silver50-side.png",
+          "bytes": 81827,
+          "view": "side"
+        },
+        {
+          "path": "../deliverables/badges/images/silver50-back.png",
+          "bytes": 198857,
+          "view": "back"
+        }
+      ]
+    },
+    {
+      "id": "gold100",
+      "meshes": 8,
+      "triangles": 1956,
+      "vertices": 3951,
+      "bounds": [
+        1.54,
+        1.5778,
+        0.2865
+      ],
+      "files": [
+        {
+          "path": "../deliverables/badges/images/gold100.png",
+          "bytes": 248914,
+          "view": "quarter"
+        },
+        {
+          "path": "../deliverables/badges/images/gold100-front.png",
+          "bytes": 279392,
+          "view": "front"
+        },
+        {
+          "path": "../deliverables/badges/images/gold100-side.png",
+          "bytes": 90335,
+          "view": "side"
+        },
+        {
+          "path": "../deliverables/badges/images/gold100-back.png",
+          "bytes": 221578,
+          "view": "back"
+        }
+      ]
+    },
+    {
+      "id": "platinum100",
+      "meshes": 8,
+      "triangles": 1956,
+      "vertices": 3951,
+      "bounds": [
+        1.54,
+        1.5778,
+        0.2865
+      ],
+      "files": [
+        {
+          "path": "../deliverables/badges/images/platinum100.png",
+          "bytes": 217267,
+          "view": "quarter"
+        },
+        {
+          "path": "../deliverables/badges/images/platinum100-front.png",
+          "bytes": 226899,
+          "view": "front"
+        },
+        {
+          "path": "../deliverables/badges/images/platinum100-side.png",
+          "bytes": 81289,
+          "view": "side"
+        },
+        {
+          "path": "../deliverables/badges/images/platinum100-back.png",
+          "bytes": 196022,
+          "view": "back"
+        }
+      ]
+    },
+    {
+      "id": "diamond100",
+      "meshes": 8,
+      "triangles": 1264,
+      "vertices": 1875,
+      "bounds": [
+        1.54,
+        1.5778,
+        0.5435
+      ],
+      "files": [
+        {
+          "path": "../deliverables/badges/images/diamond100.png",
+          "bytes": 207517,
+          "view": "quarter"
+        },
+        {
+          "path": "../deliverables/badges/images/diamond100-front.png",
+          "bytes": 227714,
+          "view": "front"
+        },
+        {
+          "path": "../deliverables/badges/images/diamond100-side.png",
+          "bytes": 83616,
+          "view": "side"
+        },
+        {
+          "path": "../deliverables/badges/images/diamond100-back.png",
+          "bytes": 207815,
+          "view": "back"
+        }
+      ]
+    }
+  ],
+  "failures": []
+}

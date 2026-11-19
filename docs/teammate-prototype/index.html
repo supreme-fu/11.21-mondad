@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Do Something · 原型架构与数据流</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="architecture.css">
+  <script src="operation-fields.js" defer></script>
+  <script src="architecture.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <a href="#map" class="brand">Do Something<span aria-hidden="true">✳</span></a>
+    <nav aria-label="架构视图">
+      <a href="#map" aria-current="page">数据流</a>
+      <a href="#field-reference">操作字段</a>
+      <a href="modules-map.html">模块关系图 ↗</a>
+    </nav>
+  </header>
+  <main id="map">
+    <section class="intro">
+      <p class="eyebrow">Do Something / PROTOTYPE</p>
+      <h1>原型架构与数据流<span>.</span></h1>
+      <p class="lead">浏览器通过 HTTPS 域名访问应用。沿箭头看数据怎样进入服务器存储或 Monad 测试网，切换场景后可展开各操作的字段。</p>
+      <details class="local-help">
+        <summary>托管后，浏览器连到哪里？</summary>
+        <p>HTTPS 网关把页面请求和 API 请求转发到服务器上的 Node.js 应用。应用校验演示访问凭据，写入持久化目录，并通过 RPC 连接 Monad 公共测试网。开发环境可用 <code>npm run preview</code> 预览这份文档。</p>
+        <p><a href="https://github.com/supreme-fu/do-something/blob/main/docs/deployment.md">查看服务器部署指南 ↗</a></p>
+      </details>
+    </section>
+    <section class="map-section" aria-label="交互架构图">
+      <div class="flow-tabs" role="group" aria-label="选择数据流">
+        <button data-flow="overview" aria-pressed="true">总览</button>
+        <button data-flow="publish" aria-pressed="false">发布与报名</button>
+        <button data-flow="reward" aria-pressed="false">成果与领奖</button>
+        <button data-flow="social" aria-pressed="false">人物与交友</button>
+        <button data-flow="ledger" aria-pressed="false">回执与链上核对</button>
+      </div>
+      <p id="flow-summary" aria-live="polite"></p>
+      <div class="legend" aria-label="图例">
+        <span><i class="source"></i>来源</span>
+        <span><i class="browser"></i>浏览器</span>
+        <span><i class="service"></i>应用后端</span>
+        <span><i class="store"></i>服务器持久化存储</span>
+        <span><i class="chain"></i>Monad 测试网</span>
+        <span class="legend-arrow">→ 箭头标出数据方向与内容</span>
+      </div>
+      <div class="toolbar">
+        <div class="controls" role="group" aria-label="缩放控制">
+          <button id="zoom-out" aria-label="缩小架构图">−</button>
+          <button id="fit">适应宽度</button>
+          <button id="actual">原始大小</button>
+          <button id="zoom-in" aria-label="放大架构图">＋</button>
+          <output id="zoom-value" aria-live="polite">100%</output>
+        </div>
+        <div class="controls">
+          <button id="clear">清除选中</button>
+          <button id="export">导出 SVG</button>
+        </div>
+      </div>
+      <div class="viewer" id="viewer" tabindex="0" aria-label="从左到右的数据流，点击节点查看细节">
+        <svg id="architecture" xmlns="http://www.w3.org/2000/svg" aria-label="Do Something 原型数据流图"></svg>
+      </div>
+      <p class="map-caption">点击节点查看输入和输出。拖动空白区域可平移，手机上可左右滑动。</p>
+    </section>
+    <section class="detail" aria-live="polite" aria-label="节点说明">
+      <div><div class="eyebrow" id="detail-type">节点说明</div><h2 id="detail-title">总览</h2></div>
+      <div id="detail-body"></div>
+    </section>
+    <section class="field-reference" id="field-reference" aria-labelledby="field-title">
+      <h2 id="field-title">操作字段</h2>
+      <p>写入接口从请求 URL 的 <code>as</code> 取演示身份，从 JSON 读取 <code>action</code>。成功时返回最新页面状态，活动操作还可返回站内活动标识 <code>selected</code>。失败响应含 <code>error</code>。</p>
+      <div id="field-operations"></div>
+    </section>
+    <section class="rules" aria-label="数据落点">
+      <article><h3>服务器保存原文与社交状态</h3><p>规则全文、模拟成果与贡献文本、好友关系、待确认交易和回执汇总保存在服务器 JSON 文件。</p></article>
+      <article><h3>合约保存履约和资产状态</h3><p>规则摘要、执行条件、活动池余额、报名、领取状态和勋章归属由合约记录。成果摘要随领取交易提交并写入事件。</p></article>
+      <article><h3>浏览器控制人物和场景</h3><p>活动预览和开门在浏览器交互。人物画布与个人空间读取同一套服务器像素数据，勋章库读取已确认的勋章编号。</p></article>
+    </section>
+    <footer><span>Do Something · 多活动原型</span><a href="https://github.com/supreme-fu/do-something/blob/main/docs/architecture.md">在 GitHub 阅读架构说明 ↗</a></footer>
+  </main>
+</body>
+</html>

@@ -1,0 +1,7 @@
+{
+  "usingComponents": {
+    "badge-viewer": "/components/badge-viewer/index"
+  },
+  "disableScroll": true,
+  "renderer": "webview"
+}

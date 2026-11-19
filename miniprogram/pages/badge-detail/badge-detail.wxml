@@ -1,0 +1,57 @@
+<view class="page detail-page">
+  <view class="detail-header">
+    <view class="display detail-title">{{badge.name}}</view>
+    <view class="meta">
+      <text>{{badge.seriesLabel}}</text>
+      <text wx:if="{{badge}}">{{badge.material}}</text>
+    </view>
+  </view>
+
+  <view wx:if="{{!badge && error}}" class="error">{{error}}</view>
+
+  <block wx:if="{{badge}}">
+    <view class="stage" style="width:{{width}}px;height:{{height}}px;">
+      <!--
+        宽高沿官方示例的做法：CSS px 给组件排版，width/height 属性传的是 renderWidth/renderHeight
+        （CSS px × pixelRatio），xr-frame 用它决定渲染分辨率。
+      -->
+      <badge-viewer
+        id="badge-viewer"
+        class="badge-viewer"
+        src="{{modelSrc}}"
+        width="{{renderWidth}}"
+        height="{{renderHeight}}"
+        reset-token="{{resetToken}}"
+        style="width:{{width}}px;height:{{height}}px;display:block;"
+        bind:ready="handleViewerReady"
+        bind:loaded="handleViewerLoaded"
+        bind:error="handleViewerError"
+        bind:unsupported="handleViewerUnsupported"
+      />
+      <view wx:if="{{loading}}" class="stage-mask">
+        <view class="mask-text">正在加载这一枚的三维模型…</view>
+        <view class="muted mask-hint">只下载当前选中的这一枚，不加载其他徽章。</view>
+      </view>
+      <view wx:if="{{unsupported}}" class="stage-mask">
+        <view class="mask-text">这台设备暂时看不了三维预览</view>
+        <view class="muted mask-hint">{{unsupported}}</view>
+        <view class="muted mask-hint">可以退回列表看缩略图。</view>
+      </view>
+    </view>
+
+    <view class="detail-actions">
+      <button class="secondary" bindtap="resetView" disabled="{{loading || !!unsupported}}">复位视角</button>
+      <button class="ghost" wx:if="{{error}}" bindtap="retry">重试加载</button>
+    </view>
+
+    <view wx:if="{{error}}" class="error">{{error}}</view>
+
+    <view class="muted detail-hint">单指拖动可以旋转，能看到背面；双指捏合可以缩放。</view>
+
+    <view class="notice">
+      <view>系列预览，只用于查看造型；不代表已获得，也不是 NFT、积分或任何奖励。</view>
+    </view>
+  </block>
+
+  <view class="safe-bottom" />
+</view>

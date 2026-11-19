@@ -1,0 +1,14 @@
+<view class="page about-page">
+  <text class="eyebrow">Do Something 的产品约定</text>
+  <view class="display about-title">连接，不必发生在
+认识彼此之前。</view>
+  <view class="muted about-intro">当两个人各自完成一件相似的小事之后，可以偶然看见：原来有人也在认真生活。</view>
+  <view class="about-section rule"><text class="eyebrow">行动后连接</text><view class="display about-section-title">同主题，是最初的匹配条件。</view><view class="muted">没有匹配大厅、好友任务和即时聊天。偶然感不应以读取私密内容为代价。</view></view>
+  <view class="about-section rule"><text class="eyebrow">自愿分享</text><view class="display about-section-title">四个决定，分别由你作出。</view><view class="muted">完成、写感受、允许分享、申请凭证，任何一步都不替你做下一步的授权。</view></view>
+  <view class="about-section rule"><text class="eyebrow">链上与链下</text><view class="display about-section-title">凭证不是生活真实性的裁判。</view><view class="muted">方案 A 只登记随机编号，主要证明平台曾登记这个编号，不证明你真的做了饭、读完书或改善了关系。</view></view>
+  <view class="boundary-item"><view class="display boundary-title">本地服务端</view><view class="muted">账户、参与、自报完成、正文、分享许可、随机编号与账户映射。撤回、删除或注销后可删除链下数据。</view></view>
+  <view class="boundary-item"><view class="display boundary-title">Monad 测试网适配</view><view class="muted">仅随机凭证编号及链产生的交易元数据。已广播或确认的历史无法由平台单方面抹除。</view></view>
+  <view class="mode-note"><view class="display boundary-title">{{receiptMode === 'simulation' ? '当前是本地模拟模式' : '当前是 Monad 测试网模式'}}</view><view class="muted">{{receiptMode === 'simulation' ? '模拟标识以 simulation- 开头，没有真实交易哈希或区块浏览器链接。界面不会把它称为真实链上凭证。' : '凭证只包含随机编号，真实交易可通过 Monad 测试网浏览器核验；正文不会上链。'}}</view></view>
+  <view class="about-section rule"><text class="eyebrow">你始终可以说“不要了”</text><view class="display about-section-title">分享能撤回，正文能删除，账户能注销。</view><view class="muted">他人此前复制或截图的内容，以及已确认的公开链历史，不承诺能够收回。</view></view>
+  <view class="safe-bottom" />
+</view>

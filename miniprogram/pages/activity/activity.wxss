@@ -1,0 +1,10 @@
+.activity-glyph { width: 144rpx; height: 144rpx; margin: 48rpx 0 28rpx; font-size: 52rpx; }
+.activity-title { margin-top: 24rpx; font-size: 58rpx; line-height: 1.35; }
+.activity-invitation { margin-top: 24rpx; font-size: 31rpx; }
+.promise { margin: 56rpx 0 40rpx; padding: 36rpx; border-radius: 30rpx; background: var(--soft); }
+.promise-title { margin: 16rpx 0; font-size: 40rpx; }
+.promise-button { margin-top: 32rpx; }
+.rules { margin-top: 48rpx; padding-top: 40rpx; }
+.rule-title { margin: 20rpx 0; font-size: 37rpx; line-height: 1.45; }
+.data-note { margin-top: 48rpx; padding: 40rpx 0; }
+.data-note .muted { margin-top: 20rpx; }

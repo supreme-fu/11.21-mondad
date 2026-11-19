@@ -1,0 +1,32 @@
+<view class="page badges-page">
+  <view class="badges-header">
+    <text class="eyebrow">系列预览 · 不构成任何奖励</text>
+    <view class="display badges-title">徽章只是造型，
+不是成绩单。</view>
+    <view class="muted">列表只加载包内缩略图，点开某一枚才下载它自己的模型。这里没有“获得”、没有等级，也没有新增任何奖励系统。</view>
+  </view>
+
+  <view wx:if="{{error}}" class="error">{{error}}</view>
+
+  <view wx:for="{{groups}}" wx:key="series" class="badge-group">
+    <view class="badge-group-head">
+      <view class="display group-title">{{item.title}}</view>
+      <view class="muted group-note">{{item.note}}</view>
+    </view>
+    <view class="badge-grid">
+      <view wx:for="{{item.items}}" wx:for-item="badge" wx:key="id" class="badge-card" data-id="{{badge.id}}" bindtap="openBadge" hover-class="badge-card-hover">
+        <image class="badge-thumb" src="{{badge.thumb}}" mode="aspectFill" lazy-load="{{true}}" />
+        <view class="badge-name">{{badge.name}}</view>
+        <view class="muted badge-series">{{badge.seriesLabel}}</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="badges-note">
+    <text class="eyebrow">关于这些徽章</text>
+    <view class="display note-title">真正的纪念，留在你做完那件事的时刻。</view>
+    <view class="muted">徽章造型来自设计侧的轻量导出，用来预览质感。是否完成一次行动、是否分享感受，仍然只由你自己决定；展示徽章不等于获得徽章，也不对应 NFT、积分或链上资产。</view>
+  </view>
+
+  <view class="safe-bottom" />
+</view>
