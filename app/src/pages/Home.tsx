@@ -1,51 +1,21 @@
-import { ArrowRight, BookOpen, Check, Coins, Sparkles } from 'lucide-react';
+import { ArrowRight, BookOpen, Coins, Sparkles } from 'lucide-react';
 import { Link } from 'react-router';
 import { ActivityGlyph } from '@/components/ActivityGlyph';
+import { PoeticScrollStory } from '@/components/PoeticScrollStory';
 import { useApp } from '@/context/AppContext';
 import '../App.css';
-
-function MeetingMark() {
-  return (
-    <div className="meeting-mark" aria-label="两条独立的生活轨迹，在完成后相遇">
-      <svg viewBox="0 0 520 420" role="img" aria-hidden="true">
-        <path className="path-one" d="M30 318C110 354 136 266 188 236C246 202 263 151 329 125C389 102 428 116 492 55" />
-        <path className="path-two" d="M38 84C116 47 151 119 203 163C253 205 298 207 340 254C386 305 422 340 490 322" />
-        <circle className="meeting-dot" cx="262" cy="198" r="11" />
-        <circle className="orbit-dot" cx="329" cy="125" r="5" />
-        <circle className="orbit-dot" cx="203" cy="163" r="5" />
-      </svg>
-      <div className="path-note path-note-one"><Check />我按自己的方式完成了</div>
-      <div className="path-note path-note-two">原来，你也回应了这件事</div>
-      <span className="mark-caption">不必同步出发，也能彼此照亮</span>
-    </div>
-  );
-}
 
 export default function Home() {
   const { activities, records, user } = useApp();
   const completedTotal = records.filter((item) => item.completion !== null).length;
 
+  function scrollToThemes() {
+    document.getElementById('themes')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
   return (
     <>
-      <section className="home-hero home-hero-polished page-container">
-        <div className="hero-copy">
-          <p className="eyebrow">给“改天”一个轻轻的结尾</p>
-          <h1>想做，很久了。<br /><em>今天，轻轻开始。</em></h1>
-          <p className="hero-description">
-            一件真正想做的事，一个只属于自己的约定。不用找搭子，不必连续打卡；先去生活，再决定要不要留下故事。
-          </p>
-          <div className="hero-actions">
-            <a className="primary-link" href="#themes">选一件想做的事<ArrowRight /></a>
-            <a className="text-link" href="/intro.html#after-action">为什么在完成之后相遇？</a>
-          </div>
-          <ul className="hero-assurances" aria-label="产品原则">
-            <li><Check />独立行动</li>
-            <li><Check />分享由你</li>
-            <li><Check />没有排名</li>
-          </ul>
-        </div>
-        <MeetingMark />
-      </section>
+      <PoeticScrollStory onJumpToThemes={scrollToThemes} />
 
       <section className="themes-section themes-section-editorial page-container" id="themes">
         <div className="home-compact-head">
