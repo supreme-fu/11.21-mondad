@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { LoaderCircle, LockKeyhole, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import { api } from '@/lib/api';
 import type { Echo } from '@/types';
 
@@ -82,5 +83,25 @@ export function EchoPanel({ activityId }: { activityId: string }) {
         <p className="echo-boundary"><LockKeyhole />这里只停留同主题下自愿敞开的文字。不必寒暄，看见即是重逢。</p>
       </div>
     </section>
+  );
+}
+
+export function EchoDialog({
+  open,
+  activityId,
+  onClose,
+}: {
+  open: boolean;
+  activityId: string;
+  onClose: () => void;
+}) {
+  return (
+    <Dialog open={open} onOpenChange={(nextOpen) => { if (!nextOpen) onClose(); }}>
+      <DialogContent className="echo-reveal-dialog" data-testid="echo-reveal-dialog">
+        <DialogTitle className="sr-only">同路人公开的字条</DialogTitle>
+        <DialogDescription className="sr-only">展示完成同一约定的其他人自愿公开的分享内容</DialogDescription>
+        <EchoPanel activityId={activityId} />
+      </DialogContent>
+    </Dialog>
   );
 }

@@ -23,7 +23,7 @@ import {
   type BadgeOnchainInscription,
   type CeremonyBadgeItem,
 } from '@/components/BadgeViewerDialog';
-import { EchoPanel } from '@/components/EchoPanel';
+import { EchoDialog } from '@/components/EchoPanel';
 import { ReflectionShareDialog } from '@/components/ReflectionShareDialog';
 import { Button } from '@/components/ui/button';
 import {
@@ -82,16 +82,15 @@ export function LittlePrinceReader({
   const [pointsSummary, setPointsSummary] = useState<string | null>(null);
   const [showOnchainConfirm, setShowOnchainConfirm] = useState(false);
 
-  // Share dialog -> EchoPanel reveal sequence
+  // Share dialog -> EchoDialog popup sequence
   const [shareCompletionId, setShareCompletionId] = useState<string | null>(null);
   const [pendingShareAfterCeremony, setPendingShareAfterCeremony] = useState(false);
   const [showShareDialog, setShowShareDialog] = useState(false);
-  const [echoRevealed, setEchoRevealed] = useState(Boolean(completion));
+  const [showEchoDialog, setShowEchoDialog] = useState(false);
 
   const badgeBtnRef = useRef<HTMLButtonElement | null>(null);
   const chapterStartRef = useRef<number>(Date.now());
   const contentTopRef = useRef<HTMLDivElement | null>(null);
-  const echoSectionRef = useRef<HTMLDivElement | null>(null);
   const completionKeyRef = useRef(crypto.randomUUID());
 
   const loadAll = useCallback(async () => {
@@ -213,7 +212,6 @@ export function LittlePrinceReader({
       setState(refreshed);
       setShowOnchainConfirm(false);
       // 暂不上链：完成确认后立刻弹出「是否分享感受/评论」弹窗
-      setEchoRevealed(false);
       setShareCompletionId(compId);
       setShowShareDialog(true);
     } catch (reason) {
@@ -282,7 +280,6 @@ export function LittlePrinceReader({
       );
       setCeremonyBadges(ceremonyList.length > 0 ? ceremonyList : null);
       if (readingAsset) setReadingBadgeAsset(readingAsset);
-      setEchoRevealed(false);
       setShareCompletionId(result.completionId);
       setPendingShareAfterCeremony(true);
       setJustMintedSpotlight(true);
@@ -363,13 +360,6 @@ export function LittlePrinceReader({
 
   return (
     <div className="lp-reader-shell" data-testid="little-prince-reader">
-      {/* 是否分享选择结束后，直接展现原版截图样式的同路人公开分享 */}
-      {echoRevealed && (
-        <div ref={echoSectionRef}>
-          <EchoPanel activityId="reading" />
-        </div>
-      )}
-
       {/* 顶部紧凑工具栏 */}
       <div className="lp-topbar">
         <div className="lp-topbar-left">
@@ -821,11 +811,15 @@ export function LittlePrinceReader({
         onCompleteChoice={async () => {
           setShowShareDialog(false);
           await onRecordChanged();
-          setEchoRevealed(true);
-          window.setTimeout(() => {
-            echoSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          }, 80);
+          setShowEchoDialog(true);
         }}
+      />
+
+      {/* 4) 选择是否分享结束后，直接弹窗展示别人公开的字条 */}
+      <EchoDialog
+        open={showEchoDialog}
+        activityId="reading"
+        onClose={() => setShowEchoDialog(false)}
       />
     </div>
   );

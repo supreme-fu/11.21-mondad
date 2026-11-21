@@ -1699,3 +1699,21 @@
 .badge-ceremony-tab small {
   @apply text-[0.68rem] text-muted-foreground;
 }
+
+
+/* 同路人公开字条弹窗（无缝贴合原版深绿 EchoPanel） */
+.echo-reveal-dialog {
+  @apply max-w-3xl p-0 border-0 bg-transparent shadow-2xl overflow-hidden;
+}
+.echo-reveal-dialog > button[data-slot="dialog-close"],
+.echo-reveal-dialog > button.absolute {
+  color: rgba(246, 239, 226, .85);
+  z-index: 20;
+}
+.echo-reveal-dialog > button[data-slot="dialog-close"]:hover,
+.echo-reveal-dialog > button.absolute:hover {
+  color: #fff;
+}
+.echo-reveal-dialog .echo-panel {
+  margin: 0;
+}

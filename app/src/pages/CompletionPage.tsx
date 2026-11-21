@@ -8,7 +8,7 @@ import {
   type BadgeOnchainInscription,
   type CeremonyBadgeItem,
 } from '@/components/BadgeViewerDialog';
-import { EchoPanel } from '@/components/EchoPanel';
+import { EchoDialog, EchoPanel } from '@/components/EchoPanel';
 import { HoloBadgeCard } from '@/components/HoloBadgeCard';
 import { LittlePrinceReader } from '@/components/LittlePrinceReader';
 import { ReflectionShareDialog } from '@/components/ReflectionShareDialog';
@@ -151,6 +151,7 @@ export default function CompletionPage() {
   const [shareCompletionId, setShareCompletionId] = useState<string | null>(null);
   const [pendingShareAfterCeremony, setPendingShareAfterCeremony] = useState(false);
   const [showShareDialog, setShowShareDialog] = useState(false);
+  const [showEchoDialog, setShowEchoDialog] = useState(false);
   const [awaitingShareChoice, setAwaitingShareChoice] = useState(false);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
   const idempotencyKey = useRef(crypto.randomUUID());
@@ -491,8 +492,14 @@ export default function CompletionPage() {
           setShowShareDialog(false);
           setAwaitingShareChoice(false);
           await syncRecord();
-          window.scrollTo({ top: 0, behavior: 'smooth' });
+          setShowEchoDialog(true);
         }}
+      />
+
+      <EchoDialog
+        open={showEchoDialog}
+        activityId={record.activity.id}
+        onClose={() => setShowEchoDialog(false)}
       />
     </div>
   );
