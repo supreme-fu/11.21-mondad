@@ -90,3 +90,14 @@
   - `npm test --prefix integrations/teammate-chain`（19 项通过）与 `npm run demo --prefix integrations/teammate-chain`（本地交易发放 12.0 DSDEMO + 1 枚勋章）通过。
   - `npm run lint` 与 `npm run build` 零告警、零错误通过。
   - `npm run test:all` 全绿通过：服务端 30 项 + 主合约 3 项 + 小程序 25 项 + 本地 EVM 联调 14 项 + Playwright 真实浏览器 22 项，合计 94 项主工程自动化测试全部通过。
+
+## 2026-11-21 面向 Agent 时代的个人链上身份档案与三维徽章墙基线记录
+
+- **核心定位升级**：明确主产品为**面向 Agent 时代的个人链上身份档案（`LIFE CONTEXT · Onchain Personal Identity & Agent Context Archive`）**；将读书（《小王子》共读）、做菜、相见、出行统一收敛为补充个人档案中“活动执行与多源凭证采集”环节的交互演示模块。
+- **涉及文件与能力**：
+  1. **三维器物徽章墙（[badges.ts](file:///Users/abeam/一些尝试/区块链黑客松/app/src/lib/badges.ts)、[HoloBadgeCard.tsx](file:///Users/abeam/一些尝试/区块链黑客松/app/src/components/HoloBadgeCard.tsx)、[BadgeViewerDialog.tsx](file:///Users/abeam/一些尝试/区块链黑客松/app/src/components/BadgeViewerDialog.tsx)、[RecordsPage.tsx](file:///Users/abeam/一些尝试/区块链黑客松/app/src/pages/RecordsPage.tsx)）**：
+     - 为 10 枚三维器物建立档案等级与动态进阶计算（`Tier SSR / SR / S / A+ / A / B+` + `Lv.1 初识 / Lv.2 笃行 / Lv.3 恒常`），自动提取每枚徽章的首次解锁/获得时间（`acquiredAt`）、徽章来源（`sourceLabel`）与签发/核验方（`issuerLabel`）。
+     - 在个人档案页徽章墙支持按**徽章等级**、**获得时间**、**图谱编号**三种方式实时排序，并在卡片及 3D 弹窗中显式展示等级、来源与获得时间。
+  2. **结构化个人身份与 Agent 可信上下文面板（[RecordsPage.tsx](file:///Users/abeam/一些尝试/区块链黑客松/app/src/pages/RecordsPage.tsx)、[Home.tsx](file:///Users/abeam/一些尝试/区块链黑客松/app/src/pages/Home.tsx)）**：
+     - 实行**双轨信任分层（Provenance Tiering）**：清晰区分第三方/机构 `EIP-712` 核销凭证（如共读组织、线上购书、景区门票二维码核销）与个人主权声明（`Self-Attested`，如日常下厨、见想见的人的留白约定），在行动时间轴与结构化面板中逐条标注来源。
+     - 新增 `STRUCTURED IDENTITY & AGENT CONTEXT` 面板，记录用户的链上 `DID`（`did:monad:10143:user-...`）、凭证信任分层计数、结构化行为维度与已获徽章资产索引，支持一键展开并复制 `JSON-LD / MCP Ready` 标准上下文载荷。

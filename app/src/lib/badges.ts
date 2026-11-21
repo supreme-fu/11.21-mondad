@@ -292,6 +292,8 @@ export function getBadgePortalSource(badgeId: string): BadgePortalSource {
   return BADGE_PORTAL_SOURCES[badgeId] ?? DEFAULT_MILESTONE_PORTAL;
 }
 
+export type BadgeTrustTier = 'issuer_verified' | 'hybrid_verified' | 'self_attested' | 'onchain_protocol' | 'protocol_derived';
+
 export interface BadgeState {
   badge: Badge;
   unlocked: boolean;
@@ -300,6 +302,145 @@ export interface BadgeState {
   activityId?: string;
   matchedRecords: RecordItem[];
   portalSource: BadgePortalSource;
+  /** 首次解锁/获得该徽章的 ISO 时间戳（按完成记录正序计算），未解锁为 null */
+  acquiredAt: string | null;
+  /** 最近一次更新该徽章对应行动的 ISO 时间戳 */
+  lastUpdatedAt: string | null;
+  /** 徽章等级编码（如 Tier S / Tier A+ / Tier A / Tier SSR） */
+  tierCode: string;
+  /** 徽章等级完整展示文案 */
+  levelLabel: string;
+  /** 用于按等级排序的数值权重（越大等级越高） */
+  levelRank: number;
+  /** 凭证信任分层类型 */
+  trustTier: BadgeTrustTier;
+  /** 徽章来源（对应活动或协议触发源） */
+  sourceLabel: string;
+  /** 签发方与合约核验标识 */
+  issuerLabel: string;
+}
+
+function getEarliestDeclaredAt(items: RecordItem[], index = 0): { earliest: string | null; latest: string | null } {
+  const withCompletion = items.filter((item) => item.completion !== null);
+  if (withCompletion.length === 0) return { earliest: null, latest: null };
+  const sorted = [...withCompletion].sort(
+    (a, b) => new Date(a.completion!.declaredAt).getTime() - new Date(b.completion!.declaredAt).getTime(),
+  );
+  const targetItem = sorted[Math.min(index, sorted.length - 1)];
+  const latestItem = sorted[sorted.length - 1];
+  return {
+    earliest: targetItem?.completion?.declaredAt ?? null,
+    latest: latestItem?.completion?.declaredAt ?? null,
+  };
+}
+
+function computeBadgeGrading(
+  badgeId: string,
+  unlocked: boolean,
+  count: number,
+): {
+  tierCode: string;
+  levelLabel: string;
+  levelRank: number;
+  trustTier: BadgeTrustTier;
+  sourceLabel: string;
+  issuerLabel: string;
+} {
+  const dynamicLv = count >= 3 ? 'Lv.3 恒常' : count >= 2 ? 'Lv.2 笃行' : 'Lv.1 初识';
+
+  switch (badgeId) {
+    case 'reading':
+      return {
+        tierCode: 'Tier S',
+        levelLabel: unlocked ? `Tier S · ${dynamicLv}（机构 EIP-712 核验）` : 'Tier S · 机构核验级',
+        levelRank: 95 + Math.min(count, 10),
+        trustTier: 'issuer_verified',
+        sourceLabel: '《小王子》共读挑战 · 章节进度 / 购书核验',
+        issuerLabel: '共读主理方 EIP-712 核验节点 (ReadingBadge 合约)',
+      };
+    case 'contract':
+      return {
+        tierCode: 'Tier S',
+        levelLabel: unlocked ? `Tier S · ${dynamicLv}（链上协议锚点）` : 'Tier S · 链上协议级',
+        levelRank: 92 + Math.min(count, 10),
+        trustTier: 'onchain_protocol',
+        sourceLabel: 'Monad 跨场景链上凭证存证',
+        issuerLabel: 'Monad CompletionReceipt 协议合约 (Chain 10143)',
+      };
+    case 'travel':
+      return {
+        tierCode: 'Tier A+',
+        levelLabel: unlocked ? `Tier A+ · ${dynamicLv}（出行/门票核销）` : 'Tier A+ · 出行核销级',
+        levelRank: 84 + Math.min(count, 10),
+        trustTier: 'hybrid_verified',
+        sourceLabel: '档案活动执行 · 城市出行 / 景区门票二维码核销',
+        issuerLabel: '文旅门票核销方 / 本人主权声明 (ActivityHub)',
+      };
+    case 'cooking':
+      return {
+        tierCode: 'Tier A',
+        levelLabel: unlocked ? `Tier A · ${dynamicLv}（个人主权声明）` : 'Tier A · 个人主权级',
+        levelRank: 80 + Math.min(count, 10),
+        trustTier: 'self_attested',
+        sourceLabel: '档案活动执行 · 给在乎的人做一道菜',
+        issuerLabel: '本人主权声明 (Self-Attested · CompletionReceipt)',
+      };
+    case 'meeting':
+      return {
+        tierCode: 'Tier A',
+        levelLabel: unlocked ? `Tier A · ${dynamicLv}（个人主权声明）` : 'Tier A · 个人主权级',
+        levelRank: 78 + Math.min(count, 10),
+        trustTier: 'self_attested',
+        sourceLabel: '档案活动执行 · 见一个想见的人',
+        issuerLabel: '本人主权声明 (Self-Attested · CompletionReceipt)',
+      };
+    case 'diamond100':
+      return {
+        tierCode: 'Tier SSR',
+        levelLabel: 'Tier SSR · Lv.5 百次钻石典藏',
+        levelRank: 120,
+        trustTier: 'protocol_derived',
+        sourceLabel: 'LIFE CONTEXT 档案累计 100 次行动里程碑',
+        issuerLabel: 'Do Something 链上档案聚合器 (Protocol Derived)',
+      };
+    case 'platinum100':
+      return {
+        tierCode: 'Tier SSR',
+        levelLabel: 'Tier SSR · Lv.4 百次白金典藏',
+        levelRank: 115,
+        trustTier: 'protocol_derived',
+        sourceLabel: 'LIFE CONTEXT 档案累计 100 次行动里程碑',
+        issuerLabel: 'Do Something 链上档案聚合器 (Protocol Derived)',
+      };
+    case 'gold100':
+      return {
+        tierCode: 'Tier SR',
+        levelLabel: 'Tier SR · Lv.3 百次黄金里程碑',
+        levelRank: 110,
+        trustTier: 'protocol_derived',
+        sourceLabel: 'LIFE CONTEXT 档案累计 100 次行动里程碑',
+        issuerLabel: 'Do Something 链上档案聚合器 (Protocol Derived)',
+      };
+    case 'silver50':
+      return {
+        tierCode: 'Tier SR',
+        levelLabel: 'Tier SR · Lv.2 五十次白银里程碑',
+        levelRank: 89,
+        trustTier: 'protocol_derived',
+        sourceLabel: 'LIFE CONTEXT 档案累计 50 次行动里程碑',
+        issuerLabel: 'Do Something 链上档案聚合器 (Protocol Derived)',
+      };
+    case 'bronze10':
+    default:
+      return {
+        tierCode: 'Tier B+',
+        levelLabel: 'Tier B+ · Lv.1 十次暖铜里程碑',
+        levelRank: 74,
+        trustTier: 'protocol_derived',
+        sourceLabel: 'LIFE CONTEXT 档案累计 10 次行动里程碑',
+        issuerLabel: 'Do Something 链上档案聚合器 (Protocol Derived)',
+      };
+  }
 }
 
 export function computeBadgeStates(badges: Badge[], records: RecordItem[]): Record<string, BadgeState> {
@@ -323,36 +464,59 @@ export function computeBadgeStates(badges: Badge[], records: RecordItem[]): Reco
       const matchedRecords = activityId
         ? completedRecords.filter((item) => item.activity.id === activityId)
         : [];
+      const unlocked = matchedRecords.length >= 1;
+      const count = matchedRecords.length;
+      const { earliest, latest } = getEarliestDeclaredAt(matchedRecords, 0);
+      const grading = computeBadgeGrading(badge.id, unlocked, count);
       states[badge.id] = {
         badge,
-        unlocked: matchedRecords.length >= 1,
-        count: matchedRecords.length,
+        unlocked,
+        count,
         activityId,
         matchedRecords,
         portalSource,
+        acquiredAt: unlocked ? earliest : null,
+        lastUpdatedAt: unlocked ? latest : null,
+        ...grading,
       };
       continue;
     }
 
     if (badge.id === 'contract') {
+      const unlocked = confirmedOrPendingReceiptRecords.length >= 1;
+      const count = confirmedReceipts.length || confirmedOrPendingReceiptRecords.length;
+      const { earliest, latest } = getEarliestDeclaredAt(confirmedOrPendingReceiptRecords, 0);
+      const grading = computeBadgeGrading(badge.id, unlocked, count);
       states[badge.id] = {
         badge,
-        unlocked: confirmedOrPendingReceiptRecords.length >= 1,
-        count: confirmedReceipts.length || confirmedOrPendingReceiptRecords.length,
+        unlocked,
+        count,
         matchedRecords: receiptRecords,
         portalSource,
+        acquiredAt: unlocked ? earliest : null,
+        lastUpdatedAt: unlocked ? latest : null,
+        ...grading,
       };
       continue;
     }
 
     const target = MILESTONE_THRESHOLDS[badge.id] ?? 10;
+    const unlocked = completedRecords.length >= target;
+    const count = completedRecords.length;
+    const { earliest, latest } = unlocked
+      ? getEarliestDeclaredAt(completedRecords, target - 1)
+      : { earliest: null, latest: null };
+    const grading = computeBadgeGrading(badge.id, unlocked, count);
     states[badge.id] = {
       badge,
-      unlocked: completedRecords.length >= target,
-      count: completedRecords.length,
+      unlocked,
+      count,
       target,
       matchedRecords: completedRecords,
       portalSource,
+      acquiredAt: unlocked ? earliest : null,
+      lastUpdatedAt: unlocked ? latest : null,
+      ...grading,
     };
   }
 

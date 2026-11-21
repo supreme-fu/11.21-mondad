@@ -795,3 +795,132 @@
 .badge-contract-anchor-addr { @apply mt-1 flex items-center justify-between gap-2 text-[0.68rem]; }
 .badge-contract-anchor-addr code { @apply break-all text-foreground; }
 .badge-contract-anchor-addr svg { @apply size-3.5 shrink-0 text-muted-foreground; }
+
+/* 首页：面向 Agent 时代的个人链上身份档案定位横幅 */
+.home-archive-banner {
+  @apply my-6 flex flex-col gap-5 rounded-2xl border bg-card p-6 md:my-8 md:flex-row md:items-center md:justify-between md:p-8;
+}
+.home-archive-banner-copy { @apply min-w-0 max-w-3xl; }
+.home-archive-banner-copy h2 { @apply mt-1.5 font-display text-2xl md:text-3xl text-foreground; }
+.home-archive-banner-copy p { @apply mt-2.5 text-sm leading-relaxed text-muted-foreground; }
+.home-archive-banner-action { @apply shrink-0; }
+
+/* 个人档案页：三维器物徽章墙排序与卡片元数据 */
+.records-archive-subtitle {
+  @apply mt-1.5 max-w-2xl text-xs leading-relaxed text-muted-foreground;
+}
+.badge-wall-controls {
+  @apply flex flex-wrap items-center gap-2;
+}
+.badge-sort-group {
+  @apply flex flex-wrap items-center gap-1.5;
+}
+.holo-pill-row {
+  @apply flex flex-wrap items-center justify-between gap-1.5 w-full;
+}
+.holo-tier-pill {
+  @apply inline-flex items-center rounded-full border px-2 py-0.5 text-[0.62rem] font-semibold tracking-wide;
+  background: oklch(var(--secondary) / .75);
+  color: oklch(var(--moss-700));
+}
+.holo-tier-pill.is-dormant {
+  @apply text-muted-foreground opacity-80;
+}
+.holo-wall-meta {
+  @apply mt-2 grid w-full gap-1 rounded-lg border p-2 text-left text-[0.66rem] leading-snug;
+  background: oklch(var(--secondary) / .5);
+}
+.holo-wall-meta-row {
+  @apply flex items-start gap-1.5 min-w-0;
+}
+.holo-wall-meta-row strong {
+  @apply shrink-0 rounded px-1 py-0.5 text-[0.6rem] font-semibold;
+  background: oklch(var(--card));
+  color: oklch(var(--moss-700));
+}
+.holo-wall-meta-row span {
+  @apply min-w-0 break-words text-muted-foreground line-clamp-2;
+}
+
+/* 3D 徽章弹窗：档案等级、徽章来源、签发方与获得时间 */
+.badge-provenance-specs {
+  @apply mt-2.5 grid grid-cols-1 gap-2 rounded-lg border bg-card p-2.5 text-xs sm:grid-cols-2;
+}
+.badge-provenance-specs > div {
+  @apply grid gap-0.5 min-w-0;
+}
+.badge-provenance-specs span {
+  @apply text-[0.65rem] text-muted-foreground;
+}
+.badge-provenance-specs strong {
+  @apply text-xs font-medium text-foreground break-words;
+}
+
+/* 个人档案页：面向 Agent 的结构化个人身份与可信上下文面板 */
+.agent-structured-identity {
+  @apply my-8 grid gap-5 rounded-2xl border bg-card p-5 md:p-7;
+}
+.agent-identity-head {
+  @apply flex flex-col gap-4 border-b pb-5 lg:flex-row lg:items-start lg:justify-between;
+}
+.agent-identity-head .eyebrow {
+  @apply inline-flex items-center gap-1.5;
+}
+.agent-identity-head .eyebrow svg { @apply size-4; }
+.agent-identity-head h2 {
+  @apply mt-1.5 font-display text-2xl md:text-3xl text-foreground;
+}
+.agent-identity-head p {
+  @apply mt-2 max-w-3xl text-xs md:text-sm leading-relaxed text-muted-foreground;
+}
+.agent-identity-actions {
+  @apply flex flex-wrap items-center gap-2 shrink-0;
+}
+.agent-identity-grid {
+  @apply grid gap-4 md:grid-cols-3;
+}
+.agent-identity-card {
+  @apply flex min-w-0 flex-col gap-3 rounded-xl border p-4;
+  background: oklch(var(--secondary) / .45);
+}
+.agent-card-title {
+  @apply flex items-center gap-2 text-sm font-semibold text-foreground;
+}
+.agent-card-title svg {
+  @apply size-4 shrink-0;
+  color: oklch(var(--moss-700));
+}
+.agent-struct-dl {
+  @apply grid gap-2.5 text-xs;
+}
+.agent-struct-dl > div {
+  @apply grid gap-0.5 min-w-0 border-b pb-2 last:border-b-0 last:pb-0;
+}
+.agent-struct-dl dt {
+  @apply text-[0.68rem] text-muted-foreground;
+}
+.agent-struct-dl dd {
+  @apply text-xs font-medium text-foreground break-words;
+}
+.agent-struct-dl code {
+  @apply break-all rounded bg-card px-1.5 py-0.5 text-[0.68rem];
+}
+.agent-json-panel {
+  @apply min-w-0 overflow-hidden rounded-xl border bg-card;
+}
+.agent-json-header {
+  @apply flex flex-wrap items-center justify-between gap-2 border-b px-4 py-2.5 text-xs font-medium;
+  background: oklch(var(--secondary) / .65);
+}
+.agent-json-header span:last-child {
+  @apply text-[0.7rem] text-muted-foreground;
+}
+.agent-json-pre {
+  @apply max-h-80 overflow-auto p-4 text-[0.72rem] leading-relaxed text-foreground;
+}
+.records-timeline-note {
+  @apply mt-1 text-xs text-muted-foreground;
+}
+.record-provenance-badge {
+  border-color: oklch(var(--moss-700) / .28);
+}

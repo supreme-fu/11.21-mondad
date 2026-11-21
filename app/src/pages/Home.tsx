@@ -41,10 +41,26 @@ export default function Home() {
         <MeetingMark />
       </section>
 
+      <section className="home-archive-banner page-container" aria-label="面向 Agent 时代的个人链上身份档案">
+        <div className="home-archive-banner-copy">
+          <p className="eyebrow">AGENT-ERA ONCHAIN IDENTITY · 个人链上身份档案底座</p>
+          <h2>不仅是一次行动，更是面向 Agent 时代的个人链上身份档案。</h2>
+          <p>
+            我们构建的是可跨应用汇聚、带签发方信任分层的<strong>个人链上身份档案（LIFE CONTEXT）</strong>——内置支持按<strong>获得时间 / 等级</strong>排序的<strong>三维徽章墙</strong>（记录每枚徽章的来源、签发方与获得时间）以及<strong>结构化个人画像载荷</strong>，为未来的个人 AI Agent 提供真正读得懂主人的可信上下文。下方四个场景是用于补充和现场演示档案中“活动执行与凭证采集”环节的交互入口。
+          </p>
+        </div>
+        <div className="home-archive-banner-action">
+          <Link className="primary-link" to="/records">
+            查看我的链上身份档案与徽章墙
+            <ArrowRight />
+          </Link>
+        </div>
+      </section>
+
       <section className="themes-section page-container" id="themes">
         <div className="section-heading-row">
-          <div><p className="eyebrow">今天可以做的小事</p><h2 className="section-title">哪一件，已经在心里放了很久？</h2></div>
-          <p>你好，{user?.displayName}。<br />不需要一次改变很多。</p>
+          <div><p className="eyebrow">档案活动执行演示 · 今天可以做的小事</p><h2 className="section-title">哪一件，已经在心里放了很久？</h2></div>
+          <p>你好，{user?.displayName}。<br />每一次行动完成，都会自动写入你的链上个人档案与徽章墙。</p>
         </div>
         <div className="activity-list">
           {activities.map((activity) => {

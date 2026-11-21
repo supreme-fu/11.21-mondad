@@ -9,6 +9,10 @@ interface HoloBadgeCardProps {
   count?: number;
   target?: number;
   dormantLabel?: string;
+  tierCode?: string;
+  levelLabel?: string;
+  sourceLabel?: string;
+  acquiredAtLabel?: string;
 }
 
 function ChamberFiligree({ series }: { series: Badge['series'] }) {
@@ -46,6 +50,10 @@ export function HoloBadgeCard({
   count = 0,
   target,
   dormantLabel,
+  tierCode,
+  levelLabel,
+  sourceLabel,
+  acquiredAtLabel,
 }: HoloBadgeCardProps) {
   const cardRef = useRef<HTMLButtonElement | null>(null);
   const rafRef = useRef<number | null>(null);
@@ -142,13 +150,44 @@ export function HoloBadgeCard({
         </span>
 
         <span className="holo-card-plate">
-          {statusText && (
-            <span className={`holo-status-pill ${unlocked ? 'is-unlocked' : 'is-dormant'}`}>
-              {statusText}
+          {(statusText || tierCode) && (
+            <span className="holo-pill-row">
+              {statusText && (
+                <span className={`holo-status-pill ${unlocked ? 'is-unlocked' : 'is-dormant'}`}>
+                  {statusText}
+                </span>
+              )}
+              {tierCode && (
+                <span className={`holo-tier-pill ${unlocked ? 'is-unlocked' : 'is-dormant'}`}>
+                  {tierCode}
+                </span>
+              )}
             </span>
           )}
           <span className="badge-card-title">{badge.name}</span>
           <span className="badge-card-material">{badge.material}</span>
+          {(levelLabel || sourceLabel || acquiredAtLabel) && (
+            <span className="holo-wall-meta" data-testid={`badge-wall-meta-${badge.id}`}>
+              {levelLabel && (
+                <span className="holo-wall-meta-row">
+                  <strong>等级</strong>
+                  <span>{levelLabel}</span>
+                </span>
+              )}
+              {sourceLabel && (
+                <span className="holo-wall-meta-row">
+                  <strong>来源</strong>
+                  <span>{sourceLabel}</span>
+                </span>
+              )}
+              {acquiredAtLabel && (
+                <span className="holo-wall-meta-row">
+                  <strong>获得</strong>
+                  <span>{acquiredAtLabel}</span>
+                </span>
+              )}
+            </span>
+          )}
           <span className="holo-card-foot">
             <span className="badge-card-series">{badge.seriesLabel}</span>
             <span className="holo-card-cta" aria-hidden="true">

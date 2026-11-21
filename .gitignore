@@ -5,6 +5,7 @@ node_modules/
 .env
 .env.*
 !.env.example
+.mojo/
 
 # 本地数据库与 SQLite 伴随文件
 *.db

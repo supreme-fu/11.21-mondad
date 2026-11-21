@@ -204,6 +204,19 @@ test('同一主题可多次完成、可再翻看字条，且 3D 徽章在档案�
   await expect(page.getByText(/个人生活档案门户/)).toBeVisible();
   await expect(page.getByTestId('badge-card-travel')).toHaveAttribute('data-unlocked', 'true');
   await expect(page.getByTestId('badge-card-travel')).toContainText('已点亮');
+  await expect(page.getByTestId('badge-wall-meta-travel')).toContainText('Tier A+');
+  await expect(page.getByTestId('badge-wall-meta-travel')).toContainText('获得');
+
+  // 验证徽章墙按获得时间与按等级排序切换
+  await page.getByTestId('sort-badges-time').click();
+  await expect(page.getByTestId('badge-card-travel')).toBeVisible();
+  await page.getByTestId('sort-badges-level').click();
+  await expect(page.getByTestId('badge-card-travel')).toBeVisible();
+
+  // 验证面向 Agent 的结构化个人身份与 JSON 载荷面板
+  await expect(page.getByTestId('agent-structured-identity')).toBeVisible();
+  await page.getByTestId('toggle-agent-json-btn').click();
+  await expect(page.getByTestId('agent-json-panel')).toContainText('did:monad:10143');
   expect(errors).toEqual([]);
 });
 

@@ -327,6 +327,28 @@ export function BadgeViewerDialog({ badge, onClose, restoreFocusTo }: BadgeViewe
                         : '尚未点亮'}
                     </span>
                   </div>
+                  <div className="badge-provenance-specs">
+                    <div>
+                      <span>档案等级</span>
+                      <strong>{badgeState.levelLabel}</strong>
+                    </div>
+                    <div>
+                      <span>徽章来源</span>
+                      <strong>{badgeState.sourceLabel}</strong>
+                    </div>
+                    <div>
+                      <span>签发/核验方</span>
+                      <strong>{badgeState.issuerLabel}</strong>
+                    </div>
+                    <div>
+                      <span>获得时间</span>
+                      <strong>
+                        {badgeState.acquiredAt
+                          ? `${dateFormat.format(new Date(badgeState.acquiredAt))} 获得`
+                          : '待达成解锁条件'}
+                      </strong>
+                    </div>
+                  </div>
                   {badgeState.matchedRecords.length > 0 ? (
                     <ul className="badge-provenance-list">
                       {badgeState.matchedRecords.slice(0, 4).map((record) => {
