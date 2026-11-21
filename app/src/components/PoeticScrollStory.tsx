@@ -144,6 +144,8 @@ export function PoeticScrollStory({ onJumpToThemes }: { onJumpToThemes: () => vo
   const skyBackdropRef = useRef<HTMLDivElement | null>(null);
   const medallionRef = useRef<HTMLDivElement | null>(null);
   const blackoutRef = useRef<HTMLDivElement | null>(null);
+  const skyTlRef = useRef<HTMLDivElement | null>(null);
+  const skyBrRef = useRef<HTMLDivElement | null>(null);
   const trackRef = useRef<HTMLDivElement | null>(null);
 
   const [processRevealed, setProcessRevealed] = useState(false);
@@ -177,6 +179,15 @@ export function PoeticScrollStory({ onJumpToThemes }: { onJumpToThemes: () => vo
     let ic = 54;
     let nUnit = 1;
 
+    // 预先缓存所有几何布局数据，严禁在 requestAnimationFrame 内触发同步回流
+    let storyTop = 0;
+    let storyScrollable = 1;
+    let manifestoTop = 0;
+    let manifestoScrollable = 1;
+    let heroBaseTop = 0;
+    let trackWidth = 0;
+    let manifestoItems: Array<{ el: HTMLElement; left: number }> = [];
+
     const computeMetrics = () => {
       W = window.innerWidth;
       H = window.innerHeight;
@@ -200,8 +211,26 @@ export function PoeticScrollStory({ onJumpToThemes }: { onJumpToThemes: () => vo
       root.style.setProperty('--mfs', `${mfs}px`);
       root.style.setProperty('--camw', `${camw}px`);
       root.style.setProperty('--cw', `${cw}`);
+
+      storyTop = storyEl.offsetTop;
+      storyScrollable = Math.max(1, storyEl.offsetHeight - H);
+      manifestoTop = manifestoEl.offsetTop;
+      manifestoScrollable = Math.max(1, manifestoEl.offsetHeight - H);
+      heroBaseTop = isMobile ? H * 0.17 : H * 0.24;
+
+      const track = trackRef.current;
+      if (track) {
+        trackWidth = track.scrollWidth;
+        manifestoItems = Array.from(track.querySelectorAll<HTMLElement>('[data-m-reveal]')).map((el) => ({
+          el,
+          left: el.offsetLeft,
+        }));
+      }
     };
     computeMetrics();
+
+    // 字体加载完后重新量一次横向轨道宽度，确保 manifesto 滚动终点精确
+    void document.fonts?.ready?.then(() => computeMetrics());
 
     const stepAngle = (R: number) => 2 * Math.asin(Math.min(0.95, (1.05 * cw) / (2 * R))) * (180 / Math.PI);
 
@@ -269,9 +298,11 @@ export function PoeticScrollStory({ onJumpToThemes }: { onJumpToThemes: () => vo
     };
 
     const currentPoses: CardPose[] = STORY_CARDS.map((_, i) => fanPose(i));
+    let smoothY = window.scrollY;
     let displayedSky = 0;
     let processFlag = false;
     let skyFlag = false;
+    let darkNavFlag = false;
     const startTime = performance.now();
     let prevTime = startTime;
     let rafId = 0;
@@ -285,13 +316,21 @@ export function PoeticScrollStory({ onJumpToThemes }: { onJumpToThemes: () => vo
     window.addEventListener('resize', onResize);
 
     const frame = (now: number) => {
-      const dt = Math.min(50, now - prevTime);
+      const dt = Math.min(50, Math.max(0.5, now - prevTime));
       prevTime = now;
       const t = (now - startTime) / 1000;
-      const sy = window.scrollY;
 
-      const storyTop = storyEl.offsetTop;
-      const storyScrollable = Math.max(1, storyEl.offsetHeight - H);
+      // 帧率无关的丝滑阻尼滚动，消除鼠标滚轮跳格卡顿感
+      const rawY = window.scrollY;
+      if (Math.abs(rawY - smoothY) > H * 2.2) {
+        smoothY = rawY;
+      } else {
+        const scrollK = 1 - (1 - 0.14) ** (dt / 16.67);
+        smoothY += (rawY - smoothY) * scrollK;
+        if (Math.abs(rawY - smoothY) < 0.25) smoothY = rawY;
+      }
+      const sy = smoothY;
+
       const p = clamp((sy - storyTop) / storyScrollable, 0, 1);
 
       // 1) Hero 入场动画（纸飞机 Catmull-Rom + 7 像素图标变字）
@@ -299,20 +338,20 @@ export function PoeticScrollStory({ onJumpToThemes }: { onJumpToThemes: () => vo
       const heroHeadline = heroHeadlineRef.current;
       const heroMeta = heroMetaRef.current;
 
-      // 标题离场淡出：避免碰到导航栏
+      // 标题离场淡出：纯算术计算，零 DOM 回流
       if (heroHeadline) {
-        const rect = heroHeadline.getBoundingClientRect();
+        const approxTop = heroBaseTop - (sy - storyTop);
         const navH = 74;
-        const fadeStart = navH + hfs * 1.6;
-        const fadeEnd = navH + hfs * 0.45;
-        const heroOp = clamp((rect.top - fadeEnd) / Math.max(1, fadeStart - fadeEnd), 0, 1);
+        const fadeStart = navH + hfs * 1.45;
+        const fadeEnd = navH + hfs * 0.35;
+        const heroOp = clamp((approxTop - fadeEnd) / Math.max(1, fadeStart - fadeEnd), 0, 1);
         heroHeadline.style.opacity = String(heroOp);
         if (heroMeta) heroMeta.style.opacity = String(heroOp * eOutCubic((t - 0.55) / 0.5));
       }
 
       // 纸飞机飞行与落地
       if (planeEl) {
-        if (t < 0.18 || t > 1.24) {
+        if (t < 0.18 || t > 1.26) {
           planeEl.style.opacity = '0';
         } else if (t <= 1.14) {
           const [px, py] = sampleCatmullRom(PLANE_WAYPOINTS, t);
@@ -322,11 +361,9 @@ export function PoeticScrollStory({ onJumpToThemes }: { onJumpToThemes: () => vo
           planeEl.style.opacity = String(fadeIn);
           planeEl.style.transform = `translate3d(${(px / 100) * W}px, ${(py / 100) * H}px, 0) translate(-50%, -50%) rotate(${angle}deg)`;
         } else {
-          // 1.14 -> 1.24 落到首个像素图标位置并缩淡
-          const u = clamp((t - 1.14) / 0.10, 0, 1);
-          const targetIcon = iconRefs.current[0]?.getBoundingClientRect();
-          const tx = targetIcon ? targetIcon.left + targetIcon.width * 0.5 : W * 0.35;
-          const ty = targetIcon ? targetIcon.top + targetIcon.height * 0.5 : H * 0.41;
+          const u = clamp((t - 1.14) / 0.12, 0, 1);
+          const tx = W * 0.5 - ic * 3.4;
+          const ty = heroBaseTop + 34 + hfs * 0.52;
           planeEl.style.opacity = String(1 - u);
           planeEl.style.transform = `translate3d(${tx}px, ${ty}px, 0) translate(-50%, -50%) scale(${lerp(1, 0.55, u)}) rotate(12deg)`;
         }
@@ -486,11 +523,11 @@ export function PoeticScrollStory({ onJumpToThemes }: { onJumpToThemes: () => vo
         }
       }
 
-      // 4) 门控式晨曦天空窗扩张 + 悬浮徽章 3D 轻摆 & 镜头推近至深绿黑
-      const rawSkyTarget = p >= 0.64 && (wheelSettled || p > 0.69)
-        ? clamp((p - 0.64) / 0.13, 0, 1)
+      // 4) 门控式晨曦天空窗扩张 + 悬浮徽章 3D 轻摆 & 轻量 GPU 推近至深绿黑
+      const rawSkyTarget = p >= 0.64 && (wheelSettled || p > 0.68)
+        ? clamp((p - 0.64) / 0.12, 0, 1)
         : 0;
-      const skyK = 1 - (1 - 0.10) ** (dt / 16.67);
+      const skyK = 1 - (1 - 0.12) ** (dt / 16.67);
       displayedSky += (rawSkyTarget - displayedSky) * skyK;
       if (displayedSky < 0.002 && rawSkyTarget === 0) displayedSky = 0;
 
@@ -498,11 +535,13 @@ export function PoeticScrollStory({ onJumpToThemes }: { onJumpToThemes: () => vo
       const skyBg = skyBackdropRef.current;
       const medallion = medallionRef.current;
       const blackout = blackoutRef.current;
+      let blackoutAlpha = 0;
 
       if (skyPanel) {
         if (displayedSky <= 0.004) {
           skyPanel.style.visibility = 'hidden';
           skyPanel.style.opacity = '0';
+          if (blackout) blackout.style.opacity = '0';
           if (skyFlag) {
             skyFlag = false;
             setSkyWordsRevealed(false);
@@ -521,10 +560,10 @@ export function PoeticScrollStory({ onJumpToThemes }: { onJumpToThemes: () => vo
           skyPanel.style.clipPath = `inset(${insetTop}% ${insetX}% ${insetBottom}% ${insetX}% round ${radius}px)`;
 
           if (skyBg) {
-            skyBg.style.transform = `scale(${lerp(1.18, 1, u)})`;
+            skyBg.style.transform = `scale(${lerp(1.14, 1, u)})`;
           }
 
-          if (displayedSky > 0.92 && !skyFlag) {
+          if (displayedSky > 0.90 && !skyFlag) {
             skyFlag = true;
             setSkyWordsRevealed(true);
           } else if (displayedSky < 0.6 && skyFlag) {
@@ -532,53 +571,63 @@ export function PoeticScrollStory({ onJumpToThemes }: { onJumpToThemes: () => vo
             setSkyWordsRevealed(false);
           }
 
-          // 徽章缩放、轻摆与推近
+          // 徽章缩放、轻摆与 60fps 顺滑推近（封顶 5.5× 并柔和淡出，杜绝超大纹理重绘卡顿）
           if (medallion) {
-            const baseScale = lerp(0.52, 1, u);
-            const yawU = clamp((p - 0.77) / 0.12, 0, 1);
-            const yawDeg = p > 0.77 ? lerp(-11, 11, eInOut(yawU)) : 0;
+            const baseScale = lerp(0.56, 1, u);
+            const yawU = clamp((p - 0.76) / 0.12, 0, 1);
+            const yawDeg = p > 0.76 ? lerp(-10, 10, eInOut(yawU)) : 0;
             const bobY = p > 0.75 ? Math.sin(t * 1.6) * (6 * nUnit) : 0;
-            const gate = clamp((displayedSky - 0.90) / 0.10, 0, 1);
-            const zoomRaw = clamp((p - 0.89) / 0.09, 0, 1) ** 1.6 * gate;
-            const zoomScale = 1 + zoomRaw * zoomRaw * 24;
-            medallion.style.transform = `translate3d(-50%, calc(-50% + ${bobY}px), 0) perspective(900px) rotateY(${yawDeg}deg) scale(${baseScale * zoomScale})`;
+            const gate = clamp((displayedSky - 0.88) / 0.12, 0, 1);
+            const zoomRaw = eInOut(clamp((p - 0.88) / 0.11, 0, 1)) * gate;
+            const zoomScale = 1 + zoomRaw * 4.6;
+            const medOpacity = clamp(1 - (zoomRaw - 0.48) / 0.45, 0, 1);
+            medallion.style.opacity = String(medOpacity);
+            medallion.style.transform = `translate3d(-50%, calc(-50% + ${bobY.toFixed(2)}px), 0) perspective(900px) rotateY(${yawDeg.toFixed(2)}deg) scale(${(baseScale * zoomScale).toFixed(4)})`;
 
+            // 推近开始时天空文字顺滑淡出，绝不与放大中的徽章重叠打架
+            const wordFade = String(clamp(1 - zoomRaw / 0.35, 0, 1));
+            if (skyTlRef.current) skyTlRef.current.style.opacity = wordFade;
+            if (skyBrRef.current) skyBrRef.current.style.opacity = wordFade;
+
+            blackoutAlpha = eInOut(clamp((zoomRaw - 0.22) / 0.56, 0, 1));
             if (blackout) {
-              const blk = clamp((zoomRaw - 0.42) / 0.44, 0, 1);
-              blackout.style.opacity = String(blk);
+              blackout.style.opacity = String(blackoutAlpha);
             }
           }
         }
       }
 
-      // 5) 暗色横向宣言轨（Manifesto）
-      const mRect = manifestoEl.getBoundingClientRect();
-      const mScrollable = Math.max(1, manifestoEl.offsetHeight - H);
-      const mp = clamp(-mRect.top / mScrollable, 0, 1);
+      // 5) 暗色横向宣言轨（Manifesto）— 全程纯算术零回流，消除黑屏空档
+      const mTopInView = manifestoTop - sy;
+      const mBottomInView = manifestoTop + manifestoScrollable + H - sy;
+      const mp = clamp(-mTopInView / manifestoScrollable, 0, 1);
       const track = trackRef.current;
       if (track) {
         const startX = isMobile ? W * 0.08 : W * 0.06;
-        const endX = -(Math.max(0, track.scrollWidth - W * 0.88));
+        const endX = -(Math.max(0, trackWidth - W * 0.88));
         const tx = lerp(startX, endX, mp);
-        track.style.transform = `translate3d(${tx}px, -50%, 0)`;
+        track.style.transform = `translate3d(${tx.toFixed(2)}px, -50%, 0)`;
 
-        if (mRect.top < H * 0.25 && mRect.bottom > 0) {
-          const threshold = isMobile ? W * 0.94 : W * 0.88;
-          const items = track.querySelectorAll('[data-m-reveal]');
-          items.forEach((item) => {
-            if (revealedManifesto.has(item)) return;
-            const r = item.getBoundingClientRect();
-            if (r.left < threshold) {
-              revealedManifesto.add(item);
-              item.classList.add('is-shown');
+        if (mTopInView < H * 0.85 && mBottomInView > 0) {
+          const threshold = isMobile ? W * 0.96 : W * 0.92;
+          for (let i = 0; i < manifestoItems.length; i += 1) {
+            const item = manifestoItems[i];
+            if (revealedManifesto.has(item.el)) continue;
+            const screenLeft = tx + item.left;
+            if (screenLeft < threshold) {
+              revealedManifesto.add(item.el);
+              item.el.classList.add('is-shown');
             }
-          });
+          }
         }
       }
 
-      // 6) 暗色顶栏自适应切换（仅在黑幕与暗色宣言段生效）
-      const inDark = (p > 0.975 && mRect.top < H) || (mRect.top <= 48 && mRect.bottom > 74);
-      document.body.classList.toggle('dark-nav', inDark);
+      // 6) 暗色顶栏自适应切换（与黑幕无缝同步，避免闪烁）
+      const nextDarkNav = blackoutAlpha > 0.45 || (mTopInView <= 48 && mBottomInView > 74);
+      if (nextDarkNav !== darkNavFlag) {
+        darkNavFlag = nextDarkNav;
+        document.body.classList.toggle('dark-nav', nextDarkNav);
+      }
 
       rafId = window.requestAnimationFrame(frame);
     };
@@ -722,7 +771,7 @@ export function PoeticScrollStory({ onJumpToThemes }: { onJumpToThemes: () => vo
               <div className="story-sky-glow" />
             </div>
 
-            <div className={`story-sky-words story-sky-tl ${skyWordsRevealed ? 'is-revealed' : ''}`}>
+            <div ref={skyTlRef} className={`story-sky-words story-sky-tl ${skyWordsRevealed ? 'is-revealed' : ''}`}>
               <span className="sw-word is-muted" style={{ transitionDelay: '0ms' }}>不止</span>
               <span className="sw-word is-muted" style={{ transitionDelay: '110ms' }}>是一次</span>
               <span className="sw-word" style={{ transitionDelay: '220ms' }}>打卡</span>
@@ -734,7 +783,7 @@ export function PoeticScrollStory({ onJumpToThemes }: { onJumpToThemes: () => vo
               <span className="story-medallion-ring" />
             </div>
 
-            <div className={`story-sky-words story-sky-br ${skyWordsRevealed ? 'is-revealed' : ''}`}>
+            <div ref={skyBrRef} className={`story-sky-words story-sky-br ${skyWordsRevealed ? 'is-revealed' : ''}`}>
               <span className="sw-word is-muted" style={{ transitionDelay: '400ms' }}>会发光的</span>
               <span className="sw-word" style={{ transitionDelay: '520ms' }}>真实</span>
               <span className="sw-word is-muted" style={{ transitionDelay: '640ms' }}>生活</span>
