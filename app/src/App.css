@@ -1717,3 +1717,41 @@
 .echo-reveal-dialog .echo-panel {
   margin: 0;
 }
+
+/* 「我的记录」页面：专属余额与模拟装填充值框 */
+.points-wallet-card {
+  @apply mt-5 rounded-2xl border p-5 sm:p-6 shadow-sm;
+  background: linear-gradient(135deg, oklch(var(--card)), oklch(var(--secondary) / .55));
+  border-color: oklch(var(--moss-700) / .24);
+}
+.points-wallet-main {
+  @apply flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between;
+}
+.points-wallet-copy {
+  @apply grid gap-2 min-w-0;
+}
+.points-wallet-copy .eyebrow {
+  @apply inline-flex items-center gap-1.5;
+}
+.points-wallet-balance-row {
+  @apply flex flex-wrap items-baseline gap-2.5;
+}
+.points-wallet-amount {
+  @apply font-display text-4xl sm:text-5xl font-semibold tracking-tight leading-none;
+  color: oklch(var(--moss-900));
+}
+.points-wallet-unit {
+  @apply text-sm font-medium text-muted-foreground;
+}
+.points-wallet-desc {
+  @apply text-xs sm:text-sm leading-relaxed text-muted-foreground max-w-2xl;
+}
+.points-wallet-desc code {
+  @apply rounded border bg-card px-1.5 py-0.5 font-mono text-[0.75rem];
+}
+.points-wallet-actions {
+  @apply flex shrink-0 items-center;
+}
+.points-refill-btn {
+  @apply rounded-full px-5 h-11 text-sm font-medium shadow-sm;
+}

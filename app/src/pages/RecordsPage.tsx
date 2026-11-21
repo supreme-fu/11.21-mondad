@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowDownWideNarrow, ArrowRight, Bot, Boxes, Check, Clock3, Copy, Cpu, FileKey2, Globe2, Layers, LoaderCircle, LockKeyhole, ShieldAlert, ShieldCheck, Sparkles, Trash2 } from 'lucide-react';
+import { ArrowDownWideNarrow, ArrowRight, Bot, Boxes, Check, Clock3, Coins, Copy, Cpu, FileKey2, Globe2, Layers, LoaderCircle, LockKeyhole, ShieldAlert, ShieldCheck, Sparkles, Trash2 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router';
 import { toast } from 'sonner';
 import { ActivityGlyph } from '@/components/ActivityGlyph';
@@ -52,13 +52,15 @@ function DeleteAccountDialog() {
 }
 
 export default function RecordsPage() {
-  const { records, user } = useApp();
+  const { records, user, refreshSession } = useApp();
   const [badges, setBadges] = useState<Badge[]>([]);
   const [showAllBadges, setShowAllBadges] = useState(false);
   const [badgeSortMode, setBadgeSortMode] = useState<BadgeSortMode>('level');
   const [showAgentJson, setShowAgentJson] = useState(false);
   const [refilledFilmRolls, setRefilledFilmRolls] = useState(0);
+  const [refilling, setRefilling] = useState(false);
   const [activeBadge, setActiveBadge] = useState<Badge | null>(null);
+  const currentPoints = user?.points ?? 100;
   const triggerRef = useRef<HTMLButtonElement | null>(null);
   const dateFormat = useMemo(() => new Intl.DateTimeFormat('zh-CN', { month: 'long', day: 'numeric' }), []);
   const dateTimeFormat = useMemo(
@@ -228,10 +230,20 @@ export default function RecordsPage() {
     };
   }, [badges, badgeStates, completedRecords, confirmedReceiptsCount, issuerVerifiedRecords.length, refilledFilmRolls, selfAttestedRecords.length, sharedReflectionsCount, user]);
 
-  const handleRefillFilmRoll = useCallback(() => {
-    setRefilledFilmRolls((prev) => prev + 1);
-    toast.success('已装填 1 卷「60 次链上生活胶卷（$6）」· 底层 Monad 紧凑 gas_limit 总成本约 $0.02，后续行动继续由服务端静默代付上链。');
-  }, []);
+  const handleRefillFilmRoll = useCallback(async () => {
+    if (refilling) return;
+    setRefilling(true);
+    try {
+      const result = await api.refillPoints();
+      setRefilledFilmRolls((prev) => prev + 1);
+      await refreshSession();
+      toast.success(`已装填 1 卷「生活胶卷（$6 / +${result.addedPoints} 次无感刻痕）」，当前可用余额 ${result.points} 点。`);
+    } catch (reason) {
+      toast.error(reason instanceof Error ? reason.message : '模拟充值暂时失败，请稍后重试。');
+    } finally {
+      setRefilling(false);
+    }
+  }, [refilling, refreshSession]);
 
   const handleCopyAgentContext = useCallback(() => {
     const text = JSON.stringify(structuredIdentityPayload, null, 2);
@@ -301,6 +313,39 @@ export default function RecordsPage() {
             <dd>{confirmedReceiptsCount} 枚</dd>
           </div>
         </dl>
+      </section>
+
+      <section className="points-wallet-card" aria-label="上链点数余额与生活胶卷充值" data-testid="points-wallet-card">
+        <div className="points-wallet-main">
+          <div className="points-wallet-copy">
+            <span className="eyebrow"><Coins aria-hidden="true" />链上生活胶卷 · 余额与充值</span>
+            <div className="points-wallet-balance-row">
+              <strong className="points-wallet-amount" data-testid="wallet-points-balance">{currentPoints}</strong>
+              <span className="points-wallet-unit">点（次可用上链额度）</span>
+              <span className="badge">每次上链扣 1 点</span>
+              {refilledFilmRolls > 0 && (
+                <span className="badge">本次会话已装填 +{refilledFilmRolls} 卷</span>
+              )}
+            </div>
+            <p className="points-wallet-desc">
+              完成任意约定后可选择上链铸造 3D 勋章与链上凭证（每次消耗 1 点数），底层由服务端采用 Monad 紧凑 <code>gas_limit</code> 静默代付 Gas，零钱包弹窗打扰。
+            </p>
+          </div>
+          <div className="points-wallet-actions">
+            <Button
+              type="button"
+              variant="default"
+              size="lg"
+              className="points-refill-btn"
+              disabled={refilling}
+              data-testid="refill-film-roll-btn"
+              onClick={() => void handleRefillFilmRoll()}
+            >
+              {refilling ? <LoaderCircle className="animate-spin" aria-hidden="true" /> : <Sparkles aria-hidden="true" />}
+              模拟装填 1 卷生活胶卷（$6 / +60 次无感刻痕）
+            </Button>
+          </div>
+        </div>
       </section>
 
       {badges.length > 0 && (
@@ -513,7 +558,7 @@ export default function RecordsPage() {
             </p>
             <div className="gas-quota-pills">
               <span className="badge">
-                C 端个人胶卷余量：<strong>{structuredIdentityPayload.gasSponsorshipAndCommercialModel.cEndLifeFilmRoll.remainingFrames} / {structuredIdentityPayload.gasSponsorshipAndCommercialModel.cEndLifeFilmRoll.totalFramesQuota} 次</strong>（已用 {selfAttestedRecords.length} 次）
+                当前可用胶卷 / 点数余额：<strong>{currentPoints} 点</strong>（每次上链扣 1 点）
               </span>
               <span className="badge">
                 B 端机构已代付核销：<strong>{issuerVerifiedRecords.length} 次</strong>（用户 0 额外费用）
@@ -522,18 +567,6 @@ export default function RecordsPage() {
                 单卷 60 次 NFT/凭证底层 Gas：<strong>~$0.02 / $6.00</strong>
               </span>
             </div>
-          </div>
-          <div className="gas-sponsorship-action">
-            <Button
-              type="button"
-              variant="default"
-              size="sm"
-              data-testid="refill-film-roll-btn"
-              onClick={handleRefillFilmRoll}
-            >
-              <Sparkles aria-hidden="true" />
-              模拟装填 1 卷生活胶卷（$6 / +60 次无感刻痕）
-            </Button>
           </div>
         </div>
 

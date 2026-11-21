@@ -737,6 +737,27 @@ export function createApp(options: AppOptions) {
     } catch (error) { next(error); }
   });
 
+  app.post('/api/me/points/refill', requireAuth, (request, response) => {
+    const userId = userOf(request).id;
+    const ADD_POINTS = 60;
+    store.database.exec('BEGIN IMMEDIATE');
+    let nextPoints = 100 + ADD_POINTS;
+    try {
+      store.database.prepare('UPDATE users SET points = COALESCE(points, 100) + ? WHERE id = ?').run(ADD_POINTS, userId);
+      const updated = store.database.prepare('SELECT points FROM users WHERE id = ?').get(userId) as { points: number } | undefined;
+      nextPoints = typeof updated?.points === 'number' ? updated.points : 100 + ADD_POINTS;
+      store.database.exec('COMMIT');
+    } catch (error) {
+      store.database.exec('ROLLBACK');
+      throw error;
+    }
+    response.json({
+      addedPoints: ADD_POINTS,
+      points: nextPoints,
+      packLabel: '1 卷生活胶卷（$6 / +60 次无感刻痕）',
+    });
+  });
+
   app.get('/api/me/records', requireAuth, (request, response) => {
     const rows = store.database.prepare(`
       SELECT p.id AS participationId, p.status AS participationStatus, p.created_at AS joinedAt,

@@ -134,6 +134,11 @@ export const api = {
       method: 'PATCH',
       body: JSON.stringify(payload),
     }),
+  refillPoints: () =>
+    request<{ addedPoints: number; points: number; packLabel: string }>('/api/me/points/refill', {
+      method: 'POST',
+      body: JSON.stringify({}),
+    }),
   resetDemoProfile: () =>
     request<{ ok: boolean }>('/api/demo/reset-profile', { method: 'POST' }),
 };
