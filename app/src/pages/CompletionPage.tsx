@@ -106,6 +106,9 @@ function ReceiptPanel({ completion, onChanged }: { completion: Completion; onCha
       <div className="panel-heading"><div><span className="eyebrow">独立申请，不自动上链</span><h2 id="receipt-title">完成凭证</h2></div><FileKey2 /></div>
       <div className={`receipt-status receipt-${receipt.status}`}><span className="status-dot" />{statusLabels[receipt.status]}</div>
       <p className="receipt-explanation">只登记服务端生成的随机 32 字节编号。不包含姓名、活动名、正文、正文哈希、图片或定位。</p>
+      <p className="receipt-sponsorship-note">
+        <strong>无感代付 · 零弹窗打扰：</strong>由服务端采用 Monad 紧凑 <code>gas_limit</code>（单次成本 &lt; $0.0003）在后台静默上链；个人日常记录划扣「链上生活胶卷」（新人赠 10 次 / $6 装填 60 次），购书共读与景区门票核销由合作方全额代付。
+      </p>
       {receipt.receiptId && <div className="receipt-id"><span>凭证编号</span><code title={receipt.receiptId}>{receipt.receiptId.slice(0, 10)}…{receipt.receiptId.slice(-8)}</code></div>}
       {receipt.status === 'confirmed' && receipt.txHash && <div className="receipt-id"><span>{isSimulation ? '模拟标识' : '交易哈希'}</span><code title={receipt.txHash}>{receipt.txHash.slice(0, 12)}…{receipt.txHash.slice(-6)}</code></div>}
       {!isSimulation && receipt.txHash?.startsWith('0x') && <a className="text-link" href={`https://testnet.monadvision.com/tx/${receipt.txHash}`} target="_blank" rel="noreferrer">在 MonadVision 查看<ExternalLink /></a>}

@@ -57,6 +57,7 @@ export default function RecordsPage() {
   const [showAllBadges, setShowAllBadges] = useState(false);
   const [badgeSortMode, setBadgeSortMode] = useState<BadgeSortMode>('level');
   const [showAgentJson, setShowAgentJson] = useState(false);
+  const [refilledFilmRolls, setRefilledFilmRolls] = useState(0);
   const [activeBadge, setActiveBadge] = useState<Badge | null>(null);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
   const dateFormat = useMemo(() => new Intl.DateTimeFormat('zh-CN', { month: 'long', day: 'numeric' }), []);
@@ -173,6 +174,9 @@ export default function RecordsPage() {
     });
 
     const unlockedBadges = badgeInventory.filter((b) => b.unlocked);
+    const totalFilmFrames = 10 + refilledFilmRolls * 60;
+    const usedPersonalFrames = selfAttestedRecords.length;
+    const remainingFilmFrames = Math.max(0, totalFilmFrames - usedPersonalFrames);
 
     return {
       schema: 'https://mojo.devnads.com/schemas/life-context-agent-identity/v1',
@@ -193,6 +197,22 @@ export default function RecordsPage() {
         selfAttestedCount: selfAttestedRecords.length,
         onchainReceiptsCount: confirmedReceiptsCount,
       },
+      gasSponsorshipAndCommercialModel: {
+        executionMode: 'SERVER_RELAYER_GAS_SPONSORSHIP (零钱包弹窗、零单次收银台打扰)',
+        monadGasOptimization: 'Monad 按 gas_limit 计费；链下存 500 字正文、链上仅存 bytes32 与结构化锚点，锁定紧凑固定 gas_limit (65,000 ~ 100,000 Gas)，单次底层成本 ~$0.0003，60 次仅 ~$0.02',
+        cEndLifeFilmRoll: {
+          starterFreeFrames: 10,
+          refillPackPricing: '$6 / 60 次链上生活胶卷包 (60 Onchain Life Frames，毛利率 ~99.6%)',
+          refilledRollsCount: refilledFilmRolls,
+          totalFramesQuota: totalFilmFrames,
+          usedFrames: usedPersonalFrames,
+          remainingFrames: remainingFilmFrames,
+        },
+        bEndIssuerSponsored: {
+          pricingModel: 'B2B2C 核销费内嵌：购书款/景区门票已含核销费，由出版社/景区按 $0.05/次采购 ActivityHub 签发额度，C 端用户免费且不扣个人胶卷',
+          issuerSponsoredActionsCount: issuerVerifiedRecords.length,
+        },
+      },
       badgeWallSummary: {
         sortSupported: ['acquiredAt', 'levelRank'],
         unlockedCount: unlockedBadges.length,
@@ -206,7 +226,12 @@ export default function RecordsPage() {
         activeDomains: Object.values(domainCounts),
       },
     };
-  }, [badges, badgeStates, completedRecords, confirmedReceiptsCount, issuerVerifiedRecords.length, selfAttestedRecords.length, sharedReflectionsCount, user]);
+  }, [badges, badgeStates, completedRecords, confirmedReceiptsCount, issuerVerifiedRecords.length, refilledFilmRolls, selfAttestedRecords.length, sharedReflectionsCount, user]);
+
+  const handleRefillFilmRoll = useCallback(() => {
+    setRefilledFilmRolls((prev) => prev + 1);
+    toast.success('已装填 1 卷「60 次链上生活胶卷（$6）」· 底层 Monad 紧凑 gas_limit 总成本约 $0.02，后续行动继续由服务端静默代付上链。');
+  }, []);
 
   const handleCopyAgentContext = useCallback(() => {
     const text = JSON.stringify(structuredIdentityPayload, null, 2);
@@ -473,6 +498,43 @@ export default function RecordsPage() {
               </div>
             </dl>
           </article>
+        </div>
+
+        <div className="gas-sponsorship-banner" data-testid="gas-sponsorship-banner">
+          <div className="gas-sponsorship-copy">
+            <div className="agent-card-title">
+              <Sparkles aria-hidden="true" />
+              <h3>4. 上链费用机制与商业闭环：服务端无感代付 +「$6 / 60 次链上生活胶卷包」+ B 端核销内嵌</h3>
+            </div>
+            <p>
+              绝不在用户完成做饭或读书时单次弹窗收 Gas 费打断情绪。依托 Monad 极低费率及按 <code>gas_limit</code> 计费特性（我们仅将固定长度 <code>bytes32</code> 与核验锚点上链，锁定紧凑上限 <code>65,000 ~ 100,000 Gas</code>，单次成本 &lt; <strong>$0.0003</strong>）：
+              <strong>① C 端个人主权层</strong>提供新人 10 次免费额度，后续按 <strong>$6 装填 60 次「链上生活胶卷」</strong>（60 次底层 Monad 总 Gas 仅约 <strong>$0.02</strong>，毛利率 99.6%）；
+              <strong>② B 端机构核销层</strong>（购书共读、景区门票二维码核销）费用已内嵌于书款/门票，由出版社或景区按 $0.05/次采购 <code>ActivityHub</code> 额度全额代付，<strong>不扣个人胶卷</strong>。
+            </p>
+            <div className="gas-quota-pills">
+              <span className="badge">
+                C 端个人胶卷余量：<strong>{structuredIdentityPayload.gasSponsorshipAndCommercialModel.cEndLifeFilmRoll.remainingFrames} / {structuredIdentityPayload.gasSponsorshipAndCommercialModel.cEndLifeFilmRoll.totalFramesQuota} 次</strong>（已用 {selfAttestedRecords.length} 次）
+              </span>
+              <span className="badge">
+                B 端机构已代付核销：<strong>{issuerVerifiedRecords.length} 次</strong>（用户 0 额外费用）
+              </span>
+              <span className="badge">
+                单卷 60 次 NFT/凭证底层 Gas：<strong>~$0.02 / $6.00</strong>
+              </span>
+            </div>
+          </div>
+          <div className="gas-sponsorship-action">
+            <Button
+              type="button"
+              variant="default"
+              size="sm"
+              data-testid="refill-film-roll-btn"
+              onClick={handleRefillFilmRoll}
+            >
+              <Sparkles aria-hidden="true" />
+              模拟装填 1 卷生活胶卷（$6 / +60 次无感刻痕）
+            </Button>
+          </div>
         </div>
 
         {showAgentJson && (

@@ -213,10 +213,14 @@ test('同一主题可多次完成、可再翻看字条，且 3D 徽章在档案�
   await page.getByTestId('sort-badges-level').click();
   await expect(page.getByTestId('badge-card-travel')).toBeVisible();
 
-  // 验证面向 Agent 的结构化个人身份与 JSON 载荷面板
+  // 验证面向 Agent 的结构化个人身份与 JSON 载荷面板（含 $6 / 60 次生活胶卷包与无感代付账本）
   await expect(page.getByTestId('agent-structured-identity')).toBeVisible();
+  await expect(page.getByTestId('gas-sponsorship-banner')).toContainText(/\d+ \/ 10 次/);
+  await page.getByTestId('refill-film-roll-btn').click();
+  await expect(page.getByTestId('gas-sponsorship-banner')).toContainText(/\d+ \/ 70 次/);
   await page.getByTestId('toggle-agent-json-btn').click();
   await expect(page.getByTestId('agent-json-panel')).toContainText('did:monad:10143');
+  await expect(page.getByTestId('agent-json-panel')).toContainText('gasSponsorshipAndCommercialModel');
   expect(errors).toEqual([]);
 });
 

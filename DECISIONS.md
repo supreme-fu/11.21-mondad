@@ -93,6 +93,7 @@
 
 ## 2026-11-21 面向 Agent 时代的个人链上身份档案与三维徽章墙基线记录
 
+- **专项基线说明文档**：详见 [docs/agent-identity-and-badge-wall-20261121.md](file:///Users/abeam/一些尝试/区块链黑客松/docs/agent-identity-and-badge-wall-20261121.md)。
 - **核心定位升级**：明确主产品为**面向 Agent 时代的个人链上身份档案（`LIFE CONTEXT · Onchain Personal Identity & Agent Context Archive`）**；将读书（《小王子》共读）、做菜、相见、出行统一收敛为补充个人档案中“活动执行与多源凭证采集”环节的交互演示模块。
 - **涉及文件与能力**：
   1. **三维器物徽章墙（[badges.ts](file:///Users/abeam/一些尝试/区块链黑客松/app/src/lib/badges.ts)、[HoloBadgeCard.tsx](file:///Users/abeam/一些尝试/区块链黑客松/app/src/components/HoloBadgeCard.tsx)、[BadgeViewerDialog.tsx](file:///Users/abeam/一些尝试/区块链黑客松/app/src/components/BadgeViewerDialog.tsx)、[RecordsPage.tsx](file:///Users/abeam/一些尝试/区块链黑客松/app/src/pages/RecordsPage.tsx)）**：
@@ -101,3 +102,7 @@
   2. **结构化个人身份与 Agent 可信上下文面板（[RecordsPage.tsx](file:///Users/abeam/一些尝试/区块链黑客松/app/src/pages/RecordsPage.tsx)、[Home.tsx](file:///Users/abeam/一些尝试/区块链黑客松/app/src/pages/Home.tsx)）**：
      - 实行**双轨信任分层（Provenance Tiering）**：清晰区分第三方/机构 `EIP-712` 核销凭证（如共读组织、线上购书、景区门票二维码核销）与个人主权声明（`Self-Attested`，如日常下厨、见想见的人的留白约定），在行动时间轴与结构化面板中逐条标注来源。
      - 新增 `STRUCTURED IDENTITY & AGENT CONTEXT` 面板，记录用户的链上 `DID`（`did:monad:10143:user-...`）、凭证信任分层计数、结构化行为维度与已获徽章资产索引，支持一键展开并复制 `JSON-LD / MCP Ready` 标准上下文载荷。
+  3. **上链费用机制、Monad `gas_limit` 紧凑优化与三层商业闭环（[RecordsPage.tsx](file:///Users/abeam/一些尝试/区块链黑客松/app/src/pages/RecordsPage.tsx)、[CompletionPage.tsx](file:///Users/abeam/一些尝试/区块链黑客松/app/src/pages/CompletionPage.tsx)）**：
+     - **交互原则**：拒绝单次行动完成时弹窗收 Gas 费打断情绪，全流程采用服务端 Relayer / Sponsor 无感代付上链。
+     - **Monad `gas_limit` 紧凑优化**：针对 Monad 异步执行按 `gas_limit`（上限）而非 `gas_used` 收费的机制，利用本项目“500 字正文留链下、链上仅写固定长度 `bytes32` 与结构化锚点”的确定性开销，锁定紧凑 `gas_limit`（`65,000 ~ 100,000 Gas`），单次底层 Gas 成本约 `$0.0003`，60 次上链底层总成本仅约 `$0.02`。
+     - **双轨商业闭环落地**：在个人档案页与 Agent JSON 载荷中实装「链上生活胶卷账本」——① **C 端个人主权层**提供新人 10 次免费额度，支持一键模拟装填 **$6 / 60 次「链上生活胶卷包」**（毛利率约 `99.6%`）；② **B 端机构核销层**（如《小王子》购书共读、景区门票二维码核销）由合作方通过 `ActivityHub` 按次代付，不消耗个人胶卷额度。
