@@ -1770,8 +1770,83 @@
   background: oklch(var(--secondary));
 }
 
-.themes-section-clean {
-  @apply pt-8 pb-12 sm:pt-10 sm:pb-16;
+.themes-section-clean,
+.themes-section-editorial {
+  @apply pt-6 pb-10 sm:pt-10 sm:pb-14;
+}
+.home-hero-polished {
+  padding-top: 2.75rem;
+  padding-bottom: 2.5rem;
+}
+
+.activity-card-grid {
+  @apply grid gap-4 sm:gap-5 md:grid-cols-2;
+}
+.activity-card {
+  @apply relative flex flex-col justify-between gap-4 rounded-2xl border p-5 sm:p-6 transition-all duration-200;
+  background: oklch(var(--card));
+  box-shadow: 0 8px 28px oklch(var(--moss-900) / .04);
+}
+.activity-card:hover {
+  transform: translateY(-2px);
+  border-color: oklch(var(--moss-700) / .38);
+  box-shadow: 0 14px 36px oklch(var(--moss-900) / .09);
+}
+.activity-card.is-featured-reading {
+  background: linear-gradient(145deg, oklch(var(--card)) 35%, oklch(var(--secondary) / .72) 100%);
+  border-color: oklch(var(--moss-700) / .28);
+}
+.activity-card-top {
+  @apply flex items-start justify-between gap-3;
+}
+.activity-card-badges {
+  @apply flex flex-wrap items-center justify-end gap-1.5;
+}
+.activity-feature-chip {
+  background: oklch(var(--moss-700) / .13);
+  color: oklch(var(--moss-900));
+  border: 1px solid oklch(var(--moss-700) / .22);
+}
+.activity-card-body {
+  @apply grid gap-1.5;
+}
+.activity-card-body h3 {
+  @apply font-display text-xl sm:text-2xl font-semibold tracking-tight leading-snug;
+  color: oklch(var(--moss-900));
+}
+.activity-card-body p {
+  @apply text-sm leading-relaxed text-muted-foreground;
+}
+.activity-card-foot {
+  @apply mt-1 flex items-center justify-between pt-3.5 border-t text-xs sm:text-sm font-medium;
+  border-color: oklch(var(--border) / .75);
+  color: oklch(var(--moss-700));
+}
+.activity-card:hover .activity-arrow {
+  transform: translateX(3px);
+}
+.activity-card .activity-arrow {
+  @apply inline-flex size-8 items-center justify-center rounded-full border transition-transform duration-200;
+  background: oklch(var(--background));
+}
+
+.records-editorial-header {
+  @apply pt-2 pb-7;
+}
+.records-header-copy {
+  @apply grid gap-2 max-w-xl;
+}
+.records-header-sub {
+  @apply text-sm text-muted-foreground leading-relaxed;
+}
+.badges-editorial-header {
+  @apply pt-2 pb-7;
+}
+
+.activity-gentle-strip {
+  @apply flex flex-wrap items-center justify-between gap-2 rounded-xl border px-4 py-2.5 text-xs text-muted-foreground my-4;
+  background: oklch(var(--secondary) / .45);
+  border-color: oklch(var(--moss-700) / .14);
 }
 .home-compact-head {
   @apply flex flex-col gap-4 pb-6 border-b mb-5 sm:flex-row sm:items-end sm:justify-between;
@@ -1895,10 +1970,54 @@
     font-weight: 600;
   }
 
-  /* 首页任务行移动端优化 */
-  .themes-section-clean {
+  /* 首页 Hero + 卡片移动端优化 */
+  .home-hero-polished {
+    grid-template-columns: 1fr;
+    gap: 18px;
     padding-top: 20px;
-    padding-bottom: 24px;
+    padding-bottom: 18px;
+  }
+  .home-hero-polished h1 {
+    font-size: 2rem;
+    line-height: 1.18;
+  }
+  .home-hero-polished .hero-description {
+    font-size: 0.9rem;
+  }
+  .home-hero-polished .hero-actions {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .home-hero-polished .meeting-mark {
+    padding: 14px 10px 10px;
+    border-radius: 18px;
+    background: oklch(var(--card));
+    border: 1px solid oklch(var(--border));
+  }
+  .home-hero-polished .meeting-mark .path-note {
+    font-size: 0.72rem;
+    padding: 5px 10px;
+  }
+  .home-hero-polished .meeting-mark .path-note-one {
+    left: 6%;
+    top: 26%;
+  }
+  .home-hero-polished .meeting-mark .path-note-two {
+    right: 6%;
+    bottom: 16%;
+  }
+  .themes-section-clean,
+  .themes-section-editorial {
+    padding-top: 16px;
+    padding-bottom: 20px;
+  }
+  .activity-card {
+    padding: 16px;
+    gap: 12px;
+  }
+  .activity-card-body h3 {
+    font-size: 1.18rem;
   }
   .activity-row {
     grid-template-columns: 44px minmax(0, 1fr) auto;

@@ -106,6 +106,11 @@ export default function ActivityPage() {
         </aside>
       </section>
 
+      <section className="activity-gentle-strip" aria-label="行动节奏提示">
+        <span>无需拍照打卡 · 向自己确认即可</span>
+        <span>完成之后自由决定是否上链与分享感受</span>
+      </section>
+
       {activity.id === 'reading' && readingParticipationId && (
         <section className="my-6" aria-label="《小王子》全本共读工作台">
           <LittlePrinceReader

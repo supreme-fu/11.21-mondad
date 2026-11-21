@@ -53,14 +53,17 @@ export default function BadgesPage() {
 
   return (
     <div className="badges-page page-container">
-      <header className="badges-compact-header">
+      <header className="badges-compact-header badges-editorial-header">
         <div>
-          <p className="eyebrow"><span className="atelier-diamond" aria-hidden="true" />COLLECTION · 10 枚三维器物</p>
-          <h1>三维徽章图鉴</h1>
+          <p className="eyebrow"><span className="atelier-diamond" aria-hidden="true" />COLLECTION 01 · 十枚三维器物</p>
+          <h1>徽章只是造型，<br />不是成绩单。</h1>
+          <div className="badges-atelier-bar" aria-label="陈列室说明">
+            <span>光随手动 · 分层闪卡陈列</span>
+          </div>
         </div>
         <p className="badges-header-hint">
           <Sparkles aria-hidden="true" />
-          <span>点击任意一枚，进入 360° 三维器物赏鉴台。</span>
+          <span>轻移光标感受卡面虹彩与视差；点击任意一枚，进入 360° 三维器物赏鉴台。</span>
         </p>
       </header>
 

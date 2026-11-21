@@ -233,10 +233,11 @@ export default function RecordsPage() {
 
   return (
     <div className="records-page page-container">
-      <header className="records-compact-header">
-        <div>
-          <p className="eyebrow">个人档案 · {user?.displayName}</p>
-          <h1>我的记录与徽章墙</h1>
+      <header className="records-compact-header records-editorial-header">
+        <div className="records-header-copy">
+          <p className="eyebrow">个人生活档案 · {user?.displayName}</p>
+          <h1>我做过的事，<br />不需要排成成绩。</h1>
+          <p className="records-header-sub">每一次认真回应的约定，都在这里沉淀为只属于你的三维器物与时间轴。</p>
         </div>
         <div className="records-header-right">
           <dl className="records-mini-metrics">
