@@ -201,10 +201,10 @@ export default function CompletionPage() {
     setPending(true); setError('');
     try {
       const result = await api.onchainComplete(participationId, idempotencyKey.current);
-      for (let attempt = 0; attempt < 8; attempt += 1) {
-        await new Promise((resolve) => setTimeout(resolve, 250));
-        const current = await api.receipt(result.completionId);
-        if (current.status === 'confirmed' || current.status === 'failed') break;
+      let receipt = await api.receipt(result.completionId);
+      for (let attempt = 0; attempt < 24 && !['confirmed', 'failed'].includes(receipt.status); attempt += 1) {
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        receipt = await api.receipt(result.completionId);
       }
       setShowOnchainConfirm(false);
       setAwaitingShareChoice(true);
@@ -220,26 +220,37 @@ export default function CompletionPage() {
         ? loaded.find((b) => b.id === result.milestoneBadgeId) ?? null
         : null;
 
-      const receiptHash = result.receipt.txHash?.startsWith('0x')
-        ? result.receipt.txHash
-        : (result.receipt.receiptId || '0xe6865aab47b0cb2f0a3bd0a05fd2209c65e27b447c19222e4d479abfb0ba0b4d');
+      const isRealConfirmed = receipt.mode === 'monad-testnet'
+        && receipt.status === 'confirmed'
+        && Boolean(receipt.txHash?.startsWith('0x'));
 
-      const inscription: BadgeOnchainInscription = {
-        tokenId: result.totalCompleted,
-        txHash: receiptHash,
-        blockNumber: result.blockNumber || 81220667,
-        holderAddress: result.holderAddress,
-        proofDigest: result.receipt.receiptId,
-        rewardSummary: `累计第 ${result.totalCompleted} 次上链`,
-        justMinted: true,
-      };
+      const label = receipt.mode === 'simulation'
+        ? '模拟凭证已登记'
+        : receipt.status === 'confirmed'
+          ? '完成凭证已在 Monad 测试网确认'
+          : receipt.status === 'failed'
+            ? '凭证登记失败（可稍后重试）'
+            : '完成记录已保存（凭证确认中）';
+
+      const inscription: BadgeOnchainInscription | null = isRealConfirmed && receipt.txHash
+        ? {
+          tokenId: result.totalCompleted,
+          txHash: receipt.txHash,
+          blockNumber: result.blockNumber ?? null,
+          holderAddress: result.holderAddress,
+          proofDigest: receipt.receiptId,
+          contractAddress: receipt.contractAddress ?? undefined,
+          rewardSummary: `累计第 ${result.totalCompleted} 次上链`,
+          justMinted: true,
+        }
+        : null;
 
       const ceremonyList: CeremonyBadgeItem[] = [];
       if (tBadge) {
         ceremonyList.push({
           badge: tBadge,
           roleLabel: '勋章 1 · 对应主题勋章',
-          subtitle: `链上完成凭证已镌刻`,
+          subtitle: label,
           inscription,
         });
       }
@@ -248,10 +259,6 @@ export default function CompletionPage() {
           badge: mBadge,
           roleLabel: '勋章 2 · 里程碑勋章',
           subtitle: `累计达成 ${result.totalCompleted} 次行动里程碑`,
-          inscription: {
-            ...inscription,
-            rewardSummary: `达成 ${result.totalCompleted} 次里程碑`,
-          },
         });
       }
 
@@ -264,11 +271,17 @@ export default function CompletionPage() {
       setCeremonyBadges(ceremonyList.length > 0 ? ceremonyList : null);
       if (tBadge) setActiveBadge(tBadge);
 
-      toast.success(
-        mBadge
-          ? `上链成功！已扣除 ${result.deductedPoints} 点数（剩余 ${result.remainingPoints} 点），同步点亮「${tBadge?.name ?? '主题勋章'}」与「${mBadge.name}」！`
-          : `上链成功！已扣除 ${result.deductedPoints} 点数（剩余 ${result.remainingPoints} 点），已铸造「${tBadge?.name ?? '纪念器物'}」！`,
-      );
+      if (receipt.status === 'failed') {
+        toast.error('凭证登记失败，可在完成凭证面板查看或重试。');
+      } else if (receipt.status !== 'confirmed') {
+        toast.info('凭证仍在确认，交易状态可在完成凭证面板查看。');
+      } else {
+        toast.success(
+          mBadge
+            ? `${label}！已扣除 ${result.deductedPoints} 点数（剩余 ${result.remainingPoints} 点），同步点亮「${tBadge?.name ?? '主题勋章'}」与「${mBadge.name}」！`
+            : `${label}！已扣除 ${result.deductedPoints} 点数（剩余 ${result.remainingPoints} 点），已点亮「${tBadge?.name ?? '纪念器物'}」！`,
+        );
+      }
     } catch (reason) {
       const msg = reason instanceof Error ? reason.message : '上链失败，请稍后重试。';
       setError(msg);

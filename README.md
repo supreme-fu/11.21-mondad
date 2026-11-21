@@ -150,7 +150,7 @@ MONAD_EXPLORER_URL=https://testnet.monadvision.com
 
 5. 重新构建并启动。私钥只在服务端读取，不进入前端、日志或公开仓库。
 
-**主应用的 `CompletionReceipt` 尚无本项目的 Monad 测试网部署地址或交易哈希。** 需要配置专用测试钱包与测试 MON。`MONAD_CONTRACT_ADDRESS` 或 `MONAD_TESTNET_PRIVATE_KEY` 为空时，服务端会拒绝发送。队友原型使用独立的 `ActivityHub` 和 `ReadingChallenge`，部署证据见上方审查记录。
+**主应用的完成凭证已在 Monad 测试网验证。** [部署与验收](docs/fork-monad-testnet.md)。 需要配置专用测试钱包与测试 MON。`MONAD_CONTRACT_ADDRESS` 或 `MONAD_TESTNET_PRIVATE_KEY` 为空时，服务端会拒绝发送。队友原型使用独立的 `ActivityHub` 和 `ReadingChallenge`，部署证据见上方审查记录。
 
 ## 删除边界
 
@@ -183,3 +183,7 @@ CREDITS.md           字体和图标来源
 ## 依赖安全说明
 
 前端、服务端和合约包的生产依赖审计均为 0 告警。开发工具链仍存在传递依赖告警，主要来自模板 lint 工具与 Hardhat 2；未使用 `npm audit fix --force` 降级或破坏工具链。真实公开部署前应升级合约工具链并重新审计。
+
+## fork 测试网接入
+
+共读挑战与阅读徽章已在 Monad 测试网验证。运行配置和交易证据见 [fork 测试网部署与验收](docs/fork-monad-testnet.md)。

@@ -1,4 +1,5 @@
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import express from 'express';
 import { createApp } from './app.js';
@@ -18,6 +19,12 @@ for (const candidate of [
 
 const databasePath = process.env.DATABASE_PATH || fileURLToPath(new URL('../data/do-something.db', import.meta.url));
 const receiptMode = (process.env.RECEIPT_MODE || 'simulation') as ReceiptMode;
+const readingDeploymentPath = process.env.FORK_READING_DEPLOYMENT_PATH;
+if (receiptMode === 'monad-testnet' && readingDeploymentPath && !process.env.FORK_READING_DEPLOYMENT) {
+  const rootDirectory = fileURLToPath(new URL('../../', import.meta.url));
+  process.env.FORK_READING_DEPLOYMENT = readFileSync(resolve(rootDirectory, readingDeploymentPath), 'utf8');
+}
+
 const seedRichProfile = process.env.SEED_DEMO_PROFILE !== 'false';
 const { app, store, receipts } = createApp({ databasePath, receiptMode, seedRichProfile });
 const frontendPath = fileURLToPath(new URL('../../app/dist', import.meta.url));

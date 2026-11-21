@@ -239,25 +239,31 @@ export function LittlePrinceReader({
         ? loaded.find((b) => b.id === result.milestoneBadgeId) ?? null
         : null;
 
-      const baseInscription: BadgeOnchainInscription = {
-        tokenId: result.state.badgeTokenId ?? 1,
-        txHash: result.state.readingTxHash || '0xe6865aab47b0cb2f0a3bd0a05fd2209c65e27b447c19222e4d479abfb0ba0b4d',
-        blockNumber: result.state.readingBlockNumber || 81220667,
-        holderAddress: result.state.readerWallet,
-        proofDigest: result.state.readingProofDigest,
-        claimedAt: result.state.readingClaimedAt,
-        rewardSummary: 'Soulbound 勋章',
-        contractAddress: result.state.contracts.readingBadge.address,
-        explorerBaseUrl: result.state.contracts.explorerBaseUrl,
-        justMinted: true,
-      };
+      const baseInscription: BadgeOnchainInscription | null =
+        result.state.mode === 'monad-testnet'
+        && result.state.badgeTokenId != null
+        && result.state.readingTxHash
+        && result.state.readingBlockNumber != null
+          ? {
+            tokenId: result.state.badgeTokenId,
+            txHash: result.state.readingTxHash,
+            blockNumber: result.state.readingBlockNumber,
+            holderAddress: result.state.readerWallet,
+            proofDigest: result.state.readingProofDigest,
+            claimedAt: result.state.readingClaimedAt,
+            rewardSummary: 'Soulbound 勋章',
+            contractAddress: result.state.contracts.readingBadge.address,
+            explorerBaseUrl: result.state.contracts.explorerBaseUrl,
+            justMinted: true,
+          }
+          : null;
 
       const ceremonyList: CeremonyBadgeItem[] = [];
       if (readingAsset) {
         ceremonyList.push({
           badge: readingAsset,
           roleLabel: '勋章 1 · 对应主题勋章',
-          subtitle: `ReadingBadge #${baseInscription.tokenId} · Soulbound`,
+          subtitle: baseInscription ? `ReadingBadge #${baseInscription.tokenId} · Soulbound` : '本地模拟共读勋章',
           inscription: baseInscription,
         });
       }
@@ -266,10 +272,6 @@ export function LittlePrinceReader({
           badge: milestoneAsset,
           roleLabel: '勋章 2 · 里程碑勋章',
           subtitle: `累计达成 ${result.totalCompleted} 次行动里程碑`,
-          inscription: {
-            ...baseInscription,
-            rewardSummary: `累计 ${result.totalCompleted} 次达成`,
-          },
         });
       }
 
@@ -785,11 +787,15 @@ export function LittlePrinceReader({
           }}
           restoreFocusTo={() => badgeBtnRef.current?.focus()}
           onchainInscription={
-            state.readingClaimed && state.badgeTokenId != null
+            state.mode === 'monad-testnet'
+            && state.readingClaimed
+            && state.badgeTokenId != null
+            && state.readingTxHash
+            && state.readingBlockNumber != null
               ? ({
                 tokenId: state.badgeTokenId,
-                txHash: state.readingTxHash || '0xe6865aab47b0cb2f0a3bd0a05fd2209c65e27b447c19222e4d479abfb0ba0b4d',
-                blockNumber: state.readingBlockNumber || 81220667,
+                txHash: state.readingTxHash,
+                blockNumber: state.readingBlockNumber,
                 holderAddress: state.readerWallet,
                 proofDigest: state.readingProofDigest,
                 claimedAt: state.readingClaimedAt,

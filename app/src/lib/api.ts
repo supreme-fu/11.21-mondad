@@ -51,7 +51,7 @@ export const api = {
     totalCompleted: number;
     milestoneBadgeId: string | null;
     holderAddress: string;
-    blockNumber: number;
+    blockNumber?: number | null;
   }>(`/api/participations/${id}/onchain-complete`, {
     method: 'POST', body: JSON.stringify({ idempotencyKey }),
   }),

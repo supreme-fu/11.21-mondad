@@ -1,0 +1,19 @@
+{
+  "chainId": 10143,
+  "sponsor": "0xC34E341A36096808347670bc3C24d98d5B019DC4",
+  "attestor": "0xC34E341A36096808347670bc3C24d98d5B019DC4",
+  "steps": {
+    "token": "0x57526cedbf4e2457b0aec7379f7d544678fbbed208b30894a00ddea08147be67",
+    "challenge": "0xe97a3698cc503c9929aaa99b48252392686bdbfdcf7619cec9b36bc21c6634f2",
+    "approve": "0x2b9fb899550daf5736700f6bd4f6dfe24c098d22228a84b2b57b1f2f0a5bfd02",
+    "campaign": "0x08044a700582e22d4150b822a7b89c5bbc12e58c9be86e5e3eaba443fd692661"
+  },
+  "campaignId": 1,
+  "startsAt": 1795246334,
+  "endsAt": 1795851134,
+  "funding": "36000000000000000000",
+  "block": 81519354,
+  "challenge": "0xded334e897C4F15c6Db63608C837c0dAC445dF71",
+  "token": "0x2e640B58f811a16DDE56AE17bcef0ac091F1628F",
+  "badge": "0x917d025494E1CB5a6254D386B1626b6025dB6235"
+}

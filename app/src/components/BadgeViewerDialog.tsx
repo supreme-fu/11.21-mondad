@@ -12,7 +12,7 @@ import { LITTLE_PRINCE_CONTRACTS, shortenHex } from '@/lib/reading-contracts';
 export interface BadgeOnchainInscription {
   tokenId: number;
   txHash: string;
-  blockNumber: number;
+  blockNumber?: number | null;
   holderAddress: string;
   proofDigest?: string | null;
   claimedAt?: string | null;
@@ -77,17 +77,17 @@ export function BadgeViewerDialog({
 
   // 若未显式传入铭牌数据，但当前查看的是已铸造的阅读徽章，则自动从 records 中提取链上铭牌
   const resolvedInscription = useMemo<BadgeOnchainInscription | null>(() => {
-    if (activeCeremonyItem?.inscription) return activeCeremonyItem.inscription;
+    if (activeCeremonyItem) return activeCeremonyItem.inscription ?? null;
     if (onchainInscription) return onchainInscription;
     if (badge?.id !== 'reading') return null;
     const claimed = records.find((r) => r.activity.id === 'reading' && r.readingSummary?.readingClaimed && r.readingSummary.badgeTokenId != null);
     const rs = claimed?.readingSummary;
-    if (!rs || rs.badgeTokenId == null) return null;
+    if (!rs || rs.badgeTokenId == null || !rs.readingTxHash || rs.readingBlockNumber == null || !rs.readerWallet) return null;
     return {
       tokenId: rs.badgeTokenId,
-      txHash: rs.readingTxHash || '0xe6865aab47b0cb2f0a3bd0a05fd2209c65e27b447c19222e4d479abfb0ba0b4d',
-      blockNumber: rs.readingBlockNumber || 81220667,
-      holderAddress: rs.readerWallet || '0x2C5222B2Ad434AcAAa747e1b7b3b6c081706C6F3',
+      txHash: rs.readingTxHash,
+      blockNumber: rs.readingBlockNumber,
+      holderAddress: rs.readerWallet,
       proofDigest: rs.readingProofDigest ?? null,
       claimedAt: rs.readingClaimedAt ?? null,
       rewardSummary: 'Soulbound 勋章',
@@ -97,7 +97,7 @@ export function BadgeViewerDialog({
     };
   }, [activeCeremonyItem, badge, onchainInscription, records]);
 
-  const isSpotlight = Boolean(resolvedInscription?.justMinted);
+  const isSpotlight = Boolean(resolvedInscription?.justMinted || ceremonyList);
   const initFoil = isSpotlight ? SPOTLIGHT_FOIL : DEFAULT_FOIL;
   const initAngle = isSpotlight ? SPOTLIGHT_LIGHT_ANGLE : DEFAULT_LIGHT_ANGLE;
   const initEnv = isSpotlight ? SPOTLIGHT_ENV : DEFAULT_ENV;
@@ -248,20 +248,23 @@ export function BadgeViewerDialog({
           restoreFocusTo();
         }}
       >
-        {isSpotlight && resolvedInscription && (
+        {isSpotlight && (
           <div className="badge-mint-banner" data-testid="badge-mint-spotlight-banner">
             <span className="badge-mint-banner-left">
               <Sparkles size={16} aria-hidden="true" />
               <strong>
                 {ceremonyList && ceremonyList.length > 1
-                  ? `上链铸造确认 · 同步获得 ${ceremonyList.length} 枚 3D 纪念勋章`
-                  : `铸造确认 · Soulbound ReadingBadge #${resolvedInscription.tokenId} 已镌刻上链`}
+                  ? `${resolvedInscription ? '上链铸造确认' : '高光铸造仪式'} · 同步获得 ${ceremonyList.length} 枚 3D 纪念勋章`
+                  : resolvedInscription
+                    ? `铸造确认 · Soulbound #${resolvedInscription.tokenId} 已镌刻上链`
+                    : `高光铸造仪式 · 「${badge?.name ?? '纪念勋章'}」已点亮`}
               </strong>
             </span>
             <span className="badge-mint-banner-pill">
               <Award size={14} aria-hidden="true" />
-              {pointsSummary ? `${pointsSummary} · ` : ''}
-              {resolvedInscription.rewardSummary ? `${resolvedInscription.rewardSummary} · ` : ''}Block #{resolvedInscription.blockNumber.toLocaleString('en-US')}
+              {pointsSummary ? `${pointsSummary}` : ''}
+              {resolvedInscription?.rewardSummary ? `${pointsSummary ? ' · ' : ''}${resolvedInscription.rewardSummary}` : ''}
+              {resolvedInscription?.blockNumber != null ? ` · Block #${resolvedInscription.blockNumber.toLocaleString('en-US')}` : (!resolvedInscription ? `${pointsSummary ? ' · ' : ''}本地模拟模式` : ' · Monad Testnet')}
             </span>
           </div>
         )}
@@ -296,7 +299,11 @@ export function BadgeViewerDialog({
                     : (isBack ? 'BACK · 背面微雕' : 'FRONT · 正面')}
                 </span>
                 <span className="badge-edition-code">
-                  {resolvedInscription ? `MONAD #${resolvedInscription.blockNumber.toLocaleString('en-US')}` : (badge?.edition ?? '01 / 10')}
+                  {resolvedInscription?.blockNumber != null
+                    ? `MONAD #${resolvedInscription.blockNumber.toLocaleString('en-US')}`
+                    : resolvedInscription
+                      ? 'MONAD TESTNET'
+                      : (badge?.edition ?? '01 / 10')}
                 </span>
               </div>
               <span className="badge-stage-vertical" aria-hidden="true">
@@ -323,7 +330,11 @@ export function BadgeViewerDialog({
               {resolvedInscription && (
                 <div className="badge-stage-engraving" data-testid="badge-stage-engraving">
                   <span>TOKEN #{resolvedInscription.tokenId}</span>
-                  <span>BLK #{resolvedInscription.blockNumber.toLocaleString('en-US')}</span>
+                  <span>
+                    {resolvedInscription.blockNumber != null
+                      ? `BLK #${resolvedInscription.blockNumber.toLocaleString('en-US')}`
+                      : 'MONAD 10143'}
+                  </span>
                   <code>{shortenHex(resolvedInscription.holderAddress, 6, 4)}</code>
                 </div>
               )}
@@ -364,7 +375,11 @@ export function BadgeViewerDialog({
                   <div>
                     <dt>区块号 (Block)</dt>
                     <dd>
-                      <strong data-testid="inscribed-block-number">#{resolvedInscription.blockNumber.toLocaleString('en-US')}</strong>
+                      <strong data-testid="inscribed-block-number">
+                        {resolvedInscription.blockNumber != null
+                          ? `#${resolvedInscription.blockNumber.toLocaleString('en-US')}`
+                          : 'Monad 已确认'}
+                      </strong>
                     </dd>
                   </div>
                   <div className="is-full">

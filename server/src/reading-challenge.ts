@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { TypedDataEncoder, Wallet, id as keccakId, type TypedDataField } from 'ethers';
+import { ReadingTestnet } from './reading-testnet.js';
 import type { Store } from './db.js';
 import type { ReceiptMode } from './types.js';
 
@@ -70,7 +71,7 @@ export const achievementTypes: Record<string, TypedDataField[]> = {
 
 export function attestationDomain(
   chainId = MONAD_READING_NETWORK.chainId,
-  verifyingContract = MONAD_READING_NETWORK.contracts.ReadingChallenge.address,
+  verifyingContract: string = MONAD_READING_NETWORK.contracts.ReadingChallenge.address,
 ) {
   return { name: 'DoSomethingReading', version: '1', chainId, verifyingContract };
 }
@@ -233,12 +234,21 @@ export class ReadingChallengeService {
   private readonly mode: ReceiptMode;
   private readonly explorerBaseUrl: string;
   private readonly attestorWallet: Wallet;
+  private readonly testnet?: ReadingTestnet;
 
   constructor(store: Store, mode: ReceiptMode = 'simulation') {
     this.store = store;
     this.mode = mode;
     this.explorerBaseUrl = (process.env.MONAD_EXPLORER_URL || 'https://testnet.monadvision.com').replace(/\/+$/, '');
-    this.attestorWallet = this.resolveAttestorWallet();
+    const configured = mode === 'monad-testnet' && process.env.FORK_READING_DEPLOYMENT;
+    if (configured) {
+      const key = process.env.MONAD_TESTNET_PRIVATE_KEY;
+      if (!key) throw new Error('缺少共读测试网签名配置');
+      this.attestorWallet = new Wallet(key);
+      this.testnet = new ReadingTestnet(JSON.parse(configured), this.attestorWallet);
+    } else {
+      this.attestorWallet = this.resolveAttestorWallet();
+    }
   }
 
   private resolveAttestorWallet(): Wallet {
@@ -255,7 +265,8 @@ export class ReadingChallengeService {
 
   /** 严格按主站会话 user.id 派生独立的确定性演示读者钱包与活动内匿名 subject */
   deriveIdentity(userId: string, campaignId = DEFAULT_CAMPAIGN_ID) {
-    const readerWallet = new Wallet(keccakId(`do-something:demo-reader-wallet:${userId}`)).address;
+    const readerWallet = this.testnet?.reader(userId).address
+      ?? new Wallet(keccakId(`do-something:demo-reader-wallet:${userId}`)).address;
     const subjectHash = keccakId(`do-something:reading:${campaignId}:${userId}`);
     return { readerWallet, subjectHash };
   }
@@ -328,7 +339,7 @@ export class ReadingChallengeService {
       rulesHash: row.rules_hash,
       readerWallet: row.reader_wallet,
       subjectHash: row.subject_hash,
-      mode: row.mode,
+      mode: this.testnet ? row.mode : 'simulation',
       enrolledAt: row.enrolled_at,
       enrollmentDigest: row.enrollment_digest,
       enrollmentSig: row.enrollment_sig,
@@ -364,26 +375,46 @@ export class ReadingChallengeService {
       contracts: {
         chainId: MONAD_READING_NETWORK.chainId,
         explorerBaseUrl: this.explorerBaseUrl,
-        sponsor: MONAD_READING_NETWORK.sponsor,
-        attestor: MONAD_READING_NETWORK.attestor,
+        sponsor: this.testnet?.network.sponsor ?? MONAD_READING_NETWORK.sponsor,
+        attestor: this.testnet?.network.attestor ?? MONAD_READING_NETWORK.attestor,
         attestorSigner: this.attestorWallet.address,
         readingChallenge: {
-          address: MONAD_READING_NETWORK.contracts.ReadingChallenge.address,
-          txHash: MONAD_READING_NETWORK.contracts.ReadingChallenge.transactionHash,
-          explorerUrl: `${this.explorerBaseUrl}/address/${MONAD_READING_NETWORK.contracts.ReadingChallenge.address}`,
+          address: this.testnet?.network.challenge ?? MONAD_READING_NETWORK.contracts.ReadingChallenge.address,
+          txHash: this.testnet?.network.steps.challenge ?? MONAD_READING_NETWORK.contracts.ReadingChallenge.transactionHash,
+          explorerUrl: `${this.explorerBaseUrl}/address/${this.testnet?.network.challenge ?? MONAD_READING_NETWORK.contracts.ReadingChallenge.address}`,
         },
         readingBadge: {
-          address: MONAD_READING_NETWORK.contracts.ReadingBadge.address,
-          explorerUrl: `${this.explorerBaseUrl}/address/${MONAD_READING_NETWORK.contracts.ReadingBadge.address}`,
+          address: this.testnet?.network.badge ?? MONAD_READING_NETWORK.contracts.ReadingBadge.address,
+          explorerUrl: `${this.explorerBaseUrl}/address/${this.testnet?.network.badge ?? MONAD_READING_NETWORK.contracts.ReadingBadge.address}`,
         },
         rewardToken: {
-          address: MONAD_READING_NETWORK.contracts.DemoRewardToken.address,
-          txHash: MONAD_READING_NETWORK.contracts.DemoRewardToken.transactionHash,
-          explorerUrl: `${this.explorerBaseUrl}/address/${MONAD_READING_NETWORK.contracts.DemoRewardToken.address}`,
+          address: this.testnet?.network.token ?? MONAD_READING_NETWORK.contracts.DemoRewardToken.address,
+          txHash: this.testnet?.network.steps.token ?? MONAD_READING_NETWORK.contracts.DemoRewardToken.transactionHash,
+          explorerUrl: `${this.explorerBaseUrl}/address/${this.testnet?.network.token ?? MONAD_READING_NETWORK.contracts.DemoRewardToken.address}`,
           symbol: MONAD_READING_NETWORK.contracts.DemoRewardToken.symbol,
         },
       },
     };
+  }
+
+  private domain() {
+    return attestationDomain(10143, this.testnet?.network.challenge);
+  }
+
+  private submitReward(userId: string, row: ReadingChallengeRow, achievement: Parameters<ReadingTestnet['claim']>[3]) {
+    if (!this.testnet) throw new Error('共读测试网合约未配置');
+    if (row.reader_wallet.toLowerCase() !== this.testnet.reader(userId).address.toLowerCase()) {
+      throw new Error('该记录来自旧的演示环境，请重新发起共读活动');
+    }
+    const campaignId = BigInt(row.campaign_id);
+    const enrollment = {
+      campaignId,
+      reader: row.reader_wallet,
+      subject: row.subject_hash,
+      alreadyCompleted: row.already_completed === 1,
+      deadline: BigInt(Math.floor(Date.parse(row.enrolled_at) / 1000) + 30 * 24 * 60 * 60),
+    };
+    return this.testnet.claim(userId, enrollment, row.enrollment_sig, achievement, achievementTypes);
   }
 
   private getRow(participationId: string): ReadingChallengeRow | undefined {
@@ -397,13 +428,13 @@ export class ReadingChallengeService {
     const existing = this.getRow(participationId);
     if (existing) return existing;
 
-    const campaignId = DEFAULT_CAMPAIGN_ID;
+    const campaignId = this.testnet?.network.campaignId ?? DEFAULT_CAMPAIGN_ID;
     const { readerWallet, subjectHash } = this.deriveIdentity(userId, campaignId);
     const enrolledAtMs = Date.now();
     const enrolledAt = new Date(enrolledAtMs).toISOString();
     const deadlineSec = Math.floor(enrolledAtMs / 1000) + 30 * 24 * 60 * 60;
 
-    const domain = attestationDomain();
+    const domain = this.domain();
     const enrollment = {
       campaignId: BigInt(campaignId),
       reader: readerWallet,
@@ -460,7 +491,7 @@ export class ReadingChallengeService {
       initialChapters,
       initialCurrentChapter,
       initialHighlights,
-      this.mode,
+      this.testnet ? this.mode : 'simulation',
     );
 
     const inserted = this.getRow(participationId);
@@ -623,7 +654,7 @@ export class ReadingChallengeService {
     const nowIso = new Date(nowMs).toISOString();
     const occurredAtSec = Math.floor(nowMs / 1000);
     const deadlineSec = occurredAtSec + 14 * 24 * 60 * 60;
-    const domain = attestationDomain();
+    const domain = this.domain();
 
     if (kind === 'reading') {
       if (row.reading_claimed_at) {
@@ -649,21 +680,22 @@ export class ReadingChallengeService {
         deadline: BigInt(deadlineSec),
       };
       const proofDigest = TypedDataEncoder.hash(domain, achievementTypes, achievement);
-      await this.attestorWallet.signTypedData(domain, achievementTypes, achievement);
+      const chainResult = this.testnet ? await this.submitReward(userId, row, achievement) : null;
+      if (!chainResult) await this.attestorWallet.signTypedData(domain, achievementTypes, achievement);
 
       const nextTokenRow = this.store.database.prepare(
         'SELECT COALESCE(MAX(badge_token_id), 0) + 1 AS nextId FROM reading_challenges',
       ).get() as { nextId: number };
-      const badgeTokenId = nextTokenRow.nextId;
-      const readingTxHash = MONAD_READING_NETWORK.contracts.ReadingChallenge.verifiedMintTxHash;
-      const readingBlockNumber = MONAD_READING_NETWORK.contracts.ReadingChallenge.verifiedMintBlockNumber;
+      const badgeTokenId = chainResult?.tokenId ?? nextTokenRow.nextId;
+      const readingTxHash = chainResult?.hash ?? null;
+      const readingBlockNumber = chainResult?.block ?? null;
 
       const result = this.store.database.prepare(`
         UPDATE reading_challenges
         SET reading_claimed_at = ?, reading_proof_digest = ?, badge_token_id = ?,
             reading_tx_hash = ?, reading_block_number = ?
         WHERE participation_id = ? AND user_id = ? AND reading_claimed_at IS NULL
-      `).run(nowIso, proofDigest, badgeTokenId, readingTxHash, readingBlockNumber, participationId, userId);
+      `).run(nowIso, chainResult?.digest ?? proofDigest, badgeTokenId, readingTxHash, readingBlockNumber, participationId, userId);
 
       if (result.changes === 0) {
         throw httpError(409, '阅读奖励与共读勋章已经领取过了。');
@@ -693,15 +725,17 @@ export class ReadingChallengeService {
         deadline: BigInt(deadlineSec),
       };
       const proofDigest = TypedDataEncoder.hash(domain, achievementTypes, achievement);
-      await this.attestorWallet.signTypedData(domain, achievementTypes, achievement);
+      const chainResult = this.testnet ? await this.submitReward(userId, row, achievement) : null;
+      if (!chainResult) await this.attestorWallet.signTypedData(domain, achievementTypes, achievement);
 
       const result = this.store.database.prepare(`
         UPDATE reading_challenges
         SET review_submitted_at = COALESCE(review_submitted_at, ?),
             review_claimed_at = ?,
-            review_proof_digest = ?
+            review_proof_digest = ?,
+            review_tx_hash = ?
         WHERE participation_id = ? AND user_id = ? AND review_claimed_at IS NULL
-      `).run(nowIso, nowIso, proofDigest, participationId, userId);
+      `).run(nowIso, nowIso, chainResult?.digest ?? proofDigest, chainResult?.hash ?? null, participationId, userId);
 
       if (result.changes === 0) {
         throw httpError(409, '书评奖励已经领取过了。');

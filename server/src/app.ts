@@ -368,7 +368,6 @@ export function createApp(options: AppOptions) {
         totalCompleted,
         milestoneBadgeId,
         holderAddress: readerWallet,
-        blockNumber: 81220667,
       });
     } catch (error) { next(error); }
   });
@@ -443,7 +442,10 @@ export function createApp(options: AppOptions) {
       const { kind } = z.object({ kind: z.enum(['reading', 'review']) }).parse(request.body);
       const state = await readingChallenge.claimReward(userOf(request).id, String(request.params.participationId), kind);
       response.json(state);
-    } catch (error) { next(error); }
+    } catch (error) {
+      if (error && typeof error === 'object' && 'code' in error) console.error('Reading claim provider error:', error.code);
+      next(error);
+    }
   });
 
   app.post('/api/reading-challenge/:participationId/onchain-mint', requireAuth, async (request, response, next) => {
