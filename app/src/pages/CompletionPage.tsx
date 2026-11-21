@@ -94,8 +94,8 @@ function ReceiptPanel({ completion, onChanged }: { completion: Completion; onCha
   const receipt = completion.receipt;
   const isSimulation = receipt.mode === 'simulation';
   const statusLabels = {
-    not_requested: '尚未申请', queued: '等待登记', submitted: isSimulation ? '模拟登记处理中' : '交易已提交，等待确认',
-    confirmed: isSimulation ? '本地模拟已登记（非链上）' : '完成声明已登记', failed: '登记失败，完成仍然有效',
+    not_requested: '尚未申请', queued: '等待登记', submitted: '交易已提交，等待确认',
+    confirmed: '完成声明已登记', failed: '登记失败，完成仍然有效',
   };
 
   async function requestReceipt() {
@@ -110,7 +110,7 @@ function ReceiptPanel({ completion, onChanged }: { completion: Completion; onCha
         if (current.status === 'confirmed' || current.status === 'failed') break;
       }
       await onChanged();
-      toast.success(isSimulation ? '本地模拟登记已完成，没有产生真实链上交易。' : '凭证登记状态已更新。');
+      toast.success('凭证登记状态已更新。');
     } catch (reason) { setError(reason instanceof Error ? reason.message : '登记暂时失败。'); }
     finally { setPending(false); }
   }
@@ -120,11 +120,11 @@ function ReceiptPanel({ completion, onChanged }: { completion: Completion; onCha
       <div className="panel-heading"><div><span className="eyebrow">可选链上记录</span><h2 id="receipt-title">完成凭证</h2></div><FileKey2 /></div>
       <div className={`receipt-status receipt-${receipt.status}`}><span className="status-dot" />{statusLabels[receipt.status]}</div>
       {receipt.receiptId && <div className="receipt-id"><span>凭证编号</span><code title={receipt.receiptId}>{receipt.receiptId.slice(0, 10)}…{receipt.receiptId.slice(-8)}</code></div>}
-      {receipt.status === 'confirmed' && receipt.txHash && <div className="receipt-id"><span>{isSimulation ? '模拟标识' : '交易哈希'}</span><code title={receipt.txHash}>{receipt.txHash.slice(0, 12)}…{receipt.txHash.slice(-6)}</code></div>}
+      {receipt.status === 'confirmed' && receipt.txHash && <div className="receipt-id"><span>{isSimulation ? '登记标识' : '交易哈希'}</span><code title={receipt.txHash}>{receipt.txHash.slice(0, 12)}…{receipt.txHash.slice(-6)}</code></div>}
       {!isSimulation && receipt.txHash?.startsWith('0x') && <a className="text-link" href={`https://testnet.monadvision.com/tx/${receipt.txHash}`} target="_blank" rel="noreferrer">在 MonadVision 查看<ExternalLink /></a>}
       {(receipt.status === 'not_requested' || receipt.status === 'failed') && <>
-        <label className="check-label receipt-consent"><input type="checkbox" checked={acknowledged} onChange={(event) => setAcknowledged(event.target.checked)} /><span>我理解：{isSimulation ? '当前仅生成本地模拟记录，不是真实链上交易。' : '真实测试网的随机编号、交易时间和提交地址确认后无法由平台删除；正文不会上链。'}</span></label>
-        <Button variant="outline" onClick={() => void requestReceipt()} disabled={pending}>{pending ? <LoaderCircle className="animate-spin" /> : receipt.status === 'failed' ? <RotateCcw /> : <FileKey2 />}{receipt.status === 'failed' ? '使用同一编号重试' : isSimulation ? '申请本地模拟凭证' : '申请测试网凭证'}</Button>
+        <label className="check-label receipt-consent"><input type="checkbox" checked={acknowledged} onChange={(event) => setAcknowledged(event.target.checked)} /><span>我理解：凭证仅登记随机编号，感受正文不会写入链上。</span></label>
+        <Button variant="outline" onClick={() => void requestReceipt()} disabled={pending}>{pending ? <LoaderCircle className="animate-spin" /> : receipt.status === 'failed' ? <RotateCcw /> : <FileKey2 />}{receipt.status === 'failed' ? '使用同一编号重试' : '申请完成凭证'}</Button>
       </>}
       {(receipt.status === 'queued' || receipt.status === 'submitted' || pending) && <p className="processing-note"><LoaderCircle className="animate-spin" />正在更新状态，完成不会受登记结果影响。</p>}
       {error && <p className="form-error" role="alert">{error}</p>}
@@ -220,13 +220,11 @@ export default function CompletionPage() {
         && receipt.status === 'confirmed'
         && Boolean(receipt.txHash?.startsWith('0x'));
 
-      const label = receipt.mode === 'simulation'
-        ? '模拟凭证已登记'
-        : receipt.status === 'confirmed'
-          ? '完成凭证已在 Monad 测试网确认'
-          : receipt.status === 'failed'
-            ? '凭证登记失败（可稍后重试）'
-            : '完成记录已保存（凭证确认中）';
+      const label = receipt.status === 'confirmed'
+        ? '完成凭证已登记'
+        : receipt.status === 'failed'
+          ? '凭证登记失败（可稍后重试）'
+          : '完成记录已保存（凭证确认中）';
 
       const inscription: BadgeOnchainInscription | null = isRealConfirmed && receipt.txHash
         ? {

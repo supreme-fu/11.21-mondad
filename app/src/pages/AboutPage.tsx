@@ -1,9 +1,7 @@
 import { ArrowRight, Check, Database, FileKey2, LockKeyhole, Waypoints } from 'lucide-react';
 import { Link } from 'react-router';
-import { useApp } from '@/context/AppContext';
 
 export default function AboutPage() {
-  const { receiptMode } = useApp();
   return (
     <div className="about-page page-container">
       <header className="about-hero">
@@ -27,7 +25,7 @@ export default function AboutPage() {
           <div role="row" className="boundary-row"><span role="cell"><FileKey2 />Monad 测试网适配</span><span role="cell">仅随机凭证编号；链本身产生交易时间和提交地址</span><span role="cell">已广播或确认的历史无法由平台单方面抹除</span></div>
         </div>
       </section>
-      <section className="simulation-explainer"><span className="soft-icon">{receiptMode === 'simulation' ? <Database /> : <FileKey2 />}</span><div><h2>{receiptMode === 'simulation' ? '当前是本地模拟模式' : '当前是 Monad 测试网模式'}</h2><p>{receiptMode === 'simulation' ? '你可以完整体验凭证申请与状态变化，但标识以 simulation- 开头，没有真实交易哈希、合约地址或区块浏览器链接。界面不会把它称为真实链上凭证。' : '页面只链接真实的 MonadVision 测试网交易。测试 MON 没有真实资产奖励，本产品也不提供代币、押金或兑换。'}</p></div></section>
+      <section className="simulation-explainer"><span className="soft-icon"><FileKey2 /></span><div><h2>Monad 测试网凭证说明</h2><p>页面仅在链上登记极简随机凭证编号。测试 MON 没有真实资产奖励，本产品也不提供代币、押金或兑换。</p></div></section>
       <section className="deletion-explainer"><p className="eyebrow">你始终可以说“不要了”</p><h2 className="section-title">分享能撤回，正文能删除，账户能注销。</h2><ul><li><Check />撤回后，新访问者不会再从相似经历接口读到该正文。</li><li><Check />删除正文会清空服务端文本与分享资格，不修改完成声明。</li><li><Check />注销会撤销会话、取消未广播任务并删除链下关联。</li><li><Check />他人此前复制或截图的内容，以及已确认的公开链历史，不承诺能够收回。</li></ul></section>
       <section className="about-closing"><h2>人本身是值得的。<br />完成，只是另一件值得被看见的事。</h2><Link to="/" className="primary-link">选一件想做的事<ArrowRight /></Link></section>
     </div>

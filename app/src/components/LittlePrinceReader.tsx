@@ -263,7 +263,7 @@ export function LittlePrinceReader({
         ceremonyList.push({
           badge: readingAsset,
           roleLabel: '勋章 1 · 对应主题勋章',
-          subtitle: baseInscription ? `ReadingBadge #${baseInscription.tokenId} · Soulbound` : '本地模拟共读勋章',
+          subtitle: baseInscription ? `ReadingBadge #${baseInscription.tokenId} · Soulbound` : 'ReadingBadge · Soulbound',
           inscription: baseInscription,
         });
       }

@@ -40,7 +40,7 @@ function DeleteAccountDialog() {
         <div className="delete-boundaries">
           <p><Check /><span><strong>将删除</strong>：登录会话、参与与完成记录、感受正文及链下映射。</span></p>
           <p><ShieldAlert /><span><strong>不可撤回</strong>：已确认的公开测试网链上记录无法由平台抹除。</span></p>
-          <p><LockKeyhole /><span>本地模拟记录会随账户一同删除。</span></p>
+          <p><LockKeyhole /><span>所有链下记录与映射都会随账户一同删除。</span></p>
         </div>
         <label htmlFor="delete-confirmation">输入“注销”确认</label>
         <input id="delete-confirmation" className="form-field" value={confirmation} onChange={(event) => setConfirmation(event.target.value)} autoComplete="off" />
@@ -190,7 +190,7 @@ export default function RecordsPage() {
       await refreshSession();
       toast.success(`已装填 1 卷「生活胶卷（$6 / +${result.addedPoints} 次无感刻痕）」，当前可用余额 ${result.points} 点。`);
     } catch (reason) {
-      toast.error(reason instanceof Error ? reason.message : '模拟充值暂时失败，请稍后重试。');
+      toast.error(reason instanceof Error ? reason.message : '充值暂时失败，请稍后重试。');
     } finally {
       setRefilling(false);
     }
@@ -446,7 +446,7 @@ export default function RecordsPage() {
                       {receipt && receipt.status !== 'not_requested' && (
                         <span className="badge">
                           <FileKey2 />
-                          {receipt.mode === 'simulation' ? '模拟凭证' : '测试网凭证'} · {receipt.status === 'confirmed' ? '已登记' : receipt.status === 'failed' ? '失败' : '处理中'}
+                          完成凭证 · {receipt.status === 'confirmed' ? '已登记' : receipt.status === 'failed' ? '失败' : '处理中'}
                         </span>
                       )}
                     </div>

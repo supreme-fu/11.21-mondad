@@ -264,7 +264,11 @@ export function BadgeViewerDialog({
               <Award size={14} aria-hidden="true" />
               {pointsSummary ? `${pointsSummary}` : ''}
               {resolvedInscription?.rewardSummary ? `${pointsSummary ? ' · ' : ''}${resolvedInscription.rewardSummary}` : ''}
-              {resolvedInscription?.blockNumber != null ? ` · Block #${resolvedInscription.blockNumber.toLocaleString('en-US')}` : (!resolvedInscription ? `${pointsSummary ? ' · ' : ''}本地模拟模式` : ' · Monad Testnet')}
+              {resolvedInscription?.blockNumber != null
+                ? ` · Block #${resolvedInscription.blockNumber.toLocaleString('en-US')}`
+                : resolvedInscription
+                  ? ' · Monad Testnet'
+                  : ''}
             </span>
           </div>
         )}
