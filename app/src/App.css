@@ -2242,7 +2242,7 @@ body.dark-nav .mobile-tab-item.is-active {
 
 .story-section {
   position: relative;
-  height: 560vh;
+  height: 760vh;
 }
 
 /* Act 1: 1:1 随页面滚离的 Hero */
@@ -2768,32 +2768,18 @@ body.dark-nav .mobile-tab-item.is-active {
   filter: blur(0);
 }
 
-.story-blackout {
+/* Act 4: 与第 3 幕同舞台直接交叉淡入（零黑屏间隙） */
+.story-manifesto-overlay {
   position: absolute;
   inset: 0;
   z-index: 8;
   background: #111a15;
+  color: #f4f7f3;
+  overflow: hidden;
+  visibility: hidden;
   opacity: 0;
   pointer-events: none;
   will-change: opacity;
-}
-
-/* Act 4: 深墨绿黑横向滚动宣言 */
-.story-manifesto {
-  position: relative;
-  height: 340vh;
-  background: #111a15;
-  color: #f4f7f3;
-}
-
-.story-manifesto-sticky {
-  position: sticky;
-  top: 0;
-  height: 100vh;
-  height: 100svh;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
 }
 
 .story-manifesto-track {
@@ -2971,10 +2957,7 @@ body.dark-nav .mobile-tab-item.is-active {
 
 @media (max-width: 768px) {
   .story-section {
-    height: 460vh;
-  }
-  .story-manifesto {
-    height: 280vh;
+    height: 620vh;
   }
   .story-headline-holder {
     top: 17%;

@@ -131,7 +131,6 @@ export function PoeticScrollStory({ onJumpToThemes }: { onJumpToThemes: () => vo
   const navigate = useNavigate();
   const rootRef = useRef<HTMLDivElement | null>(null);
   const storyRef = useRef<HTMLElement | null>(null);
-  const manifestoRef = useRef<HTMLElement | null>(null);
   const heroHeadlineRef = useRef<HTMLDivElement | null>(null);
   const heroMetaRef = useRef<HTMLDivElement | null>(null);
   const planeRef = useRef<HTMLDivElement | null>(null);
@@ -143,7 +142,7 @@ export function PoeticScrollStory({ onJumpToThemes }: { onJumpToThemes: () => vo
   const skyPanelRef = useRef<HTMLDivElement | null>(null);
   const skyBackdropRef = useRef<HTMLDivElement | null>(null);
   const medallionRef = useRef<HTMLDivElement | null>(null);
-  const blackoutRef = useRef<HTMLDivElement | null>(null);
+  const manifestoLayerRef = useRef<HTMLDivElement | null>(null);
   const skyTlRef = useRef<HTMLDivElement | null>(null);
   const skyBrRef = useRef<HTMLDivElement | null>(null);
   const trackRef = useRef<HTMLDivElement | null>(null);
@@ -168,8 +167,7 @@ export function PoeticScrollStory({ onJumpToThemes }: { onJumpToThemes: () => vo
 
     const root = rootRef.current;
     const storyEl = storyRef.current;
-    const manifestoEl = manifestoRef.current;
-    if (!root || !storyEl || !manifestoEl) return;
+    if (!root || !storyEl) return;
 
     let W = window.innerWidth;
     let H = window.innerHeight;
@@ -182,8 +180,6 @@ export function PoeticScrollStory({ onJumpToThemes }: { onJumpToThemes: () => vo
     // 预先缓存所有几何布局数据，严禁在 requestAnimationFrame 内触发同步回流
     let storyTop = 0;
     let storyScrollable = 1;
-    let manifestoTop = 0;
-    let manifestoScrollable = 1;
     let heroBaseTop = 0;
     let trackWidth = 0;
     let manifestoItems: Array<{ el: HTMLElement; left: number }> = [];
@@ -214,8 +210,6 @@ export function PoeticScrollStory({ onJumpToThemes }: { onJumpToThemes: () => vo
 
       storyTop = storyEl.offsetTop;
       storyScrollable = Math.max(1, storyEl.offsetHeight - H);
-      manifestoTop = manifestoEl.offsetTop;
-      manifestoScrollable = Math.max(1, manifestoEl.offsetHeight - H);
       heroBaseTop = isMobile ? H * 0.17 : H * 0.24;
 
       const track = trackRef.current;
@@ -427,16 +421,17 @@ export function PoeticScrollStory({ onJumpToThemes }: { onJumpToThemes: () => vo
         }
       }
 
-      // 2) Process 文案块淡入与逐词去模糊
+      // 2) Process 文案块淡入与逐词去模糊（统一 0..1 单舞台时间轴：0..0.46 为第 1–2 幕）
+      const p12 = clamp(p / 0.68, 0, 1);
       const procEl = processRef.current;
       if (procEl) {
-        const procOp = p < 0.055 ? 0 : p < 0.085 ? (p - 0.055) / 0.03 : p > 0.62 ? clamp(1 - (p - 0.62) / 0.06, 0, 1) : 1;
+        const procOp = p12 < 0.055 ? 0 : p12 < 0.085 ? (p12 - 0.055) / 0.03 : p12 > 0.62 ? clamp(1 - (p12 - 0.62) / 0.06, 0, 1) : 1;
         procEl.style.opacity = String(procOp);
         procEl.style.pointerEvents = procOp > 0.35 ? 'auto' : 'none';
-        if (p > 0.072 && !processFlag) {
+        if (p12 > 0.072 && !processFlag) {
           processFlag = true;
           setProcessRevealed(true);
-        } else if (p < 0.045 && processFlag) {
+        } else if (p12 < 0.045 && processFlag) {
           processFlag = false;
           setProcessRevealed(false);
         }
@@ -446,9 +441,8 @@ export function PoeticScrollStory({ onJumpToThemes }: { onJumpToThemes: () => vo
       let wheelSettled = true;
       for (let i = 0; i < STORY_CARDS.length; i += 1) {
         let target: CardPose;
-        if (p <= 0.005) {
+        if (p12 <= 0.005) {
           target = fanPose(i);
-          // 首次加载时前 6 张卡按顺序从底边轻弹升起
           const orderIdx = HERO_CARD_ORDER.indexOf(i);
           if (orderIdx >= 0) {
             const delay = HERO_CARD_DELAYS[orderIdx];
@@ -462,15 +456,15 @@ export function PoeticScrollStory({ onJumpToThemes }: { onJumpToThemes: () => vo
               o: clamp(riseU * 2.2, 0, 1),
             };
           }
-        } else if (p < 0.10) {
-          const u = eInOut((p - 0.005) / 0.095);
+        } else if (p12 < 0.10) {
+          const u = eInOut((p12 - 0.005) / 0.095);
           const a = fanPose(i);
           const b = scatterPose(i);
           target = { x: lerp(a.x, b.x, u), y: lerp(a.y, b.y, u), r: lerp(a.r, b.r, u), s: lerp(a.s, b.s, u), o: lerp(a.o, b.o, u) };
-        } else if (p < 0.22) {
+        } else if (p12 < 0.22) {
           target = scatterPose(i);
-        } else if (p < 0.33) {
-          const u = eInOut((p - 0.22) / 0.11);
+        } else if (p12 < 0.33) {
+          const u = eInOut((p12 - 0.22) / 0.11);
           const a = scatterPose(i);
           const b = pilePose(i);
           const startX = i >= 6 ? W * 0.5 : a.x;
@@ -482,19 +476,19 @@ export function PoeticScrollStory({ onJumpToThemes }: { onJumpToThemes: () => vo
             s: lerp(a.s, b.s, u),
             o: i >= 6 ? clamp((u - 0.15) / 0.5, 0, 1) : 1,
           };
-        } else if (p < 0.43) {
-          const u = eGlide((p - 0.33) / 0.10);
+        } else if (p12 < 0.43) {
+          const u = eGlide((p12 - 0.33) / 0.10);
           const a = pilePose(i);
           const b = wheelPose(i, 0);
           target = { x: lerp(a.x, b.x, u), y: lerp(a.y, b.y, u), r: lerp(a.r, b.r, u), s: lerp(a.s, b.s, u), o: lerp(a.o, b.o, u) };
         } else {
-          const wheelProg = eInOut(clamp((p - 0.43) / 0.17, 0, 1));
+          const wheelProg = eInOut(clamp((p12 - 0.43) / 0.17, 0, 1));
           target = wheelPose(i, -3 * wheelProg);
         }
 
         // 错峰惯性插值
         const cur = currentPoses[i];
-        if (p <= 0.005) {
+        if (p12 <= 0.005) {
           currentPoses[i] = target;
         } else {
           const w = 0.065 + (i % 4) * 0.009;
@@ -523,9 +517,9 @@ export function PoeticScrollStory({ onJumpToThemes }: { onJumpToThemes: () => vo
         }
       }
 
-      // 4) 门控式晨曦天空窗扩张 + 悬浮徽章 3D 轻摆 & 轻量 GPU 推近至深绿黑
-      const rawSkyTarget = p >= 0.64 && (wheelSettled || p > 0.68)
-        ? clamp((p - 0.64) / 0.12, 0, 1)
+      // 4) 第 3 幕（p12: 0.64 -> 1.00）：门控晨曦天空窗 + 3D 徽章推近直接融进第 4 幕（0 空白过渡！）
+      const rawSkyTarget = p12 >= 0.64 && (wheelSettled || p12 > 0.68)
+        ? clamp((p12 - 0.64) / 0.12, 0, 1)
         : 0;
       const skyK = 1 - (1 - 0.12) ** (dt / 16.67);
       displayedSky += (rawSkyTarget - displayedSky) * skyK;
@@ -534,14 +528,13 @@ export function PoeticScrollStory({ onJumpToThemes }: { onJumpToThemes: () => vo
       const skyPanel = skyPanelRef.current;
       const skyBg = skyBackdropRef.current;
       const medallion = medallionRef.current;
-      const blackout = blackoutRef.current;
-      let blackoutAlpha = 0;
+      const manifestoLayer = manifestoLayerRef.current;
+      let darkLayerAlpha = 0;
 
       if (skyPanel) {
         if (displayedSky <= 0.004) {
           skyPanel.style.visibility = 'hidden';
           skyPanel.style.opacity = '0';
-          if (blackout) blackout.style.opacity = '0';
           if (skyFlag) {
             skyFlag = false;
             setSkyWordsRevealed(false);
@@ -571,44 +564,50 @@ export function PoeticScrollStory({ onJumpToThemes }: { onJumpToThemes: () => vo
             setSkyWordsRevealed(false);
           }
 
-          // 徽章缩放、轻摆与 60fps 顺滑推近（封顶 5.5× 并柔和淡出，杜绝超大纹理重绘卡顿）
           if (medallion) {
             const baseScale = lerp(0.56, 1, u);
-            const yawU = clamp((p - 0.76) / 0.12, 0, 1);
-            const yawDeg = p > 0.76 ? lerp(-10, 10, eInOut(yawU)) : 0;
-            const bobY = p > 0.75 ? Math.sin(t * 1.6) * (6 * nUnit) : 0;
+            const yawU = clamp((p12 - 0.76) / 0.12, 0, 1);
+            const yawDeg = p12 > 0.76 ? lerp(-10, 10, eInOut(yawU)) : 0;
+            const bobY = p12 > 0.75 ? Math.sin(t * 1.6) * (6 * nUnit) : 0;
             const gate = clamp((displayedSky - 0.88) / 0.12, 0, 1);
-            const zoomRaw = eInOut(clamp((p - 0.88) / 0.11, 0, 1)) * gate;
+            const zoomRaw = eInOut(clamp((p12 - 0.88) / 0.11, 0, 1)) * gate;
             const zoomScale = 1 + zoomRaw * 4.6;
-            const medOpacity = clamp(1 - (zoomRaw - 0.48) / 0.45, 0, 1);
+            const medOpacity = clamp(1 - (zoomRaw - 0.35) / 0.45, 0, 1);
             medallion.style.opacity = String(medOpacity);
             medallion.style.transform = `translate3d(-50%, calc(-50% + ${bobY.toFixed(2)}px), 0) perspective(900px) rotateY(${yawDeg.toFixed(2)}deg) scale(${(baseScale * zoomScale).toFixed(4)})`;
 
-            // 推近开始时天空文字顺滑淡出，绝不与放大中的徽章重叠打架
             const wordFade = String(clamp(1 - zoomRaw / 0.35, 0, 1));
             if (skyTlRef.current) skyTlRef.current.style.opacity = wordFade;
             if (skyBrRef.current) skyBrRef.current.style.opacity = wordFade;
 
-            blackoutAlpha = eInOut(clamp((zoomRaw - 0.22) / 0.56, 0, 1));
-            if (blackout) {
-              blackout.style.opacity = String(blackoutAlpha);
-            }
+            // 暗色宣言层随徽章推近直接交叉淡入（零黑屏间隙！）
+            darkLayerAlpha = eInOut(clamp((zoomRaw - 0.18) / 0.52, 0, 1));
           }
         }
       }
 
-      // 5) 暗色横向宣言轨（Manifesto）— 全程纯算术零回流，消除黑屏空档
-      const mTopInView = manifestoTop - sy;
-      const mBottomInView = manifestoTop + manifestoScrollable + H - sy;
-      const mp = clamp(-mTopInView / manifestoScrollable, 0, 1);
+      // 5) 第 4 幕（p: 0.66 -> 1.00）：同舞台内直接呈现深墨绿黑横向宣言，完全消除空白画面！
+      if (p >= 0.68) darkLayerAlpha = 1;
+      const mp = clamp((p - 0.66) / 0.34, 0, 1);
       const track = trackRef.current;
+
+      if (manifestoLayer) {
+        if (darkLayerAlpha <= 0.004) {
+          manifestoLayer.style.visibility = 'hidden';
+          manifestoLayer.style.opacity = '0';
+        } else {
+          manifestoLayer.style.visibility = 'visible';
+          manifestoLayer.style.opacity = String(darkLayerAlpha);
+        }
+      }
+
       if (track) {
         const startX = isMobile ? W * 0.08 : W * 0.06;
         const endX = -(Math.max(0, trackWidth - W * 0.88));
         const tx = lerp(startX, endX, mp);
         track.style.transform = `translate3d(${tx.toFixed(2)}px, -50%, 0)`;
 
-        if (mTopInView < H * 0.85 && mBottomInView > 0) {
+        if (darkLayerAlpha > 0.15) {
           const threshold = isMobile ? W * 0.96 : W * 0.92;
           for (let i = 0; i < manifestoItems.length; i += 1) {
             const item = manifestoItems[i];
@@ -622,8 +621,9 @@ export function PoeticScrollStory({ onJumpToThemes }: { onJumpToThemes: () => vo
         }
       }
 
-      // 6) 暗色顶栏自适应切换（与黑幕无缝同步，避免闪烁）
-      const nextDarkNav = blackoutAlpha > 0.45 || (mTopInView <= 48 && mBottomInView > 74);
+      // 6) 暗色顶栏自适应切换（仅在同舞台暗色层可见且未滑出 #story 时生效）
+      const storyExited = sy > storyTop + storyScrollable + H * 0.35;
+      const nextDarkNav = darkLayerAlpha > 0.45 && !storyExited;
       if (nextDarkNav !== darkNavFlag) {
         darkNavFlag = nextDarkNav;
         document.body.classList.toggle('dark-nav', nextDarkNav);
@@ -791,72 +791,67 @@ export function PoeticScrollStory({ onJumpToThemes }: { onJumpToThemes: () => vo
             </div>
           </div>
 
-          {/* 镜头进入深绿黑转场遮罩 */}
-          <div ref={blackoutRef} className="story-blackout" aria-hidden="true" />
-        </div>
-      </section>
+          {/* Act 4: 与第 3 幕同处一个 Sticky 舞台，直接交叉淡入居中横向宣言（零空白间隙！） */}
+          <div ref={manifestoLayerRef} id="manifesto" className="story-manifesto-overlay" aria-label="Do Something 诗意宣言">
+            <div ref={trackRef} className="story-manifesto-track">
+              <div className="mf-intro-block" data-m-reveal="sticker">
+                <span className="mf-mini-sticker" style={{ background: '#EFCEBE', top: '-1.05em', left: '0em', transform: 'rotate(-6deg)' }}>轻轻开始</span>
+                <span className="mf-mini-sticker" style={{ background: '#D8E8DD', top: '-1.2em', left: '4.6em', transform: 'rotate(-3deg)' }}>不必同步出发</span>
+                <span className="mf-mini-sticker" style={{ background: '#BAD9E6', bottom: '-1.15em', left: '0.8em', transform: 'rotate(4deg)' }}>看见即是重逢</span>
+                <div className="mf-intro-line"><span className="mf-muted">把「改天」</span><span>变成</span></div>
+                <div className="mf-intro-line"><span>今天的一件</span><span className="mf-muted">小事。</span></div>
+              </div>
 
-      {/* ===== ACT 4: 340vh 深墨绿黑横向滚动宣言 ===== */}
-      <section id="manifesto" ref={manifestoRef} className="story-manifesto" aria-label="Do Something 诗意宣言">
-        <div className="story-manifesto-sticky">
-          <div ref={trackRef} className="story-manifesto-track">
-            <div className="mf-intro-block" data-m-reveal="sticker">
-              <span className="mf-mini-sticker" style={{ background: '#EFCEBE', top: '-1.05em', left: '0em', transform: 'rotate(-6deg)' }}>轻轻开始</span>
-              <span className="mf-mini-sticker" style={{ background: '#D8E8DD', top: '-1.2em', left: '4.6em', transform: 'rotate(-3deg)' }}>不必同步出发</span>
-              <span className="mf-mini-sticker" style={{ background: '#BAD9E6', bottom: '-1.15em', left: '0.8em', transform: 'rotate(4deg)' }}>看见即是重逢</span>
-              <div className="mf-intro-line"><span className="mf-muted">把「改天」</span><span>变成</span></div>
-              <div className="mf-intro-line"><span>今天的一件</span><span className="mf-muted">小事。</span></div>
+              <div className="mf-trinket" data-m-reveal="sticker" style={{ ['--rest-rot' as string]: '-12deg' }}>
+                <img src="/badges/thumbs/reading.webp" alt="" />
+              </div>
+
+              <span className="mf-word mf-muted" data-m-reveal="word">先独自</span>
+
+              <div className="mf-sticker-stack" data-m-reveal="sticker">
+                <span className="mf-big-sticker" style={{ background: '#EBC9AE', ['--rest-rot' as string]: '-7deg' }}>
+                  认真生活<i className="mf-sticker-dot" />
+                </span>
+                <span className="mf-small-sticker" style={{ background: '#D7CFE4', ['--rest-rot' as string]: '5deg' }}>不设排名与催促</span>
+              </div>
+
+              <span className="mf-word" data-m-reveal="word">再在字条里</span>
+              <span className="mf-word mf-muted" data-m-reveal="word">相遇。</span>
+
+              <svg className="mf-sparkle" viewBox="0 0 20 20" data-m-reveal="sticker" aria-hidden="true">
+                <path d="M10 0c.8 5.6 3.6 8.6 10 10-6.4 1.4-9.2 4.4-10 10-.8-5.6-3.6-8.6-10-10 6.4-1.4 9.2-4.4 10-10z" fill="#F4E3D3" />
+              </svg>
+
+              <div className="mf-trinket is-sm" data-m-reveal="sticker" style={{ ['--rest-rot' as string]: '9deg' }}>
+                <img src="/badges/thumbs/cooking.webp" alt="" />
+              </div>
+
+              <span className="mf-word" data-m-reveal="word">每一次</span>
+              <span className="mf-word mf-muted" data-m-reveal="word">—</span>
+              <span className="mf-word" data-m-reveal="word">微小的守约</span>
+
+              <span className="mf-big-sticker" data-m-reveal="sticker" style={{ background: '#EFCEBE', ['--rest-rot' as string]: '-6deg' }}>一页之间</span>
+
+              <div className="mf-trinket" data-m-reveal="sticker" style={{ ['--rest-rot' as string]: '10deg' }}>
+                <img src="/badges/thumbs/travel.webp" alt="" />
+              </div>
+
+              <span className="mf-big-sticker" data-m-reveal="sticker" style={{ background: '#D8E8DD', ['--rest-rot' as string]: '4deg' }}>Monad 刻痕</span>
+
+              <span className="mf-word mf-muted" data-m-reveal="word">都沉淀为</span>
+
+              <span className="mf-big-sticker" data-m-reveal="sticker" style={{ background: '#BAD9E6', ['--rest-rot' as string]: '-8deg' }}>只属于你的</span>
+
+              <div className="mf-trinket" data-m-reveal="sticker" style={{ ['--rest-rot' as string]: '-7deg' }}>
+                <img src="/badges/thumbs/diamond100.webp" alt="" />
+              </div>
+
+              <span className="mf-word" data-m-reveal="word">立体生活档案</span>
+              <span className="mf-word mf-muted" data-m-reveal="word">与</span>
+              <span className="mf-word" data-m-reveal="word">纪念器物。</span>
+
+              <div className="mf-spacer" aria-hidden="true" />
             </div>
-
-            <div className="mf-trinket" data-m-reveal="sticker" style={{ ['--rest-rot' as string]: '-12deg' }}>
-              <img src="/badges/thumbs/reading.webp" alt="" />
-            </div>
-
-            <span className="mf-word mf-muted" data-m-reveal="word">先独自</span>
-
-            <div className="mf-sticker-stack" data-m-reveal="sticker">
-              <span className="mf-big-sticker" style={{ background: '#EBC9AE', ['--rest-rot' as string]: '-7deg' }}>
-                认真生活<i className="mf-sticker-dot" />
-              </span>
-              <span className="mf-small-sticker" style={{ background: '#D7CFE4', ['--rest-rot' as string]: '5deg' }}>不设排名与催促</span>
-            </div>
-
-            <span className="mf-word" data-m-reveal="word">再在字条里</span>
-            <span className="mf-word mf-muted" data-m-reveal="word">相遇。</span>
-
-            <svg className="mf-sparkle" viewBox="0 0 20 20" data-m-reveal="sticker" aria-hidden="true">
-              <path d="M10 0c.8 5.6 3.6 8.6 10 10-6.4 1.4-9.2 4.4-10 10-.8-5.6-3.6-8.6-10-10 6.4-1.4 9.2-4.4 10-10z" fill="#F4E3D3" />
-            </svg>
-
-            <div className="mf-trinket is-sm" data-m-reveal="sticker" style={{ ['--rest-rot' as string]: '9deg' }}>
-              <img src="/badges/thumbs/cooking.webp" alt="" />
-            </div>
-
-            <span className="mf-word" data-m-reveal="word">每一次</span>
-            <span className="mf-word mf-muted" data-m-reveal="word">—</span>
-            <span className="mf-word" data-m-reveal="word">微小的守约</span>
-
-            <span className="mf-big-sticker" data-m-reveal="sticker" style={{ background: '#EFCEBE', ['--rest-rot' as string]: '-6deg' }}>一页之间</span>
-
-            <div className="mf-trinket" data-m-reveal="sticker" style={{ ['--rest-rot' as string]: '10deg' }}>
-              <img src="/badges/thumbs/travel.webp" alt="" />
-            </div>
-
-            <span className="mf-big-sticker" data-m-reveal="sticker" style={{ background: '#D8E8DD', ['--rest-rot' as string]: '4deg' }}>Monad 刻痕</span>
-
-            <span className="mf-word mf-muted" data-m-reveal="word">都沉淀为</span>
-
-            <span className="mf-big-sticker" data-m-reveal="sticker" style={{ background: '#BAD9E6', ['--rest-rot' as string]: '-8deg' }}>只属于你的</span>
-
-            <div className="mf-trinket" data-m-reveal="sticker" style={{ ['--rest-rot' as string]: '-7deg' }}>
-              <img src="/badges/thumbs/diamond100.webp" alt="" />
-            </div>
-
-            <span className="mf-word" data-m-reveal="word">立体生活档案</span>
-            <span className="mf-word mf-muted" data-m-reveal="word">与</span>
-            <span className="mf-word" data-m-reveal="word">纪念器物。</span>
-
-            <div className="mf-spacer" aria-hidden="true" />
           </div>
         </div>
       </section>
