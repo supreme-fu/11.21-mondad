@@ -596,6 +596,153 @@
         color: var(--moss-900);
       }
 
+      /* 板块 4 & 5：Agent 分层架构与 Monad 商业闭环 */
+      .tier-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+      }
+
+      .tier-card {
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        background: var(--card);
+        padding: 24px 22px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        box-shadow: var(--shadow-soft);
+      }
+
+      .tier-card h3 {
+        font-size: 1.12rem;
+      }
+
+      .tier-dl {
+        margin: 0;
+        display: grid;
+        gap: 10px;
+        font-size: 0.88rem;
+      }
+
+      .tier-dl div {
+        display: grid;
+        gap: 2px;
+        padding-top: 8px;
+        border-top: 1px dashed var(--border);
+      }
+
+      .tier-dl div:first-child {
+        border-top: none;
+        padding-top: 0;
+      }
+
+      .tier-dl dt {
+        font-size: 0.76rem;
+        color: var(--ink-muted);
+      }
+
+      .tier-dl dd {
+        margin: 0;
+        color: var(--moss-900);
+      }
+
+      .tier-dl code, .econ-card code {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        font-size: 0.78rem;
+        background: var(--paper-100);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 1px 6px;
+        word-break: break-all;
+      }
+
+      .econ-grid {
+        display: grid;
+        grid-template-columns: 1.15fr 0.85fr;
+        gap: 24px;
+      }
+
+      .econ-card {
+        border: 1px solid var(--border);
+        border-radius: 22px;
+        background: var(--card);
+        padding: 28px;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+
+      .econ-card.is-dark {
+        background: var(--moss-900);
+        color: var(--paper-50);
+        border-color: var(--moss-900);
+      }
+
+      .econ-card.is-dark p,
+      .econ-card.is-dark li {
+        color: oklch(0.9 0.015 155);
+      }
+
+      .econ-card.is-dark code {
+        background: oklch(0.36 0.04 155);
+        border-color: oklch(0.45 0.04 155);
+        color: var(--paper-50);
+      }
+
+      .econ-metrics {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+        margin-top: 4px;
+      }
+
+      .econ-metric {
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        background: var(--paper-100);
+        padding: 14px;
+      }
+
+      .econ-metric span {
+        display: block;
+        font-size: 0.74rem;
+        color: var(--ink-muted);
+      }
+
+      .econ-metric strong {
+        display: block;
+        margin-top: 4px;
+        font-family: var(--font-display);
+        font-size: 1.25rem;
+        color: var(--moss-900);
+      }
+
+      .contract-list {
+        list-style: none;
+        margin: 4px 0 0;
+        padding: 0;
+        display: grid;
+        gap: 10px;
+      }
+
+      .contract-list li {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+        padding: 10px 14px;
+        border-radius: 12px;
+        background: oklch(0.34 0.04 155);
+        font-size: 0.85rem;
+      }
+
+      .contract-list a {
+        color: oklch(0.88 0.08 55);
+        text-decoration: underline;
+      }
+
       /* 底部路演号召 */
       .closing {
         padding: 68px 0;
@@ -653,7 +800,13 @@
         .section-head,
         .encounter-grid,
         .portal-manifesto,
-        .sovereignty-grid {
+        .sovereignty-grid,
+        .tier-grid,
+        .econ-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .econ-metrics {
           grid-template-columns: 1fr;
         }
 
@@ -718,8 +871,9 @@
         <nav class="nav-links" aria-label="官网导航">
           <a href="#after-action">行动后相遇</a>
           <a href="#portal-context">跨应用档案门户</a>
+          <a href="#agent-tiers">分层身份与合约</a>
+          <a href="#gas-model">费用与商业闭环</a>
           <a href="#sovereignty">数据主权边界</a>
-          <a href="/about">完整边界说明</a>
         </nav>
         <div class="nav-cta-group">
           <a href="/badges" class="btn btn-outline btn-sm">三维器物预览</a>
@@ -888,12 +1042,153 @@
         </div>
       </section>
 
-      <section class="section" id="sovereignty">
+      <section class="section" id="agent-tiers">
         <div class="container">
           <div class="section-head">
             <div>
               <span class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span>核心叙事 · 03</span>
-              <h2>链上与链下的数据主权边界</h2>
+              <h2>面向 Agent 时代的个人链上身份与分层信任架构</h2>
+            </div>
+            <p class="lead">
+              主应用中的“读书（《小王子》全本共读）”、“做菜”、“相见”、“出行”均是补充个人链上档案的现场活动演示模块，统一沉淀为支持时间 / 等级排序的三维徽章墙与可导出 Agent 结构化上下文（JSON-LD / MCP Ready）。
+            </p>
+          </div>
+
+          <div class="tier-grid">
+            <article class="tier-card">
+              <span class="arch-step">01 · Identity Subject</span>
+              <h3>链上身份主体与三维器物</h3>
+              <dl class="tier-dl">
+                <div>
+                  <dt>档案 DID 标识</dt>
+                  <dd><code>did:monad:10143:user-*</code></dd>
+                </div>
+                <div>
+                  <dt>三维器物图鉴（10 枚）</dt>
+                  <dd>4 枚生活主题圆章 + 1 枚链上六角铭牌 + 5 阶里程碑（10 / 50 / 100 次），点击可 360° 翻转赏鉴背面微雕。</dd>
+                </div>
+                <div>
+                  <dt>不作攀比的奖章</dt>
+                  <dd>按获得时间与等级清晰标注来源、签发通道与时间戳，只记录真实生活，不设公开榜单。</dd>
+                </div>
+              </dl>
+            </article>
+
+            <article class="tier-card">
+              <span class="arch-step">02 · Provenance Tiers</span>
+              <h3>双层凭证信任来源</h3>
+              <dl class="tier-dl">
+                <div>
+                  <dt>机构 / 三方 EIP-712 核销层</dt>
+                  <dd>支持共读组织、线上购书、景区门票二维码核销等外部签发（如《小王子》ReadingChallenge 合约核验覆盖率与末章并铸造 Soulbound ReadingBadge）。</dd>
+                </div>
+                <div>
+                  <dt>个人主权声明层（留白信任）</dt>
+                  <dd>做一道菜、见想见的人、去小地方等私人行动仅需向自己自报确认，无需上传照片或定位自证。</dd>
+                </div>
+                <div>
+                  <dt>跨平台接入协议</dt>
+                  <dd>支持通过 <code>ActivityHub</code> 接入出版社与文旅核销节点。</dd>
+                </div>
+              </dl>
+            </article>
+
+            <article class="tier-card">
+              <span class="arch-step">03 · Agent Context</span>
+              <h3>面向未来 AI Agent 的结构化画像</h3>
+              <dl class="tier-dl">
+                <div>
+                  <dt>标准上下文载荷</dt>
+                  <dd>汇总活跃生活维度、公开共鸣与私密留白比例、已点亮器物及来源分层，可在「我的记录」一键导出 JSON。</dd>
+                </div>
+                <div>
+                  <dt>四步独立授权原则</dt>
+                  <dd>接受约定、自报完成、选择是否分享感受、决定是否上链，四个动作完全独立、互不绑架。</dd>
+                </div>
+                <div>
+                  <dt>隐私保护边界</dt>
+                  <dd>500 字感悟正文仅保留在链下且随时可撤回或删除，链上仅留存匿名锚点。</dd>
+                </div>
+              </dl>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="gas-model">
+        <div class="container">
+          <div class="section-head">
+            <div>
+              <span class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span>核心叙事 · 04</span>
+              <h2>服务端无感代付 +「$6 / 60 次生活胶卷」商业闭环</h2>
+            </div>
+            <p class="lead">
+              绝不在用户刚读完一本书或做好一道菜时弹出钱包签名收 Gas 打断情绪。依托 Monad 极低费率与紧凑固定 gas_limit，实现 C 端零钱包门槛与 B 端核销内嵌。
+            </p>
+          </div>
+
+          <div class="econ-grid">
+            <article class="econ-card">
+              <span class="sovereignty-badge">C 端个人生活胶卷 + B 端机构代付</span>
+              <h3>极低链上成本支撑 99.6% 胶卷毛利</h3>
+              <p>
+                Monad 按 <code>gas_limit</code> 计费。我们仅将固定长度 <code>bytes32</code> 凭证与结构化核验锚点上链，锁定紧凑上限（<code>65,000 ~ 100,000 Gas</code>），单次底层链上成本低于 <strong>$0.0003</strong>：
+              </p>
+              <ul class="sovereignty-list">
+                <li><strong>C 端个人主权层</strong>：新人赠送免费额度，后续按 <strong>$6 装填 1 卷「60 次链上生活胶卷」</strong>（60 次底层 Monad 总 Gas 仅约 <strong>$0.02</strong>，每次行动上链消耗 1 点数）。</li>
+                <li><strong>B 端机构核销层</strong>：购书共读、景区门票二维码核销费用内嵌于商品价格，由出版社或景区按 <strong>$0.05 / 次</strong> 采购额度全额代付。</li>
+              </ul>
+              <div class="econ-metrics">
+                <div class="econ-metric">
+                  <span>单次底层 Monad Gas</span>
+                  <strong>&lt; $0.0003</strong>
+                </div>
+                <div class="econ-metric">
+                  <span>1 卷胶卷售价 / 额度</span>
+                  <strong>$6 / 60 次</strong>
+                </div>
+                <div class="econ-metric">
+                  <span>60 次底层总 Gas 成本</span>
+                  <strong>~$0.02</strong>
+                </div>
+              </div>
+            </article>
+
+            <article class="econ-card is-dark">
+              <span class="eyebrow" style="color: oklch(0.84 0.05 155);">MONAD TESTNET · CHAIN ID 10143</span>
+              <h3>已部署并实测验收的测试网合约</h3>
+              <p>
+                主应用的完成凭证合约与《小王子》共读挑战、Soulbound 阅读勋章合约均已在 Monad Testnet 完成部署并验证真实链上交易。
+              </p>
+              <ul class="contract-list">
+                <li>
+                  <span><strong>CompletionReceipt</strong> · 匿名完成凭证</span>
+                  <a href="https://testnet.monadvision.com/address/0xC2C6d6CcDabAc4D9aB273Aa2F31E2BA6A4799fCC" target="_blank" rel="noreferrer"><code>0xC2C6...9fCC</code> ↗</a>
+                </li>
+                <li>
+                  <span><strong>ReadingChallenge</strong> · 共读核验挑战</span>
+                  <a href="https://testnet.monadvision.com/address/0xded334e897C4F15c6Db63608C837c0dAC445dF71" target="_blank" rel="noreferrer"><code>0xded3...dF71</code> ↗</a>
+                </li>
+                <li>
+                  <span><strong>ReadingBadge</strong> · Soulbound 勋章</span>
+                  <a href="https://testnet.monadvision.com/address/0x917d025494E1CB5a6254D386B1626b6025dB6235" target="_blank" rel="noreferrer"><code>0x917d...6235</code> ↗</a>
+                </li>
+                <li>
+                  <span><strong>实测铸造交易</strong> · Badge #1</span>
+                  <a href="https://testnet.monadvision.com/tx/0x761424f78cf107abf6a82da8ea6101e95abdffd4afbee1c7f7e3959c6686e336" target="_blank" rel="noreferrer"><code>0x7614...e336</code> ↗</a>
+                </li>
+              </ul>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="sovereignty">
+        <div class="container">
+          <div class="section-head">
+            <div>
+              <span class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span>核心叙事 · 05</span>
+              <h2>链上与链下的数据主权与可撤回边界</h2>
             </div>
             <p class="lead">
               凭证不是生活真实性的裁判，更不是不可磨灭的公开监控。我们把“生活故事的撤回权”与“链上凭证的极简不可篡改性”严格分开。

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { ArrowLeft, ArrowRight, BookOpenCheck, Check, Clock3, ExternalLink, FileKey2, HeartHandshake, History, LoaderCircle, ShieldCheck } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Clock3, History, LoaderCircle } from 'lucide-react';
 import { Link, useParams } from 'react-router';
 import { toast } from 'sonner';
 import { ActivityGlyph } from '@/components/ActivityGlyph';
@@ -7,7 +7,6 @@ import { LittlePrinceReader } from '@/components/LittlePrinceReader';
 import { Button } from '@/components/ui/button';
 import { useApp } from '@/context/AppContext';
 import { api } from '@/lib/api';
-import { LITTLE_PRINCE_CONTRACTS, shortenHex } from '@/lib/reading-contracts';
 import type { ActivityDetail } from '@/types';
 
 export default function ActivityPage() {
@@ -25,6 +24,7 @@ export default function ActivityPage() {
     catch (reason) { setError(reason instanceof Error ? reason.message : '主题加载失败。'); }
     finally { setLoading(false); }
   }, [id]);
+
   useEffect(() => {
     setSessionReadingId(null);
     void load();
@@ -50,7 +50,7 @@ export default function ActivityPage() {
     try {
       await api.leave(activeId);
       await Promise.all([load(), refreshRecords()]);
-      toast.success('已暂时离开，没有产生任何公开评价。');
+      toast.success('已暂时离开。');
     } catch (reason) { toast.error(reason instanceof Error ? reason.message : '暂时无法离开。'); }
     finally { setPending(false); }
   }
@@ -76,19 +76,16 @@ export default function ActivityPage() {
     <div className="activity-page page-container">
       <Link to="/" className="back-link"><ArrowLeft />返回所有主题</Link>
       <section className="activity-hero">
-        <div><ActivityGlyph activityId={activity.id} size="large" /><div className="activity-meta"><span>{activity.category}</span><span><Clock3 />{activity.duration}</span></div><h1>{activity.title}</h1><p>{activity.invitation}</p></div>
+        <div>
+          <ActivityGlyph activityId={activity.id} size="large" />
+          <div className="activity-meta"><span>{activity.category}</span><span><Clock3 />{activity.duration}</span></div>
+          <h1>{activity.title}</h1>
+          <p>{activity.invitation}</p>
+        </div>
         <aside className="promise-panel">
           <span className="eyebrow">一个轻轻的约定</span>
-          <h2>{activeParticipation ? '约定在这里，不催你。' : completionCount > 0 ? '这件事已经算数。' : '准备好时，再开始。'}</h2>
-          <p>
-            {activeParticipation
-              ? (completionCount > 0
-                ? `你已回应过这个约定 ${completionCount} 次，这是新的一次出发。`
-                : '接受不代表必须完成，也不会产生倒计时、公开排名或失败记录。')
-              : completionCount > 0
-                ? `你已回应过这个约定 ${completionCount} 次。每一次行动都算数。`
-                : '接受不代表必须完成，也不会产生倒计时、公开排名或失败记录。'}
-          </p>
+          <h2>{activeParticipation ? '约定进行中' : completionCount > 0 ? `已完成 ${completionCount} 次` : '准备好时，再开始'}</h2>
+          <p>{activity.completionHint}</p>
           {activeParticipation ? (
             <>
               <Button size="lg" asChild><Link to={`/complete/${activeParticipation.id}`}>我完成了<ArrowRight /></Link></Button>
@@ -101,7 +98,7 @@ export default function ActivityPage() {
               </Button>
               {latestCompletedId && (
                 <Link to={`/complete/${latestCompletedId}`} className="text-link activity-latest-link">
-                  查看最近一次完成与回响<ArrowRight />
+                  查看最近一次完成记录<ArrowRight />
                 </Link>
               )}
             </>
@@ -126,10 +123,10 @@ export default function ActivityPage() {
         <section className="activity-history" aria-labelledby="activity-history-title">
           <div className="activity-history-head">
             <div>
-              <span className="eyebrow">往期行动印记</span>
-              <h2 id="activity-history-title">在这个主题下，你已回应过 {history.length} 次</h2>
+              <span className="eyebrow">往期记录</span>
+              <h2 id="activity-history-title">已回应 {history.length} 次</h2>
             </div>
-            <Link to="/records" className="text-link">前往个人档案室<ArrowRight /></Link>
+            <Link to="/records" className="text-link">前往我的记录<ArrowRight /></Link>
           </div>
           <ul className="activity-history-list">
             {history.map((item, index) => (
@@ -141,58 +138,13 @@ export default function ActivityPage() {
                     <span>{item.visibility === 'shared' ? '已允许分享' : '仅自己可见'}</span>
                   </div>
                   <p>{item.reflectionText ? `“${item.reflectionText}”` : '没有留下感受正文，同样是一次完整的回应。'}</p>
-                  <span className="activity-history-link">查看这次完成与回响<ArrowRight aria-hidden="true" /></span>
+                  <span className="activity-history-link">查看详情<ArrowRight aria-hidden="true" /></span>
                 </Link>
               </li>
             ))}
           </ul>
         </section>
       )}
-
-      <section className="activity-rules">
-        <article><span>怎样算完成</span><h2>由你向自己确认，无需向他人自证。</h2><p>{activity.completionHint}</p><div className="rule-note"><Check />首版只需要自报完成，不上传照片、定位或第三方证明。</div></article>
-        <article><span>关于这个主题</span><h2>允许按自己的生活替换答案。</h2><p>{activity.description}</p><div className="rule-note"><HeartHandshake />没有标准关系、健康目标或完成方式需要被证明。</div></article>
-      </section>
-
-      {activity.id === 'reading' && (
-        <section className="reading-preview-card" aria-labelledby="reading-preview-title" data-testid="reading-preview-card">
-          <div className="reading-preview-head">
-            <div>
-              <span className="eyebrow">
-                <BookOpenCheck aria-hidden="true" />
-                本期共读 · 《小王子》× Monad 链上勋章核验
-              </span>
-              <h2 id="reading-preview-title">接受约定后直接阅读全本《小王子》，读完可选择上链铸造勋章</h2>
-              <p>
-                内置全 27 章中文正文；确认读完后可自主选择是否上链（上链扣除 1 点数并铸造「一页之间」Soulbound 勋章，达到累计次数同步解锁里程碑勋章），随后可选择是否分享感受并看到同路人的分享。
-              </p>
-            </div>
-            <span className="reading-chain-pill">Monad Testnet · Chain ID {LITTLE_PRINCE_CONTRACTS.chainId}</span>
-          </div>
-
-          <div className="reading-contract-links">
-            <a href={LITTLE_PRINCE_CONTRACTS.readingChallenge.explorerUrl} target="_blank" rel="noreferrer" className="reading-contract-chip">
-              <span>ReadingChallenge</span>
-              <code>{shortenHex(LITTLE_PRINCE_CONTRACTS.readingChallenge.address)}</code>
-              <ExternalLink aria-hidden="true" />
-            </a>
-            <a href={LITTLE_PRINCE_CONTRACTS.readingBadge.explorerUrl} target="_blank" rel="noreferrer" className="reading-contract-chip">
-              <span>ReadingBadge</span>
-              <code>{shortenHex(LITTLE_PRINCE_CONTRACTS.readingBadge.address)}</code>
-              <ExternalLink aria-hidden="true" />
-            </a>
-          </div>
-        </section>
-      )}
-
-      <section className="data-preview">
-        <div><p className="eyebrow">开始之前，知道会留下什么</p><h2 className="section-title">生活内容与凭证，分开处理。</h2></div>
-        <div className="data-preview-list">
-          <article><ShieldCheck /><div><h3>完成声明</h3><p>记录保存在服务端，只代表你向自己守了一次约，不苛求任何外部证明。</p></div></article>
-          <article><FileKey2 /><div><h3>可选完成凭证</h3><p>只有知情申请后才登记随机编号。当前默认是明确标注的本地模拟。</p></div></article>
-        </div>
-        <Link to="/about" className="text-link">查看完整的数据与删除边界<ArrowRight /></Link>
-      </section>
     </div>
   );
 }

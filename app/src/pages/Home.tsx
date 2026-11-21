@@ -1,71 +1,36 @@
-import { ArrowRight, Check } from 'lucide-react';
+import { ArrowRight, Coins, Sparkles } from 'lucide-react';
 import { Link } from 'react-router';
 import { ActivityGlyph } from '@/components/ActivityGlyph';
 import { useApp } from '@/context/AppContext';
 import '../App.css';
 
-function MeetingMark() {
-  return (
-    <div className="meeting-mark" aria-label="两条独立的生活轨迹，在完成后相遇">
-      <svg viewBox="0 0 520 420" role="img" aria-hidden="true">
-        <path className="path-one" d="M30 318C110 354 136 266 188 236C246 202 263 151 329 125C389 102 428 116 492 55" />
-        <path className="path-two" d="M38 84C116 47 151 119 203 163C253 205 298 207 340 254C386 305 422 340 490 322" />
-        <circle className="meeting-dot" cx="262" cy="198" r="11" />
-        <circle className="orbit-dot" cx="329" cy="125" r="5" />
-        <circle className="orbit-dot" cx="203" cy="163" r="5" />
-      </svg>
-      <div className="path-note path-note-one"><Check />我按自己的方式完成了</div>
-      <div className="path-note path-note-two">原来，你也回应了这件事</div>
-      <span className="mark-caption">不必同步出发，也能彼此照亮</span>
-    </div>
-  );
-}
-
 export default function Home() {
   const { activities, records, user } = useApp();
-  return (
-    <>
-      <section className="home-hero page-container">
-        <div className="hero-copy">
-          <p className="eyebrow">给“改天”一个轻轻的结尾</p>
-          <h1>想做，很久了。<br /><em>今天，轻轻开始。</em></h1>
-          <p className="hero-description">一件真正想做的事，一个只属于自己的约定。不用找搭子，不必连续打卡；先去生活，再决定要不要留下故事。</p>
-          <div className="hero-actions">
-            <a className="primary-link" href="#themes">选一件想做的事<ArrowRight /></a>
-            <Link className="text-link" to="/about">为什么在完成之后相遇？</Link>
-          </div>
-          <ul className="hero-assurances" aria-label="产品原则">
-            <li><Check />独立行动</li><li><Check />分享由你</li><li><Check />没有排名</li>
-          </ul>
-        </div>
-        <MeetingMark />
-      </section>
+  const completedTotal = records.filter((item) => item.completion !== null).length;
 
-      <section className="home-archive-banner page-container" aria-label="面向 Agent 时代的个人链上身份档案">
-        <div className="home-archive-banner-copy">
-          <p className="eyebrow">AGENT-ERA ONCHAIN IDENTITY · 个人链上身份档案底座</p>
-          <h2>不仅是一次行动，更是面向 Agent 时代的个人链上身份档案。</h2>
-          <p>
-            我们构建的是可跨应用汇聚、带签发方信任分层的<strong>个人链上身份档案（LIFE CONTEXT）</strong>——内置支持按<strong>获得时间 / 等级</strong>排序的<strong>三维徽章墙</strong>（记录每枚徽章的来源、签发方与获得时间）以及<strong>结构化个人画像载荷</strong>，为未来的个人 AI Agent 提供真正读得懂主人的可信上下文。下方四个场景是用于补充和现场演示档案中“活动执行与凭证采集”环节的交互入口。
-          </p>
+  return (
+    <section className="themes-section themes-section-clean page-container" id="themes">
+      <div className="home-compact-head">
+        <div>
+          <p className="eyebrow">你好，{user?.displayName} · 今天可以做的小事</p>
+          <h1 className="home-compact-title">哪一件，已经在心里放了很久？</h1>
         </div>
-        <div className="home-archive-banner-action">
-          <Link className="primary-link" to="/records">
-            查看我的链上身份档案与徽章墙
-            <ArrowRight />
+        <div className="home-quick-stats">
+          <Link to="/records" className="home-stat-chip">
+            <Sparkles size={14} aria-hidden="true" />
+            <span>已完成 <strong>{completedTotal}</strong> 次</span>
+          </Link>
+          <Link to="/records" className="home-stat-chip">
+            <Coins size={14} aria-hidden="true" />
+            <span>余额 <strong>{user?.points ?? 100}</strong> 点</span>
           </Link>
         </div>
-      </section>
+      </div>
 
-      <section className="themes-section page-container" id="themes">
-        <div className="section-heading-row">
-          <div><p className="eyebrow">档案活动执行演示 · 今天可以做的小事</p><h2 className="section-title">哪一件，已经在心里放了很久？</h2></div>
-          <p>你好，{user?.displayName}。<br />每一次行动完成，都会自动写入你的链上个人档案与徽章墙。</p>
-        </div>
-        <div className="activity-list">
-          {[...activities]
-            .sort((a, b) => (a.id === 'reading' ? -1 : b.id === 'reading' ? 1 : 0))
-            .map((activity) => {
+      <div className="activity-list">
+        {[...activities]
+          .sort((a, b) => (a.id === 'reading' ? -1 : b.id === 'reading' ? 1 : 0))
+          .map((activity) => {
             const themeRecords = records.filter((item) => item.activity.id === activity.id);
             const activeRecord = themeRecords.find((item) => item.participationStatus === 'joined' && !item.completion);
             const completedCount = themeRecords.filter((item) => item.completion !== null).length;
@@ -91,16 +56,7 @@ export default function Home() {
               </Link>
             );
           })}
-        </div>
-      </section>
-
-      <section className="home-closing home-closing-compact page-container">
-        <p>“先独自去生活，完成之后，再在自愿留下的字条与跨应用生活档案里轻轻重逢。”</p>
-        <div className="home-closing-links">
-          <a href="/intro.html" className="text-link">阅读完整产品愿景与官网介绍<ArrowRight /></a>
-          <Link to="/activities/cooking" className="text-link">从一道菜开始<ArrowRight /></Link>
-        </div>
-      </section>
-    </>
+      </div>
+    </section>
   );
 }

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowDownWideNarrow, ArrowRight, Bot, Boxes, Check, Clock3, Coins, Copy, Cpu, FileKey2, Globe2, Layers, LoaderCircle, LockKeyhole, ShieldAlert, ShieldCheck, Sparkles, Trash2 } from 'lucide-react';
+import { ArrowDownWideNarrow, ArrowRight, Boxes, Check, Clock3, Coins, Copy, Cpu, FileKey2, Layers, LoaderCircle, LockKeyhole, ShieldAlert, Sparkles, Trash2 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router';
 import { toast } from 'sonner';
 import { ActivityGlyph } from '@/components/ActivityGlyph';
@@ -36,16 +36,16 @@ function DeleteAccountDialog() {
     <Dialog open={open} onOpenChange={(value) => { setOpen(value); if (!value) { setConfirmation(''); setError(''); } }}>
       <DialogTrigger asChild><Button variant="outline"><Trash2 />注销当前演示账户</Button></DialogTrigger>
       <DialogContent className="delete-dialog">
-        <DialogHeader><DialogTitle>注销后，哪些会被删除？</DialogTitle><DialogDescription>这个操作会立即执行，不能通过重新登录恢复当前账户。</DialogDescription></DialogHeader>
+        <DialogHeader><DialogTitle>确认注销当前账户？</DialogTitle><DialogDescription>操作会立即删除当前账户的链下记录与会话，无法恢复。</DialogDescription></DialogHeader>
         <div className="delete-boundaries">
-          <p><Check /><span><strong>服务端会删除</strong>：登录会话、参与与完成关联、私密及已分享正文、凭证与账户的链下映射。</span></p>
-          <p><ShieldAlert /><span><strong>平台无法抹除</strong>：真实测试网已经广播或确认的公开记录、交易时间与相关地址。未广播的排队任务会取消；已经广播的交易仍可能确认。</span></p>
-          <p><LockKeyhole /><span>本地模拟记录会随链下数据删除，不涉及真实链历史。他人此前截图或复制的内容也无法由平台收回。</span></p>
+          <p><Check /><span><strong>将删除</strong>：登录会话、参与与完成记录、感受正文及链下映射。</span></p>
+          <p><ShieldAlert /><span><strong>不可撤回</strong>：已确认的公开测试网链上记录无法由平台抹除。</span></p>
+          <p><LockKeyhole /><span>本地模拟记录会随账户一同删除。</span></p>
         </div>
         <label htmlFor="delete-confirmation">输入“注销”确认</label>
         <input id="delete-confirmation" className="form-field" value={confirmation} onChange={(event) => setConfirmation(event.target.value)} autoComplete="off" />
         {error && <p className="form-error" role="alert">{error}</p>}
-        <DialogFooter><Button variant="ghost" onClick={() => setOpen(false)}>保留账户</Button><Button variant="destructive" onClick={() => void remove()} disabled={pending || confirmation !== '注销'}>{pending ? <LoaderCircle className="animate-spin" /> : <Trash2 />}永久注销当前账户</Button></DialogFooter>
+        <DialogFooter><Button variant="ghost" onClick={() => setOpen(false)}>取消</Button><Button variant="destructive" onClick={() => void remove()} disabled={pending || confirmation !== '注销'}>{pending ? <LoaderCircle className="animate-spin" /> : <Trash2 />}永久注销</Button></DialogFooter>
       </DialogContent>
     </Dialog>
   );
@@ -60,8 +60,8 @@ export default function RecordsPage() {
   const [refilledFilmRolls, setRefilledFilmRolls] = useState(0);
   const [refilling, setRefilling] = useState(false);
   const [activeBadge, setActiveBadge] = useState<Badge | null>(null);
-  const currentPoints = user?.points ?? 100;
   const triggerRef = useRef<HTMLButtonElement | null>(null);
+  const currentPoints = user?.points ?? 100;
   const dateFormat = useMemo(() => new Intl.DateTimeFormat('zh-CN', { month: 'long', day: 'numeric' }), []);
   const dateTimeFormat = useMemo(
     () => new Intl.DateTimeFormat('zh-CN', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
@@ -83,15 +83,6 @@ export default function RecordsPage() {
   const unlockedCount = useMemo(
     () => Object.values(badgeStates).filter((state) => state.unlocked).length,
     [badgeStates],
-  );
-
-  const issuerVerifiedRecords = useMemo(
-    () => completedRecords.filter((item) => item.activity.id === 'reading'),
-    [completedRecords],
-  );
-  const selfAttestedRecords = useMemo(
-    () => completedRecords.filter((item) => item.activity.id !== 'reading'),
-    [completedRecords],
   );
   const sharedReflectionsCount = useMemo(
     () => completedRecords.filter((item) => item.completion?.reflection.visibility === 'shared' && item.completion?.reflection.text).length,
@@ -143,13 +134,7 @@ export default function RecordsPage() {
       const existing = domainCounts[id];
       const trustTier = id === 'reading' ? 'ISSUER_VERIFIED_EIP712' : 'SELF_ATTESTED_RECEIPT';
       if (!existing) {
-        domainCounts[id] = {
-          title: item.activity.title,
-          category: item.activity.category,
-          count: 1,
-          trustTier,
-          latestAt: declaredAt,
-        };
+        domainCounts[id] = { title: item.activity.title, category: item.activity.category, count: 1, trustTier, latestAt: declaredAt };
       } else {
         existing.count += 1;
         if (!existing.latestAt || new Date(declaredAt).getTime() > new Date(existing.latestAt).getTime()) {
@@ -157,78 +142,44 @@ export default function RecordsPage() {
         }
       }
     }
-
-    const badgeInventory = badges.map((badge) => {
-      const state = badgeStates[badge.id];
-      return {
-        badgeId: badge.id,
-        name: badge.name,
-        unlocked: state?.unlocked ?? false,
-        tier: state?.tierCode ?? 'Tier A',
-        level: state?.levelLabel ?? '',
-        levelRank: state?.levelRank ?? 0,
-        trustTier: state?.trustTier ?? 'self_attested',
-        source: state?.sourceLabel ?? '',
-        issuer: state?.issuerLabel ?? '',
-        acquiredAt: state?.acquiredAt ?? null,
-        completionCount: state?.count ?? 0,
-      };
-    });
-
-    const unlockedBadges = badgeInventory.filter((b) => b.unlocked);
-    const totalFilmFrames = 10 + refilledFilmRolls * 60;
-    const usedPersonalFrames = selfAttestedRecords.length;
-    const remainingFilmFrames = Math.max(0, totalFilmFrames - usedPersonalFrames);
+    const unlockedBadges = badges
+      .map((badge) => {
+        const state = badgeStates[badge.id];
+        return {
+          badgeId: badge.id,
+          name: badge.name,
+          unlocked: state?.unlocked ?? false,
+          tier: state?.tierCode ?? 'Tier A',
+          level: state?.levelLabel ?? '',
+          source: state?.sourceLabel ?? '',
+          acquiredAt: state?.acquiredAt ?? null,
+          completionCount: state?.count ?? 0,
+        };
+      })
+      .filter((b) => b.unlocked);
 
     return {
       schema: 'https://mojo.devnads.com/schemas/life-context-agent-identity/v1',
-      positioning: '面向 Agent 时代的个人链上身份档案 (Onchain Personal Identity & Life Context Archive)',
       subject: {
         did: `did:monad:10143:user-${user?.demoKey ?? 'a'}`,
         displayName: user?.displayName ?? '阿黎',
         chainId: 10143,
-        network: 'Monad Testnet',
+        pointsBalance: currentPoints,
         anchorContracts: {
           readingBadge: LITTLE_PRINCE_CONTRACTS.readingBadge.address,
           readingChallenge: LITTLE_PRINCE_CONTRACTS.readingChallenge.address,
         },
       },
-      trustArchitecture: {
-        philosophy: '分层来源标注：兼容三方机构 EIP-712 核销（购书/共读/景区门票二维码核销）与个人主权声明（留白信任），为个人 AI Agent 提供长期可分辨来源的身份上下文。',
-        issuerVerifiedCount: issuerVerifiedRecords.length,
-        selfAttestedCount: selfAttestedRecords.length,
-        onchainReceiptsCount: confirmedReceiptsCount,
-      },
-      gasSponsorshipAndCommercialModel: {
-        executionMode: 'SERVER_RELAYER_GAS_SPONSORSHIP (零钱包弹窗、零单次收银台打扰)',
-        monadGasOptimization: 'Monad 按 gas_limit 计费；链下存 500 字正文、链上仅存 bytes32 与结构化锚点，锁定紧凑固定 gas_limit (65,000 ~ 100,000 Gas)，单次底层成本 ~$0.0003，60 次仅 ~$0.02',
-        cEndLifeFilmRoll: {
-          starterFreeFrames: 10,
-          refillPackPricing: '$6 / 60 次链上生活胶卷包 (60 Onchain Life Frames，毛利率 ~99.6%)',
-          refilledRollsCount: refilledFilmRolls,
-          totalFramesQuota: totalFilmFrames,
-          usedFrames: usedPersonalFrames,
-          remainingFrames: remainingFilmFrames,
-        },
-        bEndIssuerSponsored: {
-          pricingModel: 'B2B2C 核销费内嵌：购书款/景区门票已含核销费，由出版社/景区按 $0.05/次采购 ActivityHub 签发额度，C 端用户免费且不扣个人胶卷',
-          issuerSponsoredActionsCount: issuerVerifiedRecords.length,
-        },
-      },
-      badgeWallSummary: {
-        sortSupported: ['acquiredAt', 'levelRank'],
-        unlockedCount: unlockedBadges.length,
-        totalCatalog: badges.length || 10,
-        unlockedBadges,
-      },
-      structuredBehavioralContext: {
+      summary: {
         totalCompletedActions: completedRecords.length,
+        unlockedBadgesCount: unlockedBadges.length,
+        confirmedReceiptsCount,
         sharedReflectionsCount,
-        privateSilenceCount: Math.max(0, completedRecords.length - sharedReflectionsCount),
-        activeDomains: Object.values(domainCounts),
       },
+      unlockedBadges,
+      activeDomains: Object.values(domainCounts),
     };
-  }, [badges, badgeStates, completedRecords, confirmedReceiptsCount, issuerVerifiedRecords.length, refilledFilmRolls, selfAttestedRecords.length, sharedReflectionsCount, user]);
+  }, [badges, badgeStates, completedRecords, confirmedReceiptsCount, currentPoints, sharedReflectionsCount, user]);
 
   const handleRefillFilmRoll = useCallback(async () => {
     if (refilling) return;
@@ -249,14 +200,13 @@ export default function RecordsPage() {
     const text = JSON.stringify(structuredIdentityPayload, null, 2);
     if (navigator.clipboard?.writeText) {
       navigator.clipboard.writeText(text).then(() => {
-        toast.success('已复制结构化 Agent 可信上下文 JSON');
+        toast.success('已复制个人档案 JSON');
       }).catch(() => {
-        toast.success('已生成结构化 Agent 上下文载荷');
+        toast.success('已生成个人档案 JSON');
       });
     }
   }, [structuredIdentityPayload]);
 
-  // 为多次完成的同主题记录计算每条的次序号（按完成时间正序从第 1 次起算）
   const ordinalByParticipation = useMemo(() => {
     const map = new Map<string, number>();
     const byActivity = new Map<string, typeof completedRecords>();
@@ -283,52 +233,77 @@ export default function RecordsPage() {
 
   return (
     <div className="records-page page-container">
-      <header className="records-header">
+      <header className="records-compact-header">
         <div>
-          <p className="eyebrow">面向 Agent 时代的个人链上身份档案 · {user?.displayName}</p>
-          <h1>我做过的事，<br />不需要排成成绩。</h1>
+          <p className="eyebrow">个人档案 · {user?.displayName}</p>
+          <h1>我的记录与徽章墙</h1>
         </div>
-        <p>这里没有打卡监控与押金罚没。每一项活动执行都会沉淀为带签发方分层的结构化身份档案，为未来的个人 AI Agent 提供可验证的生活上下文。</p>
+        <div className="records-header-right">
+          <dl className="records-mini-metrics">
+            <div>
+              <dt>累计完成</dt>
+              <dd>{completedRecords.length} 次</dd>
+            </div>
+            <div>
+              <dt>已点亮器物</dt>
+              <dd>{unlockedCount} / {badges.length || 10}</dd>
+            </div>
+            <div>
+              <dt>链上凭证</dt>
+              <dd>{confirmedReceiptsCount} 枚</dd>
+            </div>
+          </dl>
+          <div className="records-export-actions">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              data-testid="toggle-agent-json-btn"
+              onClick={() => setShowAgentJson((prev) => !prev)}
+            >
+              <Cpu size={14} aria-hidden="true" />
+              {showAgentJson ? '收起 JSON' : '查看档案 JSON'}
+            </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              data-testid="copy-agent-json-btn"
+              onClick={handleCopyAgentContext}
+            >
+              <Copy size={14} aria-hidden="true" />
+              复制 JSON
+            </Button>
+          </div>
+        </div>
       </header>
 
-      <section className="life-context-summary" aria-label="个人生活上下文摘要">
-        <div className="life-context-copy">
-          <span className="eyebrow"><Globe2 aria-hidden="true" />个人生活档案门户 · LIFE CONTEXT · AGENT IDENTITY</span>
-          <h2>面向 Agent 时代的个人链上身份档案：分散在不同角落的真实行动，都在这里汇合。</h2>
-          <p>
-            我们的核心是构建<strong>个人链上身份档案与结构化上下文底座</strong>；本应用中的“读书（《小王子》共读）”、“做菜”、“相见”、“出行”均作为<strong>补充个人档案中“活动执行与凭证采集”部分的现场演示模块</strong>，兼容<strong>三方机构 EIP-712 核销（如共读/购书/景区门票核销）</strong>与<strong>个人主权声明（留白信任）</strong>两类来源。
-          </p>
+      {showAgentJson && (
+        <div className="agent-json-panel" data-testid="agent-json-panel">
+          <div className="agent-json-header">
+            <span>Agent Context Payload (JSON-LD / MCP Ready)</span>
+            <span>实时由当前档案与徽章生成</span>
+          </div>
+          <pre className="agent-json-pre">
+            <code>{JSON.stringify(structuredIdentityPayload, null, 2)}</code>
+          </pre>
         </div>
-        <dl className="life-context-metrics">
-          <div>
-            <dt>累计完成次数</dt>
-            <dd>{completedRecords.length} 次</dd>
-          </div>
-          <div>
-            <dt>已点亮器物</dt>
-            <dd>{unlockedCount} / {badges.length || 10}</dd>
-          </div>
-          <div>
-            <dt>已登记凭证</dt>
-            <dd>{confirmedReceiptsCount} 枚</dd>
-          </div>
-        </dl>
-      </section>
+      )}
 
       <section className="points-wallet-card" aria-label="上链点数余额与生活胶卷充值" data-testid="points-wallet-card">
         <div className="points-wallet-main">
           <div className="points-wallet-copy">
-            <span className="eyebrow"><Coins aria-hidden="true" />链上生活胶卷 · 余额与充值</span>
+            <span className="eyebrow"><Coins aria-hidden="true" />点数与生活胶卷余额</span>
             <div className="points-wallet-balance-row">
               <strong className="points-wallet-amount" data-testid="wallet-points-balance">{currentPoints}</strong>
               <span className="points-wallet-unit">点（次可用上链额度）</span>
               <span className="badge">每次上链扣 1 点</span>
               {refilledFilmRolls > 0 && (
-                <span className="badge">本次会话已装填 +{refilledFilmRolls} 卷</span>
+                <span className="badge">本次已装填 +{refilledFilmRolls} 卷</span>
               )}
             </div>
             <p className="points-wallet-desc">
-              完成任意约定后可选择上链铸造 3D 勋章与链上凭证（每次消耗 1 点数），底层由服务端采用 Monad 紧凑 <code>gas_limit</code> 静默代付 Gas，零钱包弹窗打扰。
+              完成约定后选择上链铸造 3D 勋章与凭证时消耗 1 点数，可随时装填生活胶卷补充额度。
             </p>
           </div>
           <div className="points-wallet-actions">
@@ -352,11 +327,8 @@ export default function RecordsPage() {
         <section className="records-badge-archive" aria-labelledby="records-archive-title" data-testid="badge-wall-section">
           <div className="records-archive-head">
             <div>
-              <span className="eyebrow"><Sparkles aria-hidden="true" />个人链上徽章墙 · BADGE WALL</span>
-              <h2 id="records-archive-title">三维器物徽章墙：支持按获得时间或等级排序，完整记录徽章来源与签发方</h2>
-              <p className="records-archive-subtitle">
-                每枚徽章均标注<strong>档案等级（Tier / Lv）</strong>、<strong>徽章来源（签发通道）</strong>与<strong>精确获得时间</strong>；点击任一徽章可旋转查看 3D 器物与链上合约溯源。
-              </p>
+              <span className="eyebrow"><Sparkles aria-hidden="true" />BADGE WALL</span>
+              <h2 id="records-archive-title">三维徽章墙</h2>
             </div>
             <div className="badge-wall-controls" role="group" aria-label="徽章墙排序与展开控制">
               <div className="badge-sort-group" data-testid="badge-sort-controls">
@@ -368,7 +340,7 @@ export default function RecordsPage() {
                   onClick={() => setBadgeSortMode('level')}
                 >
                   <ArrowDownWideNarrow aria-hidden="true" />
-                  按徽章等级排序
+                  按等级
                 </Button>
                 <Button
                   type="button"
@@ -378,7 +350,7 @@ export default function RecordsPage() {
                   onClick={() => setBadgeSortMode('time')}
                 >
                   <Clock3 aria-hidden="true" />
-                  按获得时间排序
+                  按时间
                 </Button>
                 <Button
                   type="button"
@@ -388,7 +360,7 @@ export default function RecordsPage() {
                   onClick={() => setBadgeSortMode('default')}
                 >
                   <Layers aria-hidden="true" />
-                  按图谱编号
+                  按编号
                 </Button>
               </div>
               <Button
@@ -398,7 +370,7 @@ export default function RecordsPage() {
                 onClick={() => setShowAllBadges((prev) => !prev)}
               >
                 <Boxes aria-hidden="true" />
-                {showAllBadges ? '仅看核心 5 枚器物' : `展开全部 ${badges.length} 枚器物`}
+                {showAllBadges ? '仅看核心 5 枚' : `展开全部 ${badges.length} 枚`}
               </Button>
             </div>
           </div>
@@ -407,7 +379,7 @@ export default function RecordsPage() {
               const state = badgeStates[badge.id];
               const acquiredAtLabel = state?.unlocked && state.acquiredAt
                 ? `${dateTimeFormat.format(new Date(state.acquiredAt))} 获得`
-                : '尚未获得 · 待完成对应活动解锁';
+                : '待完成解锁';
               return (
                 <li key={badge.id}>
                   <HoloBadgeCard
@@ -429,172 +401,16 @@ export default function RecordsPage() {
         </section>
       )}
 
-      <section className="agent-structured-identity" aria-label="面向 Agent 的个人结构化档案与可信上下文" data-testid="agent-structured-identity">
-        <div className="agent-identity-head">
-          <div>
-            <span className="eyebrow"><Bot aria-hidden="true" />STRUCTURED IDENTITY & AGENT CONTEXT · 结构化个人档案</span>
-            <h2>为未来个人 AI Agent 提供带签发方分层与时间轴的可信上下文</h2>
-            <p>
-              信任是一个长期累积的过程。我们将<strong>第三方机构核销凭证（如共读组织、线上购书、景区门票二维码核销）</strong>与<strong>个人主权声明（如做饭、见想见的人的留白约定）</strong>在结构化字段中明确分层，让未来的个人 AI Agent 既能分辨哪些是经外部核验的客观事实，又能读懂主人长期的真实生活偏好。
-            </p>
-          </div>
-          <div className="agent-identity-actions">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              data-testid="toggle-agent-json-btn"
-              onClick={() => setShowAgentJson((prev) => !prev)}
-            >
-              <Cpu aria-hidden="true" />
-              {showAgentJson ? '收起 Agent JSON 载荷' : '查看 Agent 结构化 JSON 载荷'}
-            </Button>
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              data-testid="copy-agent-json-btn"
-              onClick={handleCopyAgentContext}
-            >
-              <Copy aria-hidden="true" />
-              复制 Agent 上下文
-            </Button>
-          </div>
-        </div>
-
-        <div className="agent-identity-grid">
-          <article className="agent-identity-card">
-            <div className="agent-card-title">
-              <ShieldCheck aria-hidden="true" />
-              <h3>1. 链上身份主体（Identity Subject）</h3>
-            </div>
-            <dl className="agent-struct-dl">
-              <div>
-                <dt>档案 DID 标识</dt>
-                <dd><code>{structuredIdentityPayload.subject.did}</code></dd>
-              </div>
-              <div>
-                <dt>锚定网络</dt>
-                <dd>Monad Testnet · Chain ID <code>10143</code></dd>
-              </div>
-              <div>
-                <dt>共读勋章合约</dt>
-                <dd><code>{LITTLE_PRINCE_CONTRACTS.readingBadge.address.slice(0, 10)}…{LITTLE_PRINCE_CONTRACTS.readingBadge.address.slice(-6)}</code></dd>
-              </div>
-              <div>
-                <dt>核验挑战合约</dt>
-                <dd><code>{LITTLE_PRINCE_CONTRACTS.readingChallenge.address.slice(0, 10)}…{LITTLE_PRINCE_CONTRACTS.readingChallenge.address.slice(-6)}</code></dd>
-              </div>
-            </dl>
-          </article>
-
-          <article className="agent-identity-card">
-            <div className="agent-card-title">
-              <Layers aria-hidden="true" />
-              <h3>2. 凭证信任分层（Provenance Tiers）</h3>
-            </div>
-            <dl className="agent-struct-dl">
-              <div>
-                <dt>机构 / 三方核销层</dt>
-                <dd><strong>{issuerVerifiedRecords.length} 条</strong>（EIP-712 签发 · 共读/购书/门票核销）</dd>
-              </div>
-              <div>
-                <dt>个人主权声明层</dt>
-                <dd><strong>{selfAttestedRecords.length} 条</strong>（Self-Attested · 尊重私人空间留白）</dd>
-              </div>
-              <div>
-                <dt>链上匿名凭证锚点</dt>
-                <dd><strong>{confirmedReceiptsCount} 枚</strong>（32 字节 CompletionReceipt）</dd>
-              </div>
-              <div>
-                <dt>企业/三方接入协议</dt>
-                <dd>支持通过 <code>ActivityHub</code> 接入出版社与文旅核销</dd>
-              </div>
-            </dl>
-          </article>
-
-          <article className="agent-identity-card">
-            <div className="agent-card-title">
-              <Bot aria-hidden="true" />
-              <h3>3. 结构化行为画像（Agent Context）</h3>
-            </div>
-            <dl className="agent-struct-dl">
-              <div>
-                <dt>已激活生活维度</dt>
-                <dd>
-                  {structuredIdentityPayload.structuredBehavioralContext.activeDomains.length > 0
-                    ? structuredIdentityPayload.structuredBehavioralContext.activeDomains
-                      .map((d) => `${d.category}(${d.count}次)`)
-                      .join(' · ')
-                    : '待通过活动演示模块采集'}
-                </dd>
-              </div>
-              <div>
-                <dt>表达与留白比例</dt>
-                <dd>公开共鸣 {sharedReflectionsCount} 次 / 私密留白 {Math.max(0, completedRecords.length - sharedReflectionsCount)} 次</dd>
-              </div>
-              <div>
-                <dt>已获徽章资产</dt>
-                <dd>已解锁 {unlockedCount} 枚（含来源、等级与时间戳）</dd>
-              </div>
-              <div>
-                <dt>隐私保护边界</dt>
-                <dd>500 字感悟留存链下可随时撤回，链上仅存结构化锚点</dd>
-              </div>
-            </dl>
-          </article>
-        </div>
-
-        <div className="gas-sponsorship-banner" data-testid="gas-sponsorship-banner">
-          <div className="gas-sponsorship-copy">
-            <div className="agent-card-title">
-              <Sparkles aria-hidden="true" />
-              <h3>4. 上链费用机制与商业闭环：服务端无感代付 +「$6 / 60 次链上生活胶卷包」+ B 端核销内嵌</h3>
-            </div>
-            <p>
-              绝不在用户完成做饭或读书时单次弹窗收 Gas 费打断情绪。依托 Monad 极低费率及按 <code>gas_limit</code> 计费特性（我们仅将固定长度 <code>bytes32</code> 与核验锚点上链，锁定紧凑上限 <code>65,000 ~ 100,000 Gas</code>，单次成本 &lt; <strong>$0.0003</strong>）：
-              <strong>① C 端个人主权层</strong>提供新人 10 次免费额度，后续按 <strong>$6 装填 60 次「链上生活胶卷」</strong>（60 次底层 Monad 总 Gas 仅约 <strong>$0.02</strong>，毛利率 99.6%）；
-              <strong>② B 端机构核销层</strong>（购书共读、景区门票二维码核销）费用已内嵌于书款/门票，由出版社或景区按 $0.05/次采购 <code>ActivityHub</code> 额度全额代付，<strong>不扣个人胶卷</strong>。
-            </p>
-            <div className="gas-quota-pills">
-              <span className="badge">
-                当前可用胶卷 / 点数余额：<strong>{currentPoints} 点</strong>（每次上链扣 1 点）
-              </span>
-              <span className="badge">
-                B 端机构已代付核销：<strong>{issuerVerifiedRecords.length} 次</strong>（用户 0 额外费用）
-              </span>
-              <span className="badge">
-                单卷 60 次 NFT/凭证底层 Gas：<strong>~$0.02 / $6.00</strong>
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {showAgentJson && (
-          <div className="agent-json-panel" data-testid="agent-json-panel">
-            <div className="agent-json-header">
-              <span>Agent Context Payload (JSON-LD / MCP Ready)</span>
-              <span>实时由当前用户的链上档案、徽章墙与活动执行记录生成</span>
-            </div>
-            <pre className="agent-json-pre">
-              <code>{JSON.stringify(structuredIdentityPayload, null, 2)}</code>
-            </pre>
-          </div>
-        )}
-      </section>
-
       <section className="records-timeline" aria-label="行动时间轴">
         <div className="records-timeline-head">
           <div>
-            <h2>档案活动执行记录（行动时间轴）</h2>
-            <p className="records-timeline-note">以下记录由本应用的活动执行演示模块（读书、做菜、相见、出行）产生，实时补充进上方的个人链上身份档案与徽章墙。</p>
+            <h2>行动时间轴</h2>
           </div>
-          <span>共 {records.length} 条参与记录 · 按时间倒序排列</span>
+          <span>共 {records.length} 条记录</span>
         </div>
         {records.length === 0 ? (
           <div className="empty-state">
-            <h2>这里还很安静</h2>
-            <p>从一件真正想做的事开始。你可以只完成，不留下任何故事。</p>
+            <h2>还没有记录</h2>
             <Link className="primary-link" to="/">去发现主题<ArrowRight /></Link>
           </div>
         ) : (
@@ -603,7 +419,6 @@ export default function RecordsPage() {
               const completion = record.completion;
               const receipt = completion?.receipt;
               const nth = completion ? ordinalByParticipation.get(record.participationId) : undefined;
-              const isIssuerVerified = record.activity.id === 'reading';
               return (
                 <article className="record-item" key={record.participationId}>
                   <ActivityGlyph activityId={record.activity.id} />
@@ -615,36 +430,27 @@ export default function RecordsPage() {
                           ? `完成于 ${dateFormat.format(new Date(completion.declaredAt))}`
                           : `约定于 ${dateFormat.format(new Date(record.joinedAt))}`}
                       </span>
-                      {nth && <span>第 {nth} 次回应</span>}
+                      {nth && <span>第 {nth} 次</span>}
                     </div>
                     <h2>{record.activity.title}</h2>
                     <div className="record-badges">
                       <span className="badge">
-                        {completion ? <><Check />自报完成</> : record.participationStatus === 'left' ? '已暂时离开' : '约定进行中'}
-                      </span>
-                      <span className="badge record-provenance-badge">
-                        {isIssuerVerified
-                          ? '来源：机构 EIP-712 核验 · 共读主理方/购书节点'
-                          : '来源：个人主权声明 · 本人约定锚点'}
+                        {completion ? <><Check />已完成</> : record.participationStatus === 'left' ? '已暂时离开' : '进行中'}
                       </span>
                       {completion && (
                         <span className="badge">
-                          {completion.reflection.visibility === 'shared' ? '感受已分享' : '感受仅自己可见'}
+                          {completion.reflection.visibility === 'shared' ? '已分享' : '仅自己可见'}
                         </span>
                       )}
                       {receipt && receipt.status !== 'not_requested' && (
                         <span className="badge">
                           <FileKey2 />
-                          {receipt.mode === 'simulation' ? '模拟凭证' : '测试网凭证'} · {receipt.status === 'confirmed' ? '已登记' : receipt.status === 'failed' ? '登记失败' : '处理中'}
+                          {receipt.mode === 'simulation' ? '模拟凭证' : '测试网凭证'} · {receipt.status === 'confirmed' ? '已登记' : receipt.status === 'failed' ? '失败' : '处理中'}
                         </span>
                       )}
                     </div>
-                    {completion?.reflection.text ? (
+                    {completion?.reflection.text && (
                       <p className="record-reflection">“{completion.reflection.text}”</p>
-                    ) : (
-                      <p className="record-no-reflection">
-                        {completion ? '没有留下公开正文，也同样是一次完整的行动。' : '按自己的节奏去做，没有倒计时。'}
-                      </p>
                     )}
                   </div>
                   <Link
@@ -661,20 +467,10 @@ export default function RecordsPage() {
         )}
       </section>
 
-      <section className="records-badges-entry">
-        <div>
-          <p className="eyebrow">徽章预览</p>
-          <h2>只作纪念的器物，不作攀比的奖章。</h2>
-          <p>徽章只是设计侧的系列预览：点开一枚看三维造型，不代表获得，也不对应 NFT 或任何奖励。</p>
-        </div>
-        <Link className="primary-link" to="/badges">去看徽章预览<ArrowRight /></Link>
-      </section>
-
       <section className="account-danger" id="account">
         <div>
-          <p className="eyebrow">账户与删除</p>
-          <h2>离开，也应该是一件清楚的事。</h2>
-          <p>注销当前演示账户会删除链下内容与会话。真实链上历史无法由平台单方面抹除，正文从未写入链上。</p>
+          <p className="eyebrow">账户管理</p>
+          <h2>注销当前演示账户</h2>
         </div>
         <DeleteAccountDialog />
       </section>
