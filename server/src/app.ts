@@ -99,7 +99,7 @@ export function createApp(options: AppOptions) {
 
   function requireAuth(request: Request, _response: Response, next: NextFunction) {
     const user = sessionUser(request);
-    if (!user) return next(httpError(401, '演示会话已失效，请重新选择账户。'));
+    if (!user) return next(httpError(401, '会话已失效，请重新选择账户。'));
     (request as AuthedRequest).user = user;
     next();
   }
@@ -114,7 +114,7 @@ export function createApp(options: AppOptions) {
       const user = store.database.prepare(
         "SELECT * FROM users WHERE demo_key = ? AND status = 'active'",
       ).get(account) as UserRow | undefined;
-      if (!user) throw httpError(403, '这个演示账户已注销，不能重新登录。');
+      if (!user) throw httpError(403, '这个账户已注销，不能重新登录。');
       const previousToken = parseCookies(request.headers.cookie).do_something_session;
       if (previousToken) store.database.prepare('DELETE FROM sessions WHERE id = ?').run(previousToken);
       const token = randomBytes(32).toString('hex');

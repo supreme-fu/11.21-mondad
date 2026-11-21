@@ -69,7 +69,7 @@ export class SimulationReceiptProvider implements ReceiptProvider {
     control?: AbortSignal,
   ): Promise<ProviderResult> {
     await wait(60);
-    if (control?.aborted) throw new Error('凭证登记已取消；未生成模拟记录。');
+    if (control?.aborted) throw new Error('凭证登记已取消；未生成记录。');
     const submission = {
       txHash: `simulation-${receipt.receipt_id.slice(2, 34)}`,
       ...this.describe(),

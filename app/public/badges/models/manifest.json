@@ -102,7 +102,7 @@
   {
     "id": "contract",
     "name": "链上 · 完成声明",
-    "material": "拉丝钛金属 / 演示编号",
+    "material": "拉丝钛金属 / 随机编号",
     "series": "chain",
     "file": "models/contract.glb",
     "bytes": 202864,

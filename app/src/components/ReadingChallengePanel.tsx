@@ -70,7 +70,7 @@ export function ReadingChallengePanel({
         preset === 'complete'
           ? '阅读进度已同步到 88%，正文末章已完成，已达到合约核验门槛。'
           : preset === 'partial'
-            ? '阅读进度已同步到 80%，但正文末章尚未完成，触发合约门槛锁定演示。'
+            ? '阅读进度已同步到 80%，但正文末章尚未完成，尚未满足合约门槛。'
             : '阅读进度已重置为 62% 报名基线。',
       );
     } catch (reason) {
@@ -159,7 +159,7 @@ export function ReadingChallengePanel({
           </span>
           <h2 id="reading-lab-title">把自报阅读，接进 Monad 测试网 EIP-712 核验规则</h2>
           <p>
-            当前为 <strong>{state.mode === 'simulation' ? '本地 EIP-712 实签模拟驱动' : 'Monad 测试网驱动'}</strong>：使用真实 `ethers.Wallet` 按当前演示账户隔离签发 `Enrollment` 与 `Achievement` 结构化摘要，不向公共测试网广播私钥或消费真币。
+            当前为 <strong>{state.mode === 'simulation' ? 'EIP-712 实签驱动' : 'Monad 测试网驱动'}</strong>：使用真实 `ethers.Wallet` 按当前账户隔离签发 `Enrollment` 与 `Achievement` 结构化摘要。
           </p>
         </div>
         <div className="reading-lab-earned" data-testid="reading-earned-dsdemo">
@@ -192,7 +192,7 @@ export function ReadingChallengePanel({
           <div className="reading-progress-fill" style={{ width: `${Math.min(100, state.coveragePercent)}%` }} />
         </div>
 
-        <div className="reading-preset-group" role="group" aria-label="同步模拟阅读进度">
+        <div className="reading-preset-group" role="group" aria-label="同步阅读进度">
           {PRESET_OPTIONS.map(({ preset, label }) => {
             const isActive = activePreset === preset;
             const isBusy = busyAction === `progress:${preset}`;
@@ -336,7 +336,7 @@ export function ReadingChallengePanel({
             <dd>{state.earnedDsdemo} DSDEMO</dd>
           </div>
           <div>
-            <dt>演示读者钱包（按会话派生）</dt>
+            <dt>读者钱包（按会话派生）</dt>
             <dd><code title={state.readerWallet}>{shortenHex(state.readerWallet, 10, 8)}</code></dd>
           </div>
           <div>

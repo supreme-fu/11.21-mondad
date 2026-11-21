@@ -22,7 +22,7 @@ function AccountGate() {
     setPending(account);
     setError('');
     try { await selectAccount(account); }
-    catch (reason) { setError(reason instanceof Error ? reason.message : '暂时无法进入演示账户。'); }
+    catch (reason) { setError(reason instanceof Error ? reason.message : '暂时无法进入当前账户。'); }
     finally { setPending(null); }
   }
   return (
@@ -31,7 +31,7 @@ function AccountGate() {
       <div className="account-gate-copy">
         <span className="soft-icon"><Leaf /></span>
         <h1>选择身份开始</h1>
-        <p>选择演示账号立即进入。</p>
+        <p>选择账号立即进入。</p>
         {error && <p className="form-error" role="alert">{error}</p>}
         <div className="account-choices">
           <Button onClick={() => void choose('a')} disabled={pending !== null}>
@@ -71,14 +71,14 @@ export function Layout({ children }: { children: ReactNode }) {
           </Link>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="account-trigger" aria-label="切换演示账户">
+              <button className="account-trigger" aria-label="切换账户">
                 <span className="account-avatar">{user.displayName.slice(0, 1)}</span>
                 <span className="account-name">{user.displayName}</span>
                 <ChevronDown aria-hidden="true" />
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="account-menu">
-              <DropdownMenuLabel>切换演示账户</DropdownMenuLabel>
+              <DropdownMenuLabel>切换账户</DropdownMenuLabel>
               <DropdownMenuSeparator />
               {(['a', 'b'] as const).map((account) => (
                 <DropdownMenuItem key={account} onSelect={() => void selectAccount(account)}>

@@ -94,7 +94,7 @@ const BADGE_META: Record<string, BadgeMeta> = {
     edition: '05 / 10',
     englishTitle: 'SELF REPORT',
     craftNote: '六角章 · 拉丝钛金属与烤漆铭牌',
-    poeticNote: '平顶六角钛框稳固嵌合双环印记与深色铭牌，只刻下随机演示编号，不携带你的姓名、故事或任何私人痕迹。',
+    poeticNote: '平顶六角钛框稳固嵌合双环印记与深色铭牌，只刻下随机编号，不携带你的姓名、故事或任何私人痕迹。',
     glowRgb: '110, 134, 148',
     accentHex: '#94a7b2',
   },

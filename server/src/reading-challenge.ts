@@ -404,7 +404,7 @@ export class ReadingChallengeService {
   private submitReward(userId: string, row: ReadingChallengeRow, achievement: Parameters<ReadingTestnet['claim']>[3]) {
     if (!this.testnet) throw new Error('共读测试网合约未配置');
     if (row.reader_wallet.toLowerCase() !== this.testnet.reader(userId).address.toLowerCase()) {
-      throw new Error('该记录来自旧的演示环境，请重新发起共读活动');
+      throw new Error('该记录来自旧的环境，请重新发起共读活动');
     }
     const campaignId = BigInt(row.campaign_id);
     const enrollment = {

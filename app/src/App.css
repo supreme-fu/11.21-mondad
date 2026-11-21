@@ -1718,7 +1718,7 @@
   margin: 0;
 }
 
-/* 「我的记录」页面：专属余额与模拟装填充值框 */
+/* 「我的记录」页面：专属余额与胶卷装填充值框 */
 .points-wallet-card {
   @apply mt-5 rounded-2xl border p-5 sm:p-6 shadow-sm;
   background: linear-gradient(135deg, oklch(var(--card)), oklch(var(--secondary) / .55));
@@ -1756,7 +1756,7 @@
   @apply rounded-full px-5 h-11 text-sm font-medium shadow-sm;
 }
 
-/* ===== 精简功能版头部与移动端实机演示适配 ===== */
+/* ===== 精简功能版头部与移动端适配 ===== */
 .header-right-tools {
   @apply flex items-center gap-2;
 }

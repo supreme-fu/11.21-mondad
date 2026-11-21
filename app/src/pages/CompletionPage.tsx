@@ -285,7 +285,7 @@ export default function CompletionPage() {
     }
   }
 
-  if (!record) return <div className="empty-state page-container"><h1>没有找到这条约定</h1><p>它可能属于另一个演示账户，或已经离开。</p><Link className="primary-link" to="/">返回主题列表</Link></div>;
+  if (!record) return <div className="empty-state page-container"><h1>没有找到这条约定</h1><p>它可能属于另一个账户，或已经离开。</p><Link className="primary-link" to="/">返回主题列表</Link></div>;
 
   const declareThemeBadgeId = badgeIdForActivity(record.activity.id);
   const declareThemeBadge = declareThemeBadgeId ? badges.find((item) => item.id === declareThemeBadgeId) : undefined;

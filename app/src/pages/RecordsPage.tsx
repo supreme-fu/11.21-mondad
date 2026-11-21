@@ -34,7 +34,7 @@ function DeleteAccountDialog() {
   }
   return (
     <Dialog open={open} onOpenChange={(value) => { setOpen(value); if (!value) { setConfirmation(''); setError(''); } }}>
-      <DialogTrigger asChild><Button variant="outline"><Trash2 />注销当前演示账户</Button></DialogTrigger>
+      <DialogTrigger asChild><Button variant="outline"><Trash2 />注销当前账户</Button></DialogTrigger>
       <DialogContent className="delete-dialog">
         <DialogHeader><DialogTitle>确认注销当前账户？</DialogTitle><DialogDescription>操作会立即删除当前账户的链下记录与会话，无法恢复。</DialogDescription></DialogHeader>
         <div className="delete-boundaries">
@@ -318,7 +318,7 @@ export default function RecordsPage() {
               onClick={() => void handleRefillFilmRoll()}
             >
               {refilling ? <LoaderCircle className="animate-spin" aria-hidden="true" /> : <Sparkles aria-hidden="true" />}
-              模拟装填 1 卷生活胶卷（$6 / +60 次无感刻痕）
+              装填 1 卷生活胶卷（$6 / +60 次无感刻痕）
             </Button>
           </div>
         </div>
@@ -471,7 +471,7 @@ export default function RecordsPage() {
       <section className="account-danger" id="account">
         <div>
           <p className="eyebrow">账户管理</p>
-          <h2>注销当前演示账户</h2>
+          <h2>注销当前账户</h2>
         </div>
         <DeleteAccountDialog />
       </section>
