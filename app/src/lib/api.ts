@@ -42,6 +42,19 @@ export const api = {
   complete: (id: string, idempotencyKey: string) => request<{ id: string }>(`/api/participations/${id}/complete`, {
     method: 'POST', body: JSON.stringify({ idempotencyKey }),
   }),
+  onchainComplete: (id: string, idempotencyKey: string) => request<{
+    completionId: string;
+    activityId: string;
+    receipt: Receipt;
+    deductedPoints: number;
+    remainingPoints: number;
+    totalCompleted: number;
+    milestoneBadgeId: string | null;
+    holderAddress: string;
+    blockNumber: number;
+  }>(`/api/participations/${id}/onchain-complete`, {
+    method: 'POST', body: JSON.stringify({ idempotencyKey }),
+  }),
   saveReflection: (id: string, text: string, visibility: 'private' | 'shared') => request<{ text: string | null }>(`/api/completions/${id}/reflection`, {
     method: 'PUT', body: JSON.stringify({ text, visibility }),
   }),

@@ -291,6 +291,88 @@ export function createApp(options: AppOptions) {
     } catch (error) { next(error); }
   });
 
+  app.post('/api/participations/:id/onchain-complete', requireAuth, (request, response, next) => {
+    try {
+      const { idempotencyKey } = z.object({ idempotencyKey: z.string().min(8).max(100) }).parse(request.body);
+      const userId = userOf(request).id;
+      const participationId = String(request.params.id);
+      const COST_POINTS = 1;
+
+      const participation = store.database.prepare(
+        'SELECT id, activity_id AS activityId FROM participations WHERE id = ? AND user_id = ?',
+      ).get(participationId, userId) as { id: string; activityId: string } | undefined;
+      if (!participation) throw httpError(404, '没有找到你的参与记录。');
+
+      const userRow = store.database.prepare('SELECT points FROM users WHERE id = ?').get(userId) as { points: number } | undefined;
+      const currentPoints = typeof userRow?.points === 'number' ? userRow.points : 100;
+
+      let existingComp = store.database.prepare(
+        'SELECT id FROM completions WHERE participation_id = ?',
+      ).get(participationId) as { id: string } | undefined;
+      const existingReceiptBefore = existingComp ? receipts.get(existingComp.id) : undefined;
+
+      if (!existingReceiptBefore && currentPoints < COST_POINTS) {
+        throw httpError(400, `当前剩余点数不足（需要 ${COST_POINTS} 点，当前仅剩 ${currentPoints} 点）。`);
+      }
+
+      if (!existingComp) {
+        const compId = randomUUID();
+        store.database.exec('BEGIN IMMEDIATE');
+        try {
+          store.database.prepare(`
+            INSERT INTO completions (id, participation_id, declared_at, verification_type, idempotency_key)
+            VALUES (?, ?, ?, 'self_report', ?)
+          `).run(compId, participationId, timestamp(), idempotencyKey);
+          store.database.prepare(
+            "INSERT OR IGNORE INTO reflections (completion_id, text, visibility, shared_at, deleted_at) VALUES (?, NULL, 'private', NULL, NULL)",
+          ).run(compId);
+          store.database.prepare("UPDATE participations SET status = 'completed' WHERE id = ?").run(participationId);
+          store.database.exec('COMMIT');
+          existingComp = { id: compId };
+        } catch (err) {
+          store.database.exec('ROLLBACK');
+          throw err;
+        }
+      }
+
+      let deducted = 0;
+      let receipt = receipts.get(existingComp.id);
+      if (!receipt) {
+        receipt = receipts.request(existingComp.id);
+        store.database.prepare('UPDATE users SET points = MAX(0, points - ?) WHERE id = ?').run(COST_POINTS, userId);
+        deducted = COST_POINTS;
+      }
+
+      const updatedUser = store.database.prepare('SELECT points FROM users WHERE id = ?').get(userId) as { points: number };
+      const totalCompletedRow = store.database.prepare(`
+        SELECT COUNT(*) AS count FROM completions c
+        JOIN participations p ON p.id = c.participation_id
+        WHERE p.user_id = ?
+      `).get(userId) as { count: number };
+      const totalCompleted = totalCompletedRow.count;
+      const milestoneBadgeId = totalCompleted >= 100
+        ? 'gold100'
+        : totalCompleted >= 50
+          ? 'silver50'
+          : totalCompleted >= 10
+            ? 'bronze10'
+            : null;
+      const { readerWallet } = readingChallenge.deriveIdentity(userId);
+
+      response.status(201).json({
+        completionId: existingComp.id,
+        activityId: participation.activityId,
+        receipt,
+        deductedPoints: deducted,
+        remainingPoints: updatedUser.points,
+        totalCompleted,
+        milestoneBadgeId,
+        holderAddress: readerWallet,
+        blockNumber: 81220667,
+      });
+    } catch (error) { next(error); }
+  });
+
   function ownedCompletion(request: Request, completionId: string) {
     const completion = store.database.prepare(`
       SELECT c.id, p.activity_id AS activityId FROM completions c

@@ -3,10 +3,22 @@ import { ArrowLeft, ArrowRight, Boxes, Check, ExternalLink, Eye, EyeOff, FileKey
 import { Link, useParams } from 'react-router';
 import { toast } from 'sonner';
 import { ActivityGlyph } from '@/components/ActivityGlyph';
-import { BadgeViewerDialog } from '@/components/BadgeViewerDialog';
+import {
+  BadgeViewerDialog,
+  type BadgeOnchainInscription,
+  type CeremonyBadgeItem,
+} from '@/components/BadgeViewerDialog';
 import { HoloBadgeCard } from '@/components/HoloBadgeCard';
 import { LittlePrinceReader } from '@/components/LittlePrinceReader';
 import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { useApp } from '@/context/AppContext';
 import { api } from '@/lib/api';
 import { badgeIdForActivity, loadBadges, type Badge } from '@/lib/badges';
@@ -205,11 +217,15 @@ function EchoPanel({ activityId }: { activityId: string }) {
 
 export default function CompletionPage() {
   const { participationId = '' } = useParams();
-  const { records, refreshRecords } = useApp();
+  const { user, records, refreshRecords, refreshSession } = useApp();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState('');
   const [badges, setBadges] = useState<Badge[]>([]);
   const [activeBadge, setActiveBadge] = useState<Badge | null>(null);
+  const [ceremonyBadges, setCeremonyBadges] = useState<CeremonyBadgeItem[] | null>(null);
+  const [ceremonyInscription, setCeremonyInscription] = useState<BadgeOnchainInscription | null>(null);
+  const [pointsSummary, setPointsSummary] = useState<string | null>(null);
+  const [showOnchainConfirm, setShowOnchainConfirm] = useState(false);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
   const idempotencyKey = useRef(crypto.randomUUID());
   const record: RecordItem | undefined = records.find((item) => item.participationId === participationId);
@@ -241,24 +257,192 @@ export default function CompletionPage() {
     setActiveBadge(badge);
   }, []);
 
-  async function complete() {
+  async function completeLocalOnly() {
     setPending(true); setError('');
     try {
       await api.complete(participationId, idempotencyKey.current);
+      setShowOnchainConfirm(false);
       await syncRecord();
-      toast.success('这件事已经算数。不需要任何额外证明。');
+      toast.success('已完成（仅本地记录，未扣除点数）。');
     } catch (reason) { setError(reason instanceof Error ? reason.message : '暂时无法保存完成声明。'); }
     finally { setPending(false); }
   }
 
+  async function completeAndMintOnchain() {
+    setPending(true); setError('');
+    try {
+      const result = await api.onchainComplete(participationId, idempotencyKey.current);
+      // 轮询等待模拟或链上凭证进入 confirmed 状态
+      for (let attempt = 0; attempt < 8; attempt += 1) {
+        await new Promise((resolve) => setTimeout(resolve, 250));
+        const current = await api.receipt(result.completionId);
+        if (current.status === 'confirmed' || current.status === 'failed') break;
+      }
+      setShowOnchainConfirm(false);
+      await Promise.all([syncRecord(), refreshSession()]);
+
+      const loaded = badges.length > 0 ? badges : await loadBadges().catch(() => [] as Badge[]);
+      if (badges.length === 0) setBadges(loaded);
+      const tBadgeId = badgeIdForActivity(result.activityId);
+      const tBadge = tBadgeId ? loaded.find((b) => b.id === tBadgeId) ?? null : null;
+      const mBadge = result.milestoneBadgeId
+        ? loaded.find((b) => b.id === result.milestoneBadgeId) ?? null
+        : null;
+
+      const receiptHash = result.receipt.txHash?.startsWith('0x')
+        ? result.receipt.txHash
+        : (result.receipt.receiptId || '0xe6865aab47b0cb2f0a3bd0a05fd2209c65e27b447c19222e4d479abfb0ba0b4d');
+
+      const inscription: BadgeOnchainInscription = {
+        tokenId: result.totalCompleted,
+        txHash: receiptHash,
+        blockNumber: result.blockNumber || 81220667,
+        holderAddress: result.holderAddress,
+        proofDigest: result.receipt.receiptId,
+        rewardSummary: `累计第 ${result.totalCompleted} 次上链`,
+        justMinted: true,
+      };
+
+      const ceremonyList: CeremonyBadgeItem[] = [];
+      if (tBadge) {
+        ceremonyList.push({
+          badge: tBadge,
+          roleLabel: '勋章 1 · 对应主题勋章',
+          subtitle: `链上完成凭证已镌刻`,
+          inscription,
+        });
+      }
+      if (mBadge) {
+        ceremonyList.push({
+          badge: mBadge,
+          roleLabel: '勋章 2 · 里程碑勋章',
+          subtitle: `累计达成 ${result.totalCompleted} 次行动里程碑`,
+          inscription: {
+            ...inscription,
+            rewardSummary: `达成 ${result.totalCompleted} 次里程碑`,
+          },
+        });
+      }
+
+      setPointsSummary(
+        result.deductedPoints > 0
+          ? `已扣除 ${result.deductedPoints} 点数 · 剩余 ${result.remainingPoints} 点`
+          : `剩余 ${result.remainingPoints} 点`,
+      );
+      setCeremonyInscription(inscription);
+      setCeremonyBadges(ceremonyList.length > 0 ? ceremonyList : null);
+      if (tBadge) setActiveBadge(tBadge);
+
+      toast.success(
+        mBadge
+          ? `上链成功！已扣除 ${result.deductedPoints} 点数（剩余 ${result.remainingPoints} 点），同步点亮「${tBadge?.name ?? '主题勋章'}」与「${mBadge.name}」！`
+          : `上链成功！已扣除 ${result.deductedPoints} 点数（剩余 ${result.remainingPoints} 点），已铸造「${tBadge?.name ?? '纪念器物'}」！`,
+      );
+    } catch (reason) {
+      const msg = reason instanceof Error ? reason.message : '上链失败，请稍后重试。';
+      setError(msg);
+      toast.error(msg);
+    } finally {
+      setPending(false);
+    }
+  }
+
   if (!record) return <div className="empty-state page-container"><h1>没有找到这条约定</h1><p>它可能属于另一个演示账户，或已经离开。</p><Link className="primary-link" to="/">返回主题列表</Link></div>;
+
+  const declareThemeBadgeId = badgeIdForActivity(record.activity.id);
+  const declareThemeBadge = declareThemeBadgeId ? badges.find((item) => item.id === declareThemeBadgeId) : undefined;
+  const totalCompletedSoFar = records.filter((item) => item.completion !== null).length;
+  const nextTotalCompleted = totalCompletedSoFar + (record.completion ? 0 : 1);
+  const willUnlockMilestone = nextTotalCompleted >= 10;
 
   if (!record.completion) return (
     <div className="declare-page page-container">
       <Link to={`/activities/${record.activity.id}`} className="back-link"><ArrowLeft />返回主题详情</Link>
-      <div className="declare-layout"><div><ActivityGlyph activityId={record.activity.id} size="large" /><span className="eyebrow">不需要照片，不需要证明</span><h1>先承认：<br />你已经去做了。</h1><p>{record.activity.completionHint}</p></div>
-        <section className="declare-card"><span className="soft-icon"><Check /></span><h2>我完成了「{record.activity.title}」</h2><p>点击后只为你记下这次行动，不会自动公开感受，也不强制生成链上凭证。</p>{error && <p className="form-error" role="alert">{error}</p>}<Button size="lg" onClick={() => void complete()} disabled={pending}>{pending ? <LoaderCircle className="animate-spin" /> : <>确认我已完成<ArrowRight /></>}</Button><small>即使之后登记失败，这次完成也依然有效。</small></section>
+      <div className="declare-layout">
+        <div>
+          <ActivityGlyph activityId={record.activity.id} size="large" />
+          <span className="eyebrow">不需要照片，不需要证明</span>
+          <h1>先承认：<br />你已经去做了。</h1>
+          <p>{record.activity.completionHint}</p>
+        </div>
+        <section className="declare-card">
+          <span className="soft-icon"><Check /></span>
+          <h2>我完成了「{record.activity.title}」</h2>
+          <p>点击确认后可选择是否将本次记录上链并铸造 3D 纪念勋章（当前可用点数：{user?.points ?? 100} 点）。</p>
+          {error && <p className="form-error" role="alert">{error}</p>}
+          <Button size="lg" onClick={() => setShowOnchainConfirm(true)} disabled={pending} data-testid="declare-complete-btn">
+            {pending ? <LoaderCircle className="animate-spin" /> : <>确认我已完成<ArrowRight /></>}
+          </Button>
+          <small>即使选择暂不上链，这次完成也依然有效。</small>
+        </section>
       </div>
+
+      <Dialog open={showOnchainConfirm} onOpenChange={setShowOnchainConfirm}>
+        <DialogContent className="onchain-confirm-dialog" data-testid="onchain-confirm-dialog">
+          <DialogHeader>
+            <DialogTitle>已完成「{record.activity.title}」，是否上链铸造勋章？</DialogTitle>
+            <DialogDescription>
+              上链将写入链上凭证并点亮对应 3D 纪念器物，本次操作会扣除 <strong>1 点数</strong>。
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="onchain-points-box" data-testid="onchain-points-preview">
+            <div>
+              <span>当前剩余点数</span>
+              <strong>{user?.points ?? 100} 点</strong>
+            </div>
+            <div>
+              <span>本次上链消耗</span>
+              <strong className="is-cost">-1 点</strong>
+            </div>
+            <div>
+              <span>上链后剩余</span>
+              <strong>{Math.max(0, (user?.points ?? 100) - 1)} 点</strong>
+            </div>
+          </div>
+
+          <div className="onchain-badges-preview">
+            <p className="onchain-badges-preview-title">
+              确认上链后，将点亮并铸造{willUnlockMilestone ? '以下两枚 3D 勋章' : '对应主题 3D 勋章'}：
+            </p>
+            <div className="onchain-badges-preview-grid">
+              <div className="onchain-badge-preview-item">
+                <span className="lp-pill is-reward">对应主题勋章</span>
+                <strong>{declareThemeBadge?.name ?? record.activity.title}</strong>
+                <small>链上完成凭证 + 3D 纪念器物</small>
+              </div>
+              {willUnlockMilestone && (
+                <div className="onchain-badge-preview-item">
+                  <span className="lp-pill is-ok">里程碑勋章</span>
+                  <strong>10 次 · 铜色起步</strong>
+                  <small>累计达成 {nextTotalCompleted} 次行动里程碑</small>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <DialogFooter className="gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              disabled={pending}
+              onClick={() => void completeLocalOnly()}
+              data-testid="skip-onchain-btn"
+            >
+              暂不上链（仅本地完成）
+            </Button>
+            <Button
+              type="button"
+              disabled={pending || (user?.points ?? 100) < 1}
+              onClick={() => void completeAndMintOnchain()}
+              data-testid="confirm-onchain-mint-btn"
+            >
+              {pending ? <LoaderCircle className="animate-spin" size={15} /> : <Sparkles size={15} />}
+              确认上链（扣除 1 点数）
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 
@@ -351,7 +535,15 @@ export default function CompletionPage() {
 
       <BadgeViewerDialog
         badge={activeBadge}
-        onClose={() => setActiveBadge(null)}
+        ceremonyBadges={ceremonyBadges}
+        onchainInscription={ceremonyInscription}
+        pointsSummary={pointsSummary}
+        onClose={() => {
+          setActiveBadge(null);
+          setCeremonyBadges(null);
+          setCeremonyInscription(null);
+          setPointsSummary(null);
+        }}
         restoreFocusTo={() => triggerRef.current?.focus()}
       />
     </div>
