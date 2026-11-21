@@ -18,7 +18,8 @@ for (const candidate of [
 
 const databasePath = process.env.DATABASE_PATH || fileURLToPath(new URL('../data/do-something.db', import.meta.url));
 const receiptMode = (process.env.RECEIPT_MODE || 'simulation') as ReceiptMode;
-const { app, store, receipts } = createApp({ databasePath, receiptMode });
+const seedRichProfile = process.env.SEED_DEMO_PROFILE !== 'false';
+const { app, store, receipts } = createApp({ databasePath, receiptMode, seedRichProfile });
 const frontendPath = fileURLToPath(new URL('../../app/dist', import.meta.url));
 
 app.use(express.static(frontendPath));

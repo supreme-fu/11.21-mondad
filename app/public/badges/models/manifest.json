@@ -1,7 +1,7 @@
 [
   {
     "id": "reading",
-    "name": "阅读 · 一页之间",
+    "name": "一页之间",
     "material": "鼠尾草珐琅 / 黄铜书签",
     "series": "task",
     "file": "models/reading.glb",

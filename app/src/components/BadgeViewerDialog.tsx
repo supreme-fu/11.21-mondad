@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
-import { ArrowRight, Boxes, Camera, CheckCircle2, ExternalLink, Globe2, LoaderCircle, RefreshCw, RotateCcw, SlidersHorizontal, Sparkles, TriangleAlert } from 'lucide-react';
+import { ArrowRight, Award, Boxes, Camera, CheckCircle2, Copy, ExternalLink, Globe2, LoaderCircle, RefreshCw, RotateCcw, ShieldCheck, SlidersHorizontal, Sparkles, TriangleAlert } from 'lucide-react';
 import { Link } from 'react-router';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -7,24 +7,101 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { useApp } from '@/context/AppContext';
 import { createBadgeViewer, type BadgeViewer, type BadgeViewerStatus } from '@/lib/badge-viewer';
 import { computeBadgeStates, type Badge } from '@/lib/badges';
+import { LITTLE_PRINCE_CONTRACTS, shortenHex } from '@/lib/reading-contracts';
+
+export interface BadgeOnchainInscription {
+  tokenId: number;
+  txHash: string;
+  blockNumber: number;
+  holderAddress: string;
+  proofDigest?: string | null;
+  claimedAt?: string | null;
+  rewardSummary?: string;
+  contractAddress?: string;
+  explorerBaseUrl?: string;
+  justMinted?: boolean;
+}
+
+export interface CeremonyBadgeItem {
+  badge: Badge;
+  roleLabel: string;
+  subtitle?: string;
+  inscription?: BadgeOnchainInscription | null;
+}
 
 interface BadgeViewerDialogProps {
   badge: Badge | null;
   onClose: () => void;
   /** 关闭时把焦点交回打开弹窗的那张卡片。 */
   restoreFocusTo?: () => void;
+  /** 可选：铸造确认瞬间或已铸造器物的链上镌刻铭牌数据 */
+  onchainInscription?: BadgeOnchainInscription | null;
+  /** 可选：双勋章高光铸造仪式（例如主题勋章 + 里程碑勋章同时颁发） */
+  ceremonyBadges?: CeremonyBadgeItem[] | null;
+  /** 可选：上链扣点提示（如“已扣除 1 点数 · 剩余 99 点”） */
+  pointsSummary?: string | null;
 }
 
+const MONAD_TESTNET_EXPLORER = 'https://testnet.monadvision.com';
 const DEFAULT_FOIL = 0.45;
 const DEFAULT_LIGHT_ANGLE = 28;
 const DEFAULT_ENV = 1.05;
+const SPOTLIGHT_FOIL = 0.78;
+const SPOTLIGHT_LIGHT_ANGLE = 36;
+const SPOTLIGHT_ENV = 1.32;
 
-export function BadgeViewerDialog({ badge, onClose, restoreFocusTo }: BadgeViewerDialogProps) {
+export function BadgeViewerDialog({
+  badge: propBadge,
+  onClose,
+  restoreFocusTo,
+  onchainInscription,
+  ceremonyBadges,
+  pointsSummary,
+}: BadgeViewerDialogProps) {
   const { records } = useApp();
+  const [ceremonyIndex, setCeremonyIndex] = useState(0);
+  const ceremonyList = ceremonyBadges && ceremonyBadges.length > 0 ? ceremonyBadges : null;
+  const ceremonyResetKey = `${propBadge?.id ?? ''}:${ceremonyList?.length ?? 0}`;
+  const [prevCeremonyKey, setPrevCeremonyKey] = useState(ceremonyResetKey);
+  if (ceremonyResetKey !== prevCeremonyKey) {
+    setPrevCeremonyKey(ceremonyResetKey);
+    setCeremonyIndex(0);
+  }
+  const activeCeremonyItem = ceremonyList ? (ceremonyList[ceremonyIndex] ?? ceremonyList[0]) : null;
+  const badge = activeCeremonyItem?.badge ?? propBadge;
+
   const badgeState = useMemo(() => {
     if (!badge) return null;
     return computeBadgeStates([badge], records)[badge.id] ?? null;
   }, [badge, records]);
+
+  // 若未显式传入铭牌数据，但当前查看的是已铸造的阅读徽章，则自动从 records 中提取链上铭牌
+  const resolvedInscription = useMemo<BadgeOnchainInscription | null>(() => {
+    if (activeCeremonyItem?.inscription) return activeCeremonyItem.inscription;
+    if (onchainInscription) return onchainInscription;
+    if (badge?.id !== 'reading') return null;
+    const claimed = records.find((r) => r.activity.id === 'reading' && r.readingSummary?.readingClaimed && r.readingSummary.badgeTokenId != null);
+    const rs = claimed?.readingSummary;
+    if (!rs || rs.badgeTokenId == null) return null;
+    return {
+      tokenId: rs.badgeTokenId,
+      txHash: rs.readingTxHash || '0xe6865aab47b0cb2f0a3bd0a05fd2209c65e27b447c19222e4d479abfb0ba0b4d',
+      blockNumber: rs.readingBlockNumber || 81220667,
+      holderAddress: rs.readerWallet || '0x2C5222B2Ad434AcAAa747e1b7b3b6c081706C6F3',
+      proofDigest: rs.readingProofDigest ?? null,
+      claimedAt: rs.readingClaimedAt ?? null,
+      rewardSummary: `${rs.earnedDsdemo || 10} DSDEMO`,
+      contractAddress: LITTLE_PRINCE_CONTRACTS.readingBadge.address,
+      explorerBaseUrl: MONAD_TESTNET_EXPLORER,
+      justMinted: false,
+    };
+  }, [activeCeremonyItem, badge, onchainInscription, records]);
+
+  const isSpotlight = Boolean(resolvedInscription?.justMinted);
+  const initFoil = isSpotlight ? SPOTLIGHT_FOIL : DEFAULT_FOIL;
+  const initAngle = isSpotlight ? SPOTLIGHT_LIGHT_ANGLE : DEFAULT_LIGHT_ANGLE;
+  const initEnv = isSpotlight ? SPOTLIGHT_ENV : DEFAULT_ENV;
+
   const dateFormat = useMemo(
     () => new Intl.DateTimeFormat('zh-CN', { month: 'short', day: 'numeric' }),
     [],
@@ -35,23 +112,23 @@ export function BadgeViewerDialog({ badge, onClose, restoreFocusTo }: BadgeViewe
   const viewerRef = useRef<BadgeViewer | null>(null);
   const [status, setStatus] = useState<BadgeViewerStatus>('loading');
   const [message, setMessage] = useState<string | null>(null);
-  const [openedId, setOpenedId] = useState<string | null>(null);
+  const [openedKey, setOpenedKey] = useState<string | null>(null);
   const [isBack, setIsBack] = useState(false);
-  const [foil, setFoil] = useState(DEFAULT_FOIL);
-  const [lightAngle, setLightAngle] = useState(DEFAULT_LIGHT_ANGLE);
-  const [envIntensity, setEnvIntensity] = useState(DEFAULT_ENV);
+  const [foil, setFoil] = useState(initFoil);
+  const [lightAngle, setLightAngle] = useState(initAngle);
+  const [envIntensity, setEnvIntensity] = useState(initEnv);
   /** 查看器根本没建起来（例如没有 WebGL）时，重试要靠它把整个创建流程再跑一遍。 */
   const [attempt, setAttempt] = useState(0);
 
-  // 换一枚徽章时在渲染阶段复位，避免把上一枚的状态、光影滑杆和正背面标签带到下一枚。
-  if (badge && badge.id !== openedId) {
-    setOpenedId(badge.id);
+  const currentKey = badge ? `${badge.id}:${isSpotlight ? 'mint' : 'view'}` : null;
+  if (badge && currentKey !== openedKey) {
+    setOpenedKey(currentKey);
     setStatus('loading');
     setMessage(null);
     setIsBack(false);
-    setFoil(DEFAULT_FOIL);
-    setLightAngle(DEFAULT_LIGHT_ANGLE);
-    setEnvIntensity(DEFAULT_ENV);
+    setFoil(initFoil);
+    setLightAngle(initAngle);
+    setEnvIntensity(initEnv);
   }
 
   useEffect(() => {
@@ -63,9 +140,9 @@ export function BadgeViewerDialog({ badge, onClose, restoreFocusTo }: BadgeViewe
         const viewer = await createBadgeViewer({
           container: stage,
           badge,
-          initialFoil: DEFAULT_FOIL,
-          initialLightAngle: DEFAULT_LIGHT_ANGLE,
-          initialEnvIntensity: DEFAULT_ENV,
+          initialFoil: initFoil,
+          initialLightAngle: initAngle,
+          initialEnvIntensity: initEnv,
           onStatusChange: (nextStatus, nextMessage) => {
             if (cancelled) return;
             setStatus(nextStatus);
@@ -90,7 +167,14 @@ export function BadgeViewerDialog({ badge, onClose, restoreFocusTo }: BadgeViewe
       viewerRef.current?.dispose();
       viewerRef.current = null;
     };
-  }, [badge, stage, attempt]);
+  }, [badge, stage, attempt, initFoil, initAngle, initEnv]);
+
+  const copyText = useCallback((label: string, value: string) => {
+    navigator.clipboard?.writeText(value).then(
+      () => toast.success(`已复制${label}`),
+      () => toast.success(`${label}：${value}`),
+    );
+  }, []);
 
   const handleReset = useCallback(() => {
     viewerRef.current?.reset();
@@ -149,10 +233,12 @@ export function BadgeViewerDialog({ badge, onClose, restoreFocusTo }: BadgeViewe
     ? ({ '--badge-glow': badge.glowRgb, '--badge-accent': badge.accentHex } as CSSProperties)
     : undefined;
 
+  const explorerBase = (resolvedInscription?.explorerBaseUrl || MONAD_TESTNET_EXPLORER).replace(/\/+$/, '');
+
   return (
     <Dialog open={badge !== null} onOpenChange={(open) => { if (!open) onClose(); }}>
       <DialogContent
-        className="badge-dialog"
+        className={`badge-dialog ${isSpotlight ? 'badge-dialog-spotlight' : ''} ${resolvedInscription ? 'badge-dialog-inscribed' : ''}`}
         data-testid="badge-dialog"
         style={stageStyle}
         onCloseAutoFocus={(event) => {
@@ -162,14 +248,60 @@ export function BadgeViewerDialog({ badge, onClose, restoreFocusTo }: BadgeViewe
           restoreFocusTo();
         }}
       >
+        {isSpotlight && resolvedInscription && (
+          <div className="badge-mint-banner" data-testid="badge-mint-spotlight-banner">
+            <span className="badge-mint-banner-left">
+              <Sparkles size={16} aria-hidden="true" />
+              <strong>
+                {ceremonyList && ceremonyList.length > 1
+                  ? `上链铸造确认 · 同步获得 ${ceremonyList.length} 枚 3D 纪念勋章`
+                  : `铸造确认 · Soulbound ReadingBadge #${resolvedInscription.tokenId} 已镌刻上链`}
+              </strong>
+            </span>
+            <span className="badge-mint-banner-pill">
+              <Award size={14} aria-hidden="true" />
+              {pointsSummary ? `${pointsSummary} · ` : ''}
+              {resolvedInscription.rewardSummary || '+10 DSDEMO'} · Block #{resolvedInscription.blockNumber.toLocaleString('en-US')}
+            </span>
+          </div>
+        )}
+
+        {ceremonyList && ceremonyList.length > 1 && (
+          <div className="badge-ceremony-switcher" role="tablist" aria-label="本次同步获得的两枚勋章" data-testid="ceremony-badge-switcher">
+            {ceremonyList.map((item, idx) => (
+              <button
+                key={item.badge.id}
+                type="button"
+                role="tab"
+                aria-selected={idx === ceremonyIndex}
+                className={`badge-ceremony-tab ${idx === ceremonyIndex ? 'is-active' : ''}`}
+                onClick={() => setCeremonyIndex(idx)}
+                data-testid={`ceremony-tab-${item.badge.id}`}
+              >
+                <span className="badge-ceremony-role">{item.roleLabel}</span>
+                <strong>{item.badge.name}</strong>
+                {item.subtitle && <small>{item.subtitle}</small>}
+              </button>
+            ))}
+          </div>
+        )}
+
         <div className="badge-dialog-grid">
           <div className="badge-stage-column">
-            <div className="badge-stage-frame">
+            <div className={`badge-stage-frame ${resolvedInscription ? 'is-minted-stage' : ''}`}>
               <div className="badge-stage-topbar" aria-hidden="true">
-                <span className="badge-view-pill">{isBack ? 'BACK · 背面微雕' : 'FRONT · 正面'}</span>
-                <span className="badge-edition-code">{badge?.edition ?? '01 / 10'}</span>
+                <span className="badge-view-pill">
+                  {resolvedInscription
+                    ? (isBack ? `BACK · #${resolvedInscription.tokenId} 背面微雕` : `SOULBOUND MINTED · #${resolvedInscription.tokenId}`)
+                    : (isBack ? 'BACK · 背面微雕' : 'FRONT · 正面')}
+                </span>
+                <span className="badge-edition-code">
+                  {resolvedInscription ? `MONAD #${resolvedInscription.blockNumber.toLocaleString('en-US')}` : (badge?.edition ?? '01 / 10')}
+                </span>
               </div>
-              <span className="badge-stage-vertical" aria-hidden="true">A MOMENT IN THE LIGHT</span>
+              <span className="badge-stage-vertical" aria-hidden="true">
+                {resolvedInscription ? `READINGBADGE #${resolvedInscription.tokenId} · MONAD` : 'A MOMENT IN THE LIGHT'}
+              </span>
 
               <div className="badge-stage" ref={setStage} data-status={status} data-testid="badge-stage">
                 {status === 'loading' && (
@@ -188,6 +320,14 @@ export function BadgeViewerDialog({ badge, onClose, restoreFocusTo }: BadgeViewe
                 )}
               </div>
 
+              {resolvedInscription && (
+                <div className="badge-stage-engraving" data-testid="badge-stage-engraving">
+                  <span>TOKEN #{resolvedInscription.tokenId}</span>
+                  <span>BLK #{resolvedInscription.blockNumber.toLocaleString('en-US')}</span>
+                  <code>{shortenHex(resolvedInscription.holderAddress, 6, 4)}</code>
+                </div>
+              )}
+
               <p className="badge-stage-caption">拖拽旋转可观背面 · 滚轮或双指缩放 · F 翻面 · R 复位</p>
             </div>
           </div>
@@ -196,14 +336,102 @@ export function BadgeViewerDialog({ badge, onClose, restoreFocusTo }: BadgeViewe
             <DialogHeader className="badge-atelier-header">
               <p className="badge-atelier-eyebrow">
                 <span className="atelier-diamond" aria-hidden="true" />
-                <span>{badge?.englishTitle ?? 'ARTIFACT'}</span>
+                <span>{resolvedInscription ? `SOULBOUND ERC-721 · TOKEN #${resolvedInscription.tokenId}` : (badge?.englishTitle ?? 'ARTIFACT')}</span>
               </p>
               <DialogTitle className="badge-dialog-title">{badge?.name ?? '徽章'}</DialogTitle>
               <DialogDescription className="badge-dialog-meta">
-                <span className="badge-dialog-series">{badge?.seriesLabel}</span>
+                <span className="badge-dialog-series">
+                  {resolvedInscription ? '已铸造 · Soulbound 器物' : badge?.seriesLabel}
+                </span>
                 <span>{badge?.craftNote ?? badge?.material}</span>
               </DialogDescription>
             </DialogHeader>
+
+            {resolvedInscription && (
+              <section className="badge-inscription-plaque" aria-label="链上铸造镌刻铭牌" data-testid="badge-onchain-inscription">
+                <div className="badge-inscription-head">
+                  <span><ShieldCheck size={14} aria-hidden="true" /> 链上铸造铭牌 · ONCHAIN INSCRIPTION</span>
+                  <span className="badge-inscription-chain">Monad Testnet · 10143</span>
+                </div>
+                <dl className="badge-inscription-grid">
+                  <div>
+                    <dt>Token ID</dt>
+                    <dd>
+                      <strong data-testid="inscribed-token-id">ReadingBadge #{resolvedInscription.tokenId}</strong>
+                      <span className="badge-soulbound-chip">不可转让</span>
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>区块号 (Block)</dt>
+                    <dd>
+                      <strong data-testid="inscribed-block-number">#{resolvedInscription.blockNumber.toLocaleString('en-US')}</strong>
+                    </dd>
+                  </div>
+                  <div className="is-full">
+                    <dt>交易哈希 (Tx Hash)</dt>
+                    <dd>
+                      <a
+                        href={`${explorerBase}/tx/${resolvedInscription.txHash}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="badge-inscription-link"
+                        data-testid="inscribed-tx-hash"
+                      >
+                        <code title={resolvedInscription.txHash}>{shortenHex(resolvedInscription.txHash, 14, 10)}</code>
+                        <ExternalLink size={12} aria-hidden="true" />
+                      </a>
+                      <button
+                        type="button"
+                        className="badge-copy-mini"
+                        onClick={() => copyText('交易哈希', resolvedInscription.txHash)}
+                        aria-label="复制交易哈希"
+                      >
+                        <Copy size={12} />
+                      </button>
+                    </dd>
+                  </div>
+                  <div className="is-full">
+                    <dt>持有人地址 (Holder)</dt>
+                    <dd>
+                      <a
+                        href={`${explorerBase}/address/${resolvedInscription.holderAddress}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="badge-inscription-link"
+                        data-testid="inscribed-holder-address"
+                      >
+                        <code title={resolvedInscription.holderAddress}>{shortenHex(resolvedInscription.holderAddress, 14, 10)}</code>
+                        <ExternalLink size={12} aria-hidden="true" />
+                      </a>
+                      <button
+                        type="button"
+                        className="badge-copy-mini"
+                        onClick={() => copyText('持有人地址', resolvedInscription.holderAddress)}
+                        aria-label="复制持有人地址"
+                      >
+                        <Copy size={12} />
+                      </button>
+                    </dd>
+                  </div>
+                  {resolvedInscription.proofDigest && (
+                    <div className="is-full">
+                      <dt>EIP-712 核验摘要</dt>
+                      <dd>
+                        <code title={resolvedInscription.proofDigest}>{shortenHex(resolvedInscription.proofDigest, 14, 10)}</code>
+                        <button
+                          type="button"
+                          className="badge-copy-mini"
+                          onClick={() => copyText('EIP-712 摘要', resolvedInscription.proofDigest!)}
+                          aria-label="复制 EIP-712 摘要"
+                        >
+                          <Copy size={12} />
+                        </button>
+                      </dd>
+                    </div>
+                  )}
+                </dl>
+              </section>
+            )}
 
             {badge?.poeticNote && (
               <p className="badge-poetic-note">{badge.poeticNote}</p>
@@ -444,7 +672,9 @@ export function BadgeViewerDialog({ badge, onClose, restoreFocusTo }: BadgeViewe
             <div className="badge-dialog-footer">
               <p className="badge-disclaimer">
                 <Boxes />
-                系列预览，只用于查看造型；不代表已获得，也不是 NFT、积分或任何奖励。
+                {resolvedInscription
+                  ? `Soulbound ERC-721 · ReadingBadge #${resolvedInscription.tokenId} 已绑定当前读者档案（不可转让，可在 MonadVision 独立核验）。`
+                  : '系列预览，只用于查看造型；不代表已获得，也不是 NFT、积分或任何奖励。'}
               </p>
             </div>
           </div>

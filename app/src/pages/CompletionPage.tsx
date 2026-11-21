@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 import { ActivityGlyph } from '@/components/ActivityGlyph';
 import { BadgeViewerDialog } from '@/components/BadgeViewerDialog';
 import { HoloBadgeCard } from '@/components/HoloBadgeCard';
-import { ReadingChallengePanel } from '@/components/ReadingChallengePanel';
+import { LittlePrinceReader } from '@/components/LittlePrinceReader';
 import { Button } from '@/components/ui/button';
 import { useApp } from '@/context/AppContext';
 import { api } from '@/lib/api';
@@ -333,11 +333,9 @@ export default function CompletionPage() {
       <div className="completion-panels"><ReflectionEditor completion={completion} onSaved={syncRecord} /><ReceiptPanel completion={completion} onChanged={syncRecord} /></div>
 
       {record.activity.id === 'reading' && (
-        <ReadingChallengePanel
+        <LittlePrinceReader
           participationId={record.participationId}
-          completionId={completion.id}
-          reflectionText={completion.reflection.text}
-          reflectionDeletedAt={completion.reflection.deletedAt}
+          completion={completion}
           onRecordChanged={syncRecord}
         />
       )}

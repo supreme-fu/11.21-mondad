@@ -63,7 +63,9 @@ export default function Home() {
           <p>你好，{user?.displayName}。<br />每一次行动完成，都会自动写入你的链上个人档案与徽章墙。</p>
         </div>
         <div className="activity-list">
-          {activities.map((activity) => {
+          {[...activities]
+            .sort((a, b) => (a.id === 'reading' ? -1 : b.id === 'reading' ? 1 : 0))
+            .map((activity) => {
             const themeRecords = records.filter((item) => item.activity.id === activity.id);
             const activeRecord = themeRecords.find((item) => item.participationStatus === 'joined' && !item.completion);
             const completedCount = themeRecords.filter((item) => item.completion !== null).length;

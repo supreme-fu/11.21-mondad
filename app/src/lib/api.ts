@@ -7,6 +7,7 @@ import type {
   ReadingRewardKind,
   Receipt,
   RecordItem,
+  ScenePayloadResponse,
   User,
 } from '@/types';
 
@@ -69,4 +70,56 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ kind }),
     }),
+  onchainMintReading: (participationId: string) =>
+    request<{
+      state: ReadingChallengeState;
+      deductedPoints: number;
+      remainingPoints: number;
+      totalCompleted: number;
+      mintedBadgeIds: string[];
+      milestoneBadgeId: string | null;
+    }>(`/api/reading-challenge/${encodeURIComponent(participationId)}/onchain-mint`, {
+      method: 'POST',
+      body: JSON.stringify({}),
+    }),
+  updateReadingChapter: (
+    participationId: string,
+    payload: {
+      action: 'complete' | 'uncomplete' | 'set_current' | 'complete_up_to';
+      chapter: number;
+      readingSecondsDelta?: number;
+    },
+  ) =>
+    request<ReadingChallengeState>(`/api/reading-challenge/${encodeURIComponent(participationId)}/chapters`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+  addReadingHighlight: (participationId: string, chapter: number, text: string) =>
+    request<ReadingChallengeState>(`/api/reading-challenge/${encodeURIComponent(participationId)}/highlights`, {
+      method: 'POST',
+      body: JSON.stringify({ chapter, text }),
+    }),
+  removeReadingHighlight: (participationId: string, highlightId: string) =>
+    request<ReadingChallengeState>(
+      `/api/reading-challenge/${encodeURIComponent(participationId)}/highlights/${encodeURIComponent(highlightId)}`,
+      { method: 'DELETE' },
+    ),
+  sceneData: (participationId: string) =>
+    request<ScenePayloadResponse>(`/api/participations/${encodeURIComponent(participationId)}/scene`),
+  saveSceneData: (
+    participationId: string,
+    payload: Record<string, unknown>,
+    options?: { ticketCode?: string; verifyChannel?: string },
+  ) =>
+    request<ScenePayloadResponse>(`/api/participations/${encodeURIComponent(participationId)}/scene`, {
+      method: 'PUT',
+      body: JSON.stringify({ payload, ...options }),
+    }),
+  updateProfile: (payload: { displayName?: string; bio?: string; goal?: string }) =>
+    request<{ user: User }>('/api/me/profile', {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    }),
+  resetDemoProfile: () =>
+    request<{ ok: boolean }>('/api/demo/reset-profile', { method: 'POST' }),
 };

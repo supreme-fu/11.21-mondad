@@ -1,8 +1,10 @@
 import { DatabaseSync } from 'node:sqlite';
 import { mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
+import { id as keccakId, Wallet } from 'ethers';
 
 const now = () => new Date().toISOString();
+const hoursAgo = (hours: number) => new Date(Date.now() - hours * 60 * 60 * 1000).toISOString();
 
 const activities = [
   {
@@ -49,13 +51,22 @@ const activities = [
 
 export class Store {
   readonly database: DatabaseSync;
+  private readonly seedRichProfile: boolean;
 
-  constructor(path: string) {
+  constructor(path: string, options?: { seedRichProfile?: boolean }) {
+    this.seedRichProfile = Boolean(options?.seedRichProfile);
     if (path !== ':memory:') mkdirSync(dirname(path), { recursive: true });
     this.database = new DatabaseSync(path);
     this.database.exec('PRAGMA foreign_keys = ON; PRAGMA journal_mode = WAL;');
     this.migrate();
     this.seed();
+  }
+
+  private ensureColumn(table: string, column: string, definition: string) {
+    const columns = this.database.prepare(`PRAGMA table_info(${table})`).all() as Array<{ name: string }>;
+    if (!columns.some((item) => item.name === column)) {
+      this.database.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`);
+    }
   }
 
   private migrate() {
@@ -64,6 +75,9 @@ export class Store {
         id TEXT PRIMARY KEY,
         demo_key TEXT UNIQUE,
         display_name TEXT NOT NULL,
+        bio TEXT,
+        goal TEXT,
+        points INTEGER NOT NULL DEFAULT 100,
         status TEXT NOT NULL DEFAULT 'active',
         created_at TEXT NOT NULL
       );
@@ -133,11 +147,16 @@ export class Store {
         already_completed INTEGER NOT NULL DEFAULT 0,
         coverage_bps INTEGER NOT NULL DEFAULT 6200,
         last_chapter_completed INTEGER NOT NULL DEFAULT 0,
+        read_chapters_json TEXT NOT NULL DEFAULT '[]',
+        current_chapter INTEGER NOT NULL DEFAULT 1,
+        reading_seconds INTEGER NOT NULL DEFAULT 0,
+        highlights_json TEXT NOT NULL DEFAULT '[]',
         reading_updated_at TEXT,
         review_submitted_at TEXT,
         reading_claimed_at TEXT,
         reading_proof_digest TEXT,
         reading_tx_hash TEXT,
+        reading_block_number INTEGER,
         review_claimed_at TEXT,
         review_proof_digest TEXT,
         review_tx_hash TEXT,
@@ -146,17 +165,35 @@ export class Store {
         reward_review_dsdemo TEXT NOT NULL DEFAULT '2',
         mode TEXT NOT NULL DEFAULT 'simulation'
       );
+      CREATE TABLE IF NOT EXISTS activity_logs (
+        participation_id TEXT PRIMARY KEY REFERENCES participations(id) ON DELETE CASCADE,
+        activity_id TEXT NOT NULL,
+        payload_json TEXT NOT NULL DEFAULT '{}',
+        verified_channel TEXT,
+        verified_code TEXT,
+        verified_digest TEXT,
+        updated_at TEXT NOT NULL
+      );
       CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id);
       CREATE INDEX IF NOT EXISTS idx_participations_user ON participations(user_id);
       CREATE INDEX IF NOT EXISTS idx_participations_user_activity ON participations(user_id, activity_id);
       CREATE INDEX IF NOT EXISTS idx_receipts_status ON receipts(status);
       CREATE INDEX IF NOT EXISTS idx_reading_challenges_user ON reading_challenges(user_id);
+      CREATE INDEX IF NOT EXISTS idx_activity_logs_activity ON activity_logs(activity_id);
       CREATE TABLE IF NOT EXISTS meta (
         key TEXT PRIMARY KEY,
         value TEXT NOT NULL
       );
     `);
 
+    this.ensureColumn('users', 'bio', 'TEXT');
+    this.ensureColumn('users', 'goal', 'TEXT');
+    this.ensureColumn('users', 'points', 'INTEGER NOT NULL DEFAULT 100');
+    this.ensureColumn('reading_challenges', 'read_chapters_json', "TEXT NOT NULL DEFAULT '[]'");
+    this.ensureColumn('reading_challenges', 'current_chapter', 'INTEGER NOT NULL DEFAULT 1');
+    this.ensureColumn('reading_challenges', 'reading_seconds', 'INTEGER NOT NULL DEFAULT 0');
+    this.ensureColumn('reading_challenges', 'highlights_json', "TEXT NOT NULL DEFAULT '[]'");
+    this.ensureColumn('reading_challenges', 'reading_block_number', 'INTEGER');
     this.removeParticipationUniqueConstraint();
   }
 
@@ -205,11 +242,27 @@ export class Store {
 
   private seedDemoAccounts() {
     const insertUser = this.database.prepare(
-      'INSERT OR IGNORE INTO users (id, demo_key, display_name, status, created_at) VALUES (?, ?, ?, ?, ?)',
+      'INSERT OR IGNORE INTO users (id, demo_key, display_name, bio, goal, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
     );
-    insertUser.run('user-a', 'a', '阿黎', 'active', now());
-    insertUser.run('user-b', 'b', '小舟', 'active', now());
-    insertUser.run('user-example', null, '示例经历', 'active', now());
+    insertUser.run(
+      'user-a',
+      'a',
+      '阿黎',
+      '广州 · 独立开发者 & 生活记录者，构建面向 AI Agent 时代的个人链上生活档案。',
+      '完成《小王子》27 章共读核验，持续沉淀真实生活上下文（LIFE CONTEXT）。',
+      'active',
+      now(),
+    );
+    insertUser.run(
+      'user-b',
+      'b',
+      '小舟',
+      '喜欢在旧书店和珠江边散步的产品人，已完结本期《小王子》共读。',
+      '每周认真完成一件想做的小事。',
+      'active',
+      now(),
+    );
+    insertUser.run('user-example', null, '示例经历', null, null, 'active', now());
   }
 
   private seedExampleEchoes() {
@@ -320,14 +373,141 @@ export class Store {
     }
   }
 
+  seedRichDemoProfile(forceReset = false) {
+    const userA = this.database.prepare("SELECT id FROM users WHERE id = 'user-a' AND status = 'active'").get();
+    if (!userA) return;
+
+    if (forceReset) {
+      this.database.prepare("DELETE FROM participations WHERE user_id = 'user-a'").run();
+    } else {
+      const existing = this.database.prepare("SELECT COUNT(*) AS count FROM participations WHERE user_id = 'user-a'").get() as { count: number };
+      if (existing.count > 0) return;
+    }
+
+    this.database.prepare(`
+      UPDATE users
+      SET bio = COALESCE(bio, ?), goal = COALESCE(goal, ?), points = 100
+      WHERE id = 'user-a'
+    `).run(
+      '广州 · 独立开发者 & 生活记录者，构建面向 AI Agent 时代的个人链上生活档案。',
+      '完成《小王子》27 章共读核验，持续沉淀真实生活上下文（LIFE CONTEXT）。',
+    );
+
+    const tReadingStart = hoursAgo(14);
+    const tReadingUpdate = hoursAgo(1);
+    const tUserBReading = hoursAgo(18);
+
+    const insertPart = this.database.prepare(`
+      INSERT OR IGNORE INTO participations (id, user_id, activity_id, rule_version, status, created_at)
+      VALUES (?, ?, ?, 1, ?, ?)
+    `);
+    const insertComp = this.database.prepare(`
+      INSERT OR IGNORE INTO completions (id, participation_id, declared_at, verification_type, idempotency_key)
+      VALUES (?, ?, ?, 'self_report', ?)
+    `);
+    const insertRefl = this.database.prepare(`
+      INSERT OR IGNORE INTO reflections (completion_id, text, visibility, shared_at, deleted_at)
+      VALUES (?, ?, ?, ?, NULL)
+    `);
+    const insertReceipt = this.database.prepare(`
+      INSERT OR IGNORE INTO receipts (completion_id, receipt_id, chain_id, contract_address, tx_hash, status, mode, error, created_at, updated_at)
+      VALUES (?, ?, 10143, '0x0000000000000000000000000000000000000000', ?, 'confirmed', 'simulation', NULL, ?, ?)
+    `);
+
+    // 预置 9 次真实已完成记录（做菜 3 次 + 相见 3 次 + 出行 3 次 = 累计 9 次），
+    // 这样当用户读完《小王子》第 27/27 章并确认上链时，刚好达成第 10 次行动，同步解锁「一页之间」与「10 次 · 铜色起步」里程碑勋章！
+    const priorActions = [
+      { key: 'cooking-1', activityId: 'cooking', hours: 168, text: '下班炖了一锅番茄牛腩，屋里满是酸甜香气，和室友一人盛了两大碗。', shared: true, withReceipt: true },
+      { key: 'meeting-1', activityId: 'meeting', hours: 148, text: '和毕业后半年没见的阿哲在体育西路喝了杯手冲，聊完觉得很踏实。', shared: false, withReceipt: false },
+      { key: 'outing-1', activityId: 'outing', hours: 126, text: '傍晚去东山口逛了旧书店和小展馆，没有赶景点，只记住红砖墙上的夕阳。', shared: true, withReceipt: true },
+      { key: 'cooking-2', activityId: 'cooking', hours: 102, text: '给自己煮了一碗葱油拌面配溏心蛋，厨房起雾的几分钟特别安静。', shared: false, withReceipt: false },
+      { key: 'meeting-2', activityId: 'meeting', hours: 84, text: '晚上和妈妈打了一通不聊催促的视频电话，看她把阳台绿萝修剪了新枝。', shared: false, withReceipt: false },
+      { key: 'outing-2', activityId: 'outing', hours: 68, text: '下班早下两站地铁，沿着珠江边长椅吹了二十分钟晚风。', shared: true, withReceipt: false },
+      { key: 'cooking-3', activityId: 'cooking', hours: 48, text: '周末试做了蒜香黄油烤蘑菇，配了一杯温热乌龙茶。', shared: false, withReceipt: false },
+      { key: 'meeting-3', activityId: 'meeting', hours: 32, text: '约了老同事在沙面散步半小时，重新拾起几个一直想做的点子。', shared: true, withReceipt: false },
+      { key: 'outing-3', activityId: 'outing', hours: 20, text: '午后一个人去广东省博物馆慢慢看展，带回一张书签。', shared: true, withReceipt: true },
+    ];
+
+    for (const item of priorActions) {
+      const ts = hoursAgo(item.hours);
+      const pid = `demo-part-${item.key}`;
+      const cid = `demo-comp-${item.key}`;
+      insertPart.run(pid, 'user-a', item.activityId, 'completed', ts);
+      insertComp.run(cid, pid, ts, `demo-seed-${item.key}`);
+      insertRefl.run(cid, item.text, item.shared ? 'shared' : 'private', item.shared ? ts : null);
+      if (item.withReceipt) {
+        insertReceipt.run(
+          cid,
+          keccakId(`do-something:demo-receipt:${item.key}`),
+          `simulation-${keccakId(`do-something:demo-tx:${item.key}`).slice(2, 18)}`,
+          ts,
+          ts,
+        );
+      }
+    }
+
+    // 进行中的《小王子》共读：已读完第 1~26 章，当前打开即停在第 27/27 章末章，点击「确认读完」即可进入上链扣点与双勋章铸造仪式！
+    insertPart.run('demo-part-reading-active', 'user-a', 'reading', 'joined', tReadingStart);
+    const readerWallet = new Wallet(keccakId('do-something:demo-reader-wallet:user-a')).address;
+    const subjectHash = keccakId('do-something:reading:1:user-a');
+    const bookHash = keccakId('the-little-prince:do-something:v1');
+    const rulesHash = keccakId('coverage>=8000 AND lastChapter; eligible review; fixed rewards; v1');
+    const readChapters = Array.from({ length: 26 }, (_, i) => i + 1); // 1..26 已读，当前停在第 27/27 章
+    const highlights = [
+      {
+        id: 'hl-fox-1',
+        chapter: 21,
+        text: '“只有用心才能看得清。实质性的东西，用眼睛是看不见的。”',
+        createdAt: hoursAgo(3),
+      },
+      {
+        id: 'hl-fox-2',
+        chapter: 21,
+        text: '“正是你为你的玫瑰花费的时间，才使你的玫瑰变得如此重要。”',
+        createdAt: hoursAgo(2),
+      },
+    ];
+    this.database.prepare(`
+      INSERT OR REPLACE INTO reading_challenges (
+        participation_id, user_id, campaign_id, book_title, book_hash, rules_hash,
+        reader_wallet, subject_hash, enrolled_at, enrollment_digest, enrollment_sig,
+        already_completed, coverage_bps, last_chapter_completed,
+        read_chapters_json, current_chapter, reading_seconds, highlights_json,
+        reading_updated_at, mode
+      ) VALUES (?, 'user-a', 1, '《小王子》', ?, ?, ?, ?, ?, ?, ?, 0, 9630, 0, ?, 27, 3420, ?, ?, 'simulation')
+    `).run(
+      'demo-part-reading-active',
+      bookHash,
+      rulesHash,
+      readerWallet,
+      subjectHash,
+      tReadingStart,
+      keccakId(`do-something:enrollment:digest:${subjectHash}`),
+      `0x${'ab'.repeat(65)}`,
+      JSON.stringify(readChapters),
+      JSON.stringify(highlights),
+      tReadingUpdate,
+    );
+
+    // 5) 给对照账户「小舟」也准备一条已分享的《小王子》真实共读回响，让「阿黎」完成阅读后能真正相遇
+    const userB = this.database.prepare("SELECT id FROM users WHERE id = 'user-b' AND status = 'active'").get();
+    if (userB) {
+      insertPart.run('demo-part-userb-reading-1', 'user-b', 'reading', 'completed', tUserBReading);
+      insertComp.run('demo-comp-userb-reading-1', 'demo-part-userb-reading-1', tUserBReading, 'demo-seed-userb-reading-1');
+      insertRefl.run(
+        'demo-comp-userb-reading-1',
+        '合上第 27 章那一刻突然明白，狐狸说的“驯养”不是占有，而是彼此在时间里留下的认真约定。今晚抬头看广州的夜空，觉得风都温柔了。',
+        'shared',
+        tUserBReading,
+      );
+    }
+  }
+
   private seed() {
     const alreadySeeded = this.database.prepare('SELECT value FROM meta WHERE key = ?')
       .get('demo_seed_v1') as { value: string } | undefined;
-    // 兼容本修复之前创建的数据库：库里已有用户或主题，说明初始化早已发生过，
-    // 缺失的演示账号只可能来自注销，此时不再重建，保证注销是永久的。
     const legacyDatabase = !alreadySeeded
       && (this.countRows('users') > 0 || this.countRows('activities') > 0);
-    // 主题目录是静态元数据，与个人记录无关，每次启动幂等补齐（需早于示例参与记录，外键依赖它）。
     this.seedActivities();
     if (!alreadySeeded) {
       if (!legacyDatabase) this.seedDemoAccounts();
@@ -340,6 +520,15 @@ export class Store {
       this.seedExampleEchoes();
       this.database.prepare('INSERT OR REPLACE INTO meta (key, value) VALUES (?, ?)')
         .run('demo_seed_echoes_v2', now());
+    }
+    if (this.seedRichProfile) {
+      const seededRichV3 = this.database.prepare('SELECT value FROM meta WHERE key = ?')
+        .get('demo_seed_rich_profile_v3') as { value: string } | undefined;
+      if (!seededRichV3) {
+        this.seedRichDemoProfile(false);
+        this.database.prepare('INSERT OR REPLACE INTO meta (key, value) VALUES (?, ?)')
+          .run('demo_seed_rich_profile_v3', now());
+      }
     }
   }
 

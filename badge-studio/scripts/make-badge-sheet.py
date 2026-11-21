@@ -8,7 +8,7 @@ from PIL import Image, ImageDraw, ImageFont, ImageOps
 script = Path(__file__).resolve()
 root = script.parents[2] / 'deliverables' / 'badges' / 'images'
 items = [
-    ('reading', '阅读 · 一页之间'), ('cooking', '做饭 · 烟火日常'),
+    ('reading', '一页之间'), ('cooking', '做饭 · 烟火日常'),
     ('travel', '旅行 · 去有风的地方'), ('meeting', '相见 · 环环相扣'),
     ('contract', '链上 · 完成声明'), ('bronze10', '10 次 · 铜色起步'),
     ('silver50', '50 次 · 银色回响'), ('gold100', '100 次 · 金色共识'),

@@ -11,7 +11,7 @@ const SERIES_LABELS = {
 };
 
 const RAW = [
-  { id: 'reading', name: '阅读 · 一页之间', material: '鼠尾草珐琅 / 黄铜书签', series: 'task', file: 'reading.glb', bytes: 180952, triangles: 4844 },
+  { id: 'reading', name: '一页之间', material: '鼠尾草珐琅 / 黄铜书签', series: 'task', file: 'reading.glb', bytes: 180952, triangles: 4844 },
   { id: 'cooking', name: '做饭 · 烟火日常', material: '赤铜炖锅 / 奶油搪瓷', series: 'task', file: 'cooking.glb', bytes: 179700, triangles: 5964 },
   { id: 'travel', name: '旅行 · 去有风的地方', material: '青钛金属 / 罗盘金', series: 'task', file: 'travel.glb', bytes: 142388, triangles: 4676 },
   { id: 'meeting', name: '相见 · 环环相扣', material: '玫瑰金轨迹 / 柔光珍珠', series: 'task', file: 'meeting.glb', bytes: 152188, triangles: 5872 },

@@ -5,6 +5,9 @@ export interface UserRow {
   id: string;
   demo_key: string | null;
   display_name: string;
+  bio: string | null;
+  goal: string | null;
+  points: number;
   status: 'active' | 'deleted';
   created_at: string;
 }

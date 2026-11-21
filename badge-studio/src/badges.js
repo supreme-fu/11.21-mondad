@@ -4,7 +4,7 @@ import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 
 export const badgeDefinitions = [
-  { id: 'reading', name: '阅读 · 一页之间', material: '鼠尾草珐琅 / 黄铜书签', type: 'task' },
+  { id: 'reading', name: '一页之间', material: '鼠尾草珐琅 / 黄铜书签', type: 'task' },
   { id: 'cooking', name: '做饭 · 烟火日常', material: '赤铜炖锅 / 奶油搪瓷', type: 'task' },
   { id: 'travel', name: '旅行 · 去有风的地方', material: '青钛金属 / 罗盘金', type: 'task' },
   { id: 'meeting', name: '相见 · 环环相扣', material: '玫瑰金轨迹 / 柔光珍珠', type: 'task' },

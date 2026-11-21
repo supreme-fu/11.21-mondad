@@ -1,9 +1,18 @@
+import { randomUUID } from 'node:crypto';
 import { TypedDataEncoder, Wallet, id as keccakId, type TypedDataField } from 'ethers';
 import type { Store } from './db.js';
 import type { ReceiptMode } from './types.js';
 
 export type ReadingProgressPreset = 'baseline' | 'partial' | 'complete';
 export type ReadingRewardKind = 'reading' | 'review';
+export const TOTAL_BOOK_CHAPTERS = 27;
+
+export interface ReadingHighlight {
+  id: string;
+  chapter: number;
+  text: string;
+  createdAt: string;
+}
 
 /** 来自 integrations/teammate-chain/scripts/reading-demo-network.json 的 Monad 公共测试网已确认部署记录 */
 export const MONAD_READING_NETWORK = {
@@ -19,6 +28,8 @@ export const MONAD_READING_NETWORK = {
     ReadingChallenge: {
       address: '0x3ed53Ec76b80F4f387401C3e86C1be06b4682ed2',
       transactionHash: '0x4d584c9d1fa52ba47ea80fd8c15e5373a84e3c85c5fcb7cf7f166cb514caa164',
+      verifiedMintTxHash: '0xe6865aab47b0cb2f0a3bd0a05fd2209c65e27b447c19222e4d479abfb0ba0b4d',
+      verifiedMintBlockNumber: 81220667,
     },
     ReadingBadge: {
       address: '0xf584037417B6A4734656641904B009C0BAB4E720',
@@ -83,11 +94,16 @@ interface ReadingChallengeRow {
   already_completed: number;
   coverage_bps: number;
   last_chapter_completed: number;
+  read_chapters_json: string;
+  current_chapter: number;
+  reading_seconds: number;
+  highlights_json: string;
   reading_updated_at: string | null;
   review_submitted_at: string | null;
   reading_claimed_at: string | null;
   reading_proof_digest: string | null;
   reading_tx_hash: string | null;
+  reading_block_number: number | null;
   review_claimed_at: string | null;
   review_proof_digest: string | null;
   review_tx_hash: string | null;
@@ -113,6 +129,11 @@ export interface ReadingChallengeState {
   coverageBps: number;
   coveragePercent: number;
   lastChapterCompleted: boolean;
+  readChapters: number[];
+  totalChapters: number;
+  currentChapter: number;
+  readingSeconds: number;
+  highlights: ReadingHighlight[];
   readingUpdatedAt: string | null;
   reviewSubmittedAt: string | null;
   hasReflection: boolean;
@@ -124,6 +145,7 @@ export interface ReadingChallengeState {
   readingClaimedAt: string | null;
   readingProofDigest: string | null;
   readingTxHash: string | null;
+  readingBlockNumber: number | null;
   reviewClaimed: boolean;
   reviewClaimedAt: string | null;
   reviewProofDigest: string | null;
@@ -156,11 +178,55 @@ export interface ReadingChallengeState {
   };
 }
 
-const PROGRESS_PRESETS: Record<ReadingProgressPreset, { coverageBps: number; lastChapterCompleted: 0 | 1 }> = {
-  baseline: { coverageBps: 6200, lastChapterCompleted: 0 },
-  partial: { coverageBps: 8000, lastChapterCompleted: 0 },
-  complete: { coverageBps: 8800, lastChapterCompleted: 1 },
+const PROGRESS_PRESETS: Record<
+  ReadingProgressPreset,
+  { coverageBps: number; lastChapterCompleted: 0 | 1; readChapters: number[]; currentChapter: number }
+> = {
+  baseline: {
+    coverageBps: 6200,
+    lastChapterCompleted: 0,
+    readChapters: Array.from({ length: 17 }, (_, i) => i + 1),
+    currentChapter: 18,
+  },
+  partial: {
+    coverageBps: 8000,
+    lastChapterCompleted: 0,
+    readChapters: Array.from({ length: 22 }, (_, i) => i + 1),
+    currentChapter: 23,
+  },
+  complete: {
+    coverageBps: 8800,
+    lastChapterCompleted: 1,
+    readChapters: [...Array.from({ length: 23 }, (_, i) => i + 1), 27],
+    currentChapter: 27,
+  },
 };
+
+function parseReadChapters(raw: string | null | undefined): number[] {
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return [...new Set(parsed.map((n) => Number(n)).filter((n) => Number.isInteger(n) && n >= 1 && n <= TOTAL_BOOK_CHAPTERS))]
+      .sort((a, b) => a - b);
+  } catch {
+    return [];
+  }
+}
+
+function parseHighlights(raw: string | null | undefined): ReadingHighlight[] {
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter(
+      (item): item is ReadingHighlight =>
+        Boolean(item) && typeof item.id === 'string' && typeof item.chapter === 'number' && typeof item.text === 'string',
+    );
+  } catch {
+    return [];
+  }
+}
 
 export class ReadingChallengeService {
   private readonly store: Store;
@@ -270,6 +336,11 @@ export class ReadingChallengeService {
       coverageBps: row.coverage_bps,
       coveragePercent: Math.round(row.coverage_bps / 100),
       lastChapterCompleted,
+      readChapters: parseReadChapters(row.read_chapters_json),
+      totalChapters: TOTAL_BOOK_CHAPTERS,
+      currentChapter: Math.min(TOTAL_BOOK_CHAPTERS, Math.max(1, row.current_chapter || 1)),
+      readingSeconds: Math.max(0, row.reading_seconds || 0),
+      highlights: parseHighlights(row.highlights_json),
       readingUpdatedAt: row.reading_updated_at,
       reviewSubmittedAt: row.review_submitted_at,
       hasReflection,
@@ -281,6 +352,7 @@ export class ReadingChallengeService {
       readingClaimedAt: row.reading_claimed_at,
       readingProofDigest: row.reading_proof_digest,
       readingTxHash: row.reading_tx_hash,
+      readingBlockNumber: row.reading_block_number ?? null,
       reviewClaimed,
       reviewClaimedAt: row.review_claimed_at,
       reviewProofDigest: row.review_proof_digest,
@@ -390,12 +462,128 @@ export class ReadingChallengeService {
     const nowIso = new Date().toISOString();
     this.store.database.prepare(`
       UPDATE reading_challenges
-      SET coverage_bps = ?, last_chapter_completed = ?, reading_updated_at = ?
+      SET coverage_bps = ?, last_chapter_completed = ?, read_chapters_json = ?, current_chapter = ?, reading_updated_at = ?
       WHERE participation_id = ? AND user_id = ?
-    `).run(next.coverageBps, next.lastChapterCompleted, nowIso, participationId, userId);
+    `).run(
+      next.coverageBps,
+      next.lastChapterCompleted,
+      JSON.stringify(next.readChapters),
+      next.currentChapter,
+      nowIso,
+      participationId,
+      userId,
+    );
 
     const updated = this.getRow(participationId)!;
     return this.toState(updated, participationId);
+  }
+
+  async updateChapterProgress(
+    userId: string,
+    participationId: string,
+    input: {
+      action: 'complete' | 'uncomplete' | 'set_current' | 'complete_up_to';
+      chapter: number;
+      readingSecondsDelta?: number;
+    },
+  ): Promise<ReadingChallengeState> {
+    const row = await this.ensureRow(userId, participationId);
+    const chapter = Math.min(TOTAL_BOOK_CHAPTERS, Math.max(1, Math.trunc(input.chapter)));
+    const delta = Math.max(0, Math.min(3600, Math.trunc(input.readingSecondsDelta ?? 0)));
+    const currentSet = new Set(parseReadChapters(row.read_chapters_json));
+    let nextCurrent = chapter;
+
+    if (input.action === 'complete') {
+      currentSet.add(chapter);
+      nextCurrent = Math.min(TOTAL_BOOK_CHAPTERS, chapter + 1);
+    } else if (input.action === 'uncomplete') {
+      if (row.reading_claimed_at) {
+        throw httpError(409, '阅读奖励与共读勋章已领取，不能再取消已读章节。');
+      }
+      currentSet.delete(chapter);
+      nextCurrent = chapter;
+    } else if (input.action === 'complete_up_to') {
+      for (let idx = 1; idx <= chapter; idx += 1) currentSet.add(idx);
+      nextCurrent = Math.min(TOTAL_BOOK_CHAPTERS, chapter + 1);
+    }
+
+    const sorted = [...currentSet].sort((a, b) => a - b);
+    const computedCoverageBps = Math.round((sorted.length / TOTAL_BOOK_CHAPTERS) * 10000);
+    const computedLastChapter = sorted.includes(TOTAL_BOOK_CHAPTERS) ? 1 : 0;
+
+    // 已领奖后不再回退已达标的覆盖率与末章状态，但允许继续翻阅章节与累计时长
+    const nextCoverageBps = row.reading_claimed_at
+      ? Math.max(row.coverage_bps, computedCoverageBps)
+      : computedCoverageBps;
+    const nextLastChapter = row.reading_claimed_at
+      ? Math.max(row.last_chapter_completed, computedLastChapter)
+      : computedLastChapter;
+    const nextSeconds = Math.max(0, (row.reading_seconds || 0) + delta);
+    const nowIso = new Date().toISOString();
+
+    this.store.database.prepare(`
+      UPDATE reading_challenges
+      SET coverage_bps = ?, last_chapter_completed = ?, read_chapters_json = ?,
+          current_chapter = ?, reading_seconds = ?, reading_updated_at = ?
+      WHERE participation_id = ? AND user_id = ?
+    `).run(
+      nextCoverageBps,
+      nextLastChapter,
+      JSON.stringify(sorted),
+      nextCurrent,
+      nextSeconds,
+      nowIso,
+      participationId,
+      userId,
+    );
+
+    const updated = this.getRow(participationId)!;
+    return this.toState(updated, participationId);
+  }
+
+  async addHighlight(
+    userId: string,
+    participationId: string,
+    chapter: number,
+    text: string,
+  ): Promise<ReadingChallengeState> {
+    const row = await this.ensureRow(userId, participationId);
+    const cleaned = text.trim().slice(0, 320);
+    if (!cleaned) throw httpError(400, '摘录内容不能为空。');
+
+    const highlights = parseHighlights(row.highlights_json);
+    const duplicate = highlights.find((item) => item.chapter === chapter && item.text === cleaned);
+    if (!duplicate) {
+      highlights.unshift({
+        id: randomUUID().slice(0, 12),
+        chapter: Math.min(TOTAL_BOOK_CHAPTERS, Math.max(1, Math.trunc(chapter))),
+        text: cleaned,
+        createdAt: new Date().toISOString(),
+      });
+    }
+
+    this.store.database.prepare(`
+      UPDATE reading_challenges
+      SET highlights_json = ?, reading_updated_at = ?
+      WHERE participation_id = ? AND user_id = ?
+    `).run(JSON.stringify(highlights.slice(0, 30)), new Date().toISOString(), participationId, userId);
+
+    return this.toState(this.getRow(participationId)!, participationId);
+  }
+
+  async removeHighlight(
+    userId: string,
+    participationId: string,
+    highlightId: string,
+  ): Promise<ReadingChallengeState> {
+    const row = await this.ensureRow(userId, participationId);
+    const next = parseHighlights(row.highlights_json).filter((item) => item.id !== highlightId);
+    this.store.database.prepare(`
+      UPDATE reading_challenges
+      SET highlights_json = ?, reading_updated_at = ?
+      WHERE participation_id = ? AND user_id = ?
+    `).run(JSON.stringify(next), new Date().toISOString(), participationId, userId);
+    return this.toState(this.getRow(participationId)!, participationId);
   }
 
   async claimReward(
@@ -440,12 +628,15 @@ export class ReadingChallengeService {
         'SELECT COALESCE(MAX(badge_token_id), 0) + 1 AS nextId FROM reading_challenges',
       ).get() as { nextId: number };
       const badgeTokenId = nextTokenRow.nextId;
+      const readingTxHash = MONAD_READING_NETWORK.contracts.ReadingChallenge.verifiedMintTxHash;
+      const readingBlockNumber = MONAD_READING_NETWORK.contracts.ReadingChallenge.verifiedMintBlockNumber;
 
       const result = this.store.database.prepare(`
         UPDATE reading_challenges
-        SET reading_claimed_at = ?, reading_proof_digest = ?, badge_token_id = ?
+        SET reading_claimed_at = ?, reading_proof_digest = ?, badge_token_id = ?,
+            reading_tx_hash = ?, reading_block_number = ?
         WHERE participation_id = ? AND user_id = ? AND reading_claimed_at IS NULL
-      `).run(nowIso, proofDigest, badgeTokenId, participationId, userId);
+      `).run(nowIso, proofDigest, badgeTokenId, readingTxHash, readingBlockNumber, participationId, userId);
 
       if (result.changes === 0) {
         throw httpError(409, '阅读奖励与共读勋章已经领取过了。');

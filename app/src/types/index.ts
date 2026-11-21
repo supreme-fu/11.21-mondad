@@ -5,6 +5,9 @@ export interface User {
   id: string;
   displayName: string;
   demoKey: 'a' | 'b';
+  bio?: string | null;
+  goal?: string | null;
+  points?: number;
 }
 
 export interface Activity {
@@ -65,11 +68,37 @@ export interface Completion {
   receipt: Receipt;
 }
 
+export interface SceneDataRecord {
+  payload: Record<string, unknown>;
+  verifiedChannel: string | null;
+  verifiedCode: string | null;
+  verifiedDigest: string | null;
+}
+
+export interface ReadingSummaryRecord {
+  readChaptersCount: number;
+  totalChapters: number;
+  currentChapter: number;
+  coveragePercent: number;
+  lastChapterCompleted: boolean;
+  readingClaimed: boolean;
+  reviewClaimed: boolean;
+  badgeTokenId: number | null;
+  readingTxHash?: string | null;
+  readingBlockNumber?: number | null;
+  readerWallet?: string | null;
+  readingProofDigest?: string | null;
+  readingClaimedAt?: string | null;
+  earnedDsdemo: number;
+}
+
 export interface RecordItem {
   participationId: string;
   participationStatus: 'joined' | 'completed' | 'left';
   joinedAt: string;
   activity: Activity;
+  sceneData?: SceneDataRecord | null;
+  readingSummary?: ReadingSummaryRecord | null;
   completion: Completion | null;
 }
 
@@ -105,6 +134,43 @@ export interface ReadingChallengeContracts {
   };
 }
 
+export interface ReadingHighlight {
+  id: string;
+  chapter: number;
+  text: string;
+  createdAt: string;
+}
+
+export interface BookChapter {
+  index: number;
+  roman: string;
+  title: string;
+  subtitle: string;
+  charCount: number;
+  paragraphs: string[];
+}
+
+export interface BookData {
+  id: string;
+  title: string;
+  author: string;
+  year: number;
+  totalChapters: number;
+  totalChars: number;
+  dedication: string[];
+  chapters: BookChapter[];
+}
+
+export interface ScenePayloadResponse {
+  participationId: string;
+  activityId: string;
+  payload: Record<string, unknown>;
+  verifiedChannel: string | null;
+  verifiedCode: string | null;
+  verifiedDigest: string | null;
+  updatedAt: string | null;
+}
+
 export interface ReadingChallengeState {
   participationId: string;
   campaignId: number;
@@ -121,6 +187,11 @@ export interface ReadingChallengeState {
   coverageBps: number;
   coveragePercent: number;
   lastChapterCompleted: boolean;
+  readChapters: number[];
+  totalChapters: number;
+  currentChapter: number;
+  readingSeconds: number;
+  highlights: ReadingHighlight[];
   readingUpdatedAt: string | null;
   reviewSubmittedAt: string | null;
   hasReflection: boolean;
@@ -132,6 +203,7 @@ export interface ReadingChallengeState {
   readingClaimedAt: string | null;
   readingProofDigest: string | null;
   readingTxHash: string | null;
+  readingBlockNumber?: number | null;
   reviewClaimed: boolean;
   reviewClaimedAt: string | null;
   reviewProofDigest: string | null;

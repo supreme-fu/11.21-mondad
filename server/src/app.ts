@@ -1,4 +1,5 @@
 import { randomBytes, randomUUID } from 'node:crypto';
+import { id as keccakId } from 'ethers';
 import express, { type NextFunction, type Request, type Response } from 'express';
 import helmet from 'helmet';
 import { z } from 'zod';
@@ -11,6 +12,7 @@ interface AppOptions {
   databasePath: string;
   receiptMode?: ReceiptMode;
   receiptProvider?: ReceiptProvider;
+  seedRichProfile?: boolean;
 }
 
 interface AuthedRequest extends Request {
@@ -34,7 +36,14 @@ function parseCookies(header = '') {
 }
 
 function publicUser(user: UserRow) {
-  return { id: user.id, displayName: user.display_name, demoKey: user.demo_key };
+  return {
+    id: user.id,
+    displayName: user.display_name,
+    demoKey: user.demo_key,
+    bio: user.bio ?? null,
+    goal: user.goal ?? null,
+    points: typeof user.points === 'number' ? user.points : 100,
+  };
 }
 
 /** Monad 测试网链 ID 固定 10143；本地 EVM 联调由测试直接注入 provider，不走这里。 */
@@ -61,7 +70,7 @@ function monadProviderFromEnv(): ReceiptProvider {
 }
 
 export function createApp(options: AppOptions) {
-  const store = new Store(options.databasePath);
+  const store = new Store(options.databasePath, { seedRichProfile: options.seedRichProfile });
   const mode = options.receiptMode || 'simulation';
   const provider = options.receiptProvider || (mode === 'simulation'
     ? new SimulationReceiptProvider()
@@ -355,6 +364,243 @@ export function createApp(options: AppOptions) {
     } catch (error) { next(error); }
   });
 
+  app.post('/api/reading-challenge/:participationId/onchain-mint', requireAuth, async (request, response, next) => {
+    try {
+      const userId = userOf(request).id;
+      const participationId = String(request.params.participationId);
+      const COST_POINTS = 1;
+
+      const userRow = store.database.prepare('SELECT points FROM users WHERE id = ?').get(userId) as { points: number } | undefined;
+      const currentPoints = typeof userRow?.points === 'number' ? userRow.points : 100;
+      if (currentPoints < COST_POINTS) {
+        throw httpError(400, `当前剩余点数不足（需要 ${COST_POINTS} 点，当前仅剩 ${currentPoints} 点）。`);
+      }
+
+      // 1) 确保第 27 章已标记完成
+      await readingChallenge.updateChapterProgress(userId, participationId, {
+        action: 'complete',
+        chapter: 27,
+        readingSecondsDelta: 15,
+      });
+
+      // 2) 确保本次阅读完成记录已建立
+      let completionRow = store.database.prepare(
+        'SELECT id FROM completions WHERE participation_id = ?',
+      ).get(participationId) as { id: string } | undefined;
+      if (!completionRow) {
+        const compId = randomUUID();
+        store.database.exec('BEGIN IMMEDIATE');
+        try {
+          store.database.prepare(`
+            INSERT INTO completions (id, participation_id, declared_at, verification_type, idempotency_key)
+            VALUES (?, ?, ?, 'self_report', ?)
+          `).run(compId, participationId, timestamp(), `onchain-mint-${participationId}`);
+          store.database.prepare(
+            "INSERT OR IGNORE INTO reflections (completion_id, text, visibility, shared_at, deleted_at) VALUES (?, NULL, 'private', NULL, NULL)",
+          ).run(compId);
+          store.database.prepare("UPDATE participations SET status = 'completed' WHERE id = ?").run(participationId);
+          store.database.exec('COMMIT');
+          completionRow = { id: compId };
+        } catch (err) {
+          store.database.exec('ROLLBACK');
+          throw err;
+        }
+      }
+
+      // 3) 领取阅读达标奖励并铸造 ReadingBadge（若尚未领取）
+      let state = await readingChallenge.getOrInitState(userId, participationId);
+      let deducted = 0;
+      if (!state.readingClaimed) {
+        state = await readingChallenge.claimReward(userId, participationId, 'reading');
+        store.database.prepare('UPDATE users SET points = MAX(0, points - ?) WHERE id = ?').run(COST_POINTS, userId);
+        deducted = COST_POINTS;
+      }
+
+      // 4) 同步触发完成凭证登记（若尚未申请）
+      const existingReceipt = receipts.get(completionRow.id);
+      if (!existingReceipt) {
+        receipts.request(completionRow.id);
+      }
+
+      const updatedUser = store.database.prepare('SELECT points FROM users WHERE id = ?').get(userId) as { points: number };
+      const totalCompletedRow = store.database.prepare(`
+        SELECT COUNT(*) AS count FROM completions c
+        JOIN participations p ON p.id = c.participation_id
+        WHERE p.user_id = ?
+      `).get(userId) as { count: number };
+
+      const totalCompleted = totalCompletedRow.count;
+      const milestoneBadgeId = totalCompleted >= 100
+        ? 'gold100'
+        : totalCompleted >= 50
+          ? 'silver50'
+          : totalCompleted >= 10
+            ? 'bronze10'
+            : null;
+
+      response.json({
+        state,
+        deductedPoints: deducted,
+        remainingPoints: updatedUser.points,
+        totalCompleted,
+        mintedBadgeIds: milestoneBadgeId ? ['reading', milestoneBadgeId] : ['reading'],
+        milestoneBadgeId,
+      });
+    } catch (error) { next(error); }
+  });
+
+  app.post('/api/reading-challenge/:participationId/chapters', requireAuth, async (request, response, next) => {
+    try {
+      const input = z.object({
+        action: z.enum(['complete', 'uncomplete', 'set_current', 'complete_up_to']),
+        chapter: z.number().int().min(1).max(27),
+        readingSecondsDelta: z.number().int().min(0).max(3600).optional(),
+      }).parse(request.body);
+      const state = await readingChallenge.updateChapterProgress(
+        userOf(request).id,
+        String(request.params.participationId),
+        input,
+      );
+      response.json(state);
+    } catch (error) { next(error); }
+  });
+
+  app.post('/api/reading-challenge/:participationId/highlights', requireAuth, async (request, response, next) => {
+    try {
+      const input = z.object({
+        chapter: z.number().int().min(1).max(27),
+        text: z.string().min(1).max(320),
+      }).parse(request.body);
+      const state = await readingChallenge.addHighlight(
+        userOf(request).id,
+        String(request.params.participationId),
+        input.chapter,
+        input.text,
+      );
+      response.json(state);
+    } catch (error) { next(error); }
+  });
+
+  app.delete('/api/reading-challenge/:participationId/highlights/:highlightId', requireAuth, async (request, response, next) => {
+    try {
+      const state = await readingChallenge.removeHighlight(
+        userOf(request).id,
+        String(request.params.participationId),
+        String(request.params.highlightId),
+      );
+      response.json(state);
+    } catch (error) { next(error); }
+  });
+
+  app.get('/api/participations/:id/scene', requireAuth, (request, response) => {
+    const participationId = String(request.params.id);
+    const owned = store.database.prepare(
+      'SELECT id, activity_id AS activityId FROM participations WHERE id = ? AND user_id = ?',
+    ).get(participationId, userOf(request).id) as { id: string; activityId: string } | undefined;
+    if (!owned) throw httpError(404, '没有找到你的参与记录。');
+    const row = store.database.prepare(
+      'SELECT payload_json, verified_channel, verified_code, verified_digest, updated_at FROM activity_logs WHERE participation_id = ?',
+    ).get(participationId) as {
+      payload_json: string;
+      verified_channel: string | null;
+      verified_code: string | null;
+      verified_digest: string | null;
+      updated_at: string;
+    } | undefined;
+    let payload: Record<string, unknown> = {};
+    if (row?.payload_json) {
+      try { payload = JSON.parse(row.payload_json) as Record<string, unknown>; } catch { payload = {}; }
+    }
+    response.json({
+      participationId,
+      activityId: owned.activityId,
+      payload,
+      verifiedChannel: row?.verified_channel ?? null,
+      verifiedCode: row?.verified_code ?? null,
+      verifiedDigest: row?.verified_digest ?? null,
+      updatedAt: row?.updated_at ?? null,
+    });
+  });
+
+  app.put('/api/participations/:id/scene', requireAuth, (request, response, next) => {
+    try {
+      const participationId = String(request.params.id);
+      const owned = store.database.prepare(
+        'SELECT id, activity_id AS activityId FROM participations WHERE id = ? AND user_id = ?',
+      ).get(participationId, userOf(request).id) as { id: string; activityId: string } | undefined;
+      if (!owned) throw httpError(404, '没有找到你的参与记录。');
+
+      const input = z.object({
+        payload: z.record(z.string(), z.unknown()),
+        ticketCode: z.string().max(80).optional(),
+        verifyChannel: z.string().max(120).optional(),
+      }).parse(request.body);
+
+      const ticketCode = input.ticketCode?.trim() || (typeof input.payload.ticketCode === 'string' ? input.payload.ticketCode.trim() : '');
+      const hasTicket = owned.activityId === 'outing' && ticketCode.length >= 4;
+      const verifiedChannel = hasTicket
+        ? (input.verifyChannel?.trim() || '广州文旅门票核销节点 (ActivityHub EIP-712)')
+        : null;
+      const verifiedCode = hasTicket ? ticketCode : null;
+      const verifiedDigest = hasTicket
+        ? keccakId(`do-something:outing:ticket:${userOf(request).id}:${participationId}:${ticketCode}`)
+        : null;
+      const updatedAt = timestamp();
+
+      store.database.prepare(`
+        INSERT INTO activity_logs (participation_id, activity_id, payload_json, verified_channel, verified_code, verified_digest, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(participation_id) DO UPDATE SET
+          payload_json = excluded.payload_json,
+          verified_channel = excluded.verified_channel,
+          verified_code = excluded.verified_code,
+          verified_digest = excluded.verified_digest,
+          updated_at = excluded.updated_at
+      `).run(
+        participationId,
+        owned.activityId,
+        JSON.stringify(input.payload),
+        verifiedChannel,
+        verifiedCode,
+        verifiedDigest,
+        updatedAt,
+      );
+
+      response.json({
+        participationId,
+        activityId: owned.activityId,
+        payload: input.payload,
+        verifiedChannel,
+        verifiedCode,
+        verifiedDigest,
+        updatedAt,
+      });
+    } catch (error) { next(error); }
+  });
+
+  app.patch('/api/me/profile', requireAuth, (request, response, next) => {
+    try {
+      const input = z.object({
+        displayName: z.string().trim().min(1).max(24).optional(),
+        bio: z.string().trim().max(160).optional(),
+        goal: z.string().trim().max(160).optional(),
+      }).parse(request.body);
+      const current = userOf(request);
+      const nextName = input.displayName ?? current.display_name;
+      const nextBio = input.bio !== undefined ? input.bio : current.bio;
+      const nextGoal = input.goal !== undefined ? input.goal : current.goal;
+      store.database.prepare('UPDATE users SET display_name = ?, bio = ?, goal = ? WHERE id = ?')
+        .run(nextName, nextBio, nextGoal, current.id);
+      const updated = store.database.prepare('SELECT * FROM users WHERE id = ?').get(current.id) as unknown as UserRow;
+      response.json({ user: publicUser(updated) });
+    } catch (error) { next(error); }
+  });
+
+  app.post('/api/demo/reset-profile', requireAuth, (_request, response) => {
+    store.seedRichDemoProfile(true);
+    response.json({ ok: true });
+  });
+
   app.get('/api/echoes', requireAuth, (request, response, next) => {
     try {
       const activityId = z.string().min(1).max(80).parse(request.query.activityId);
@@ -415,39 +661,92 @@ export function createApp(options: AppOptions) {
         c.id AS completionId, c.declared_at AS declaredAt, c.verification_type AS verificationType,
         f.text AS reflectionText, f.visibility, f.deleted_at AS reflectionDeletedAt,
         r.receipt_id AS receiptId, r.chain_id AS chainId, r.contract_address AS contractAddress,
-        r.tx_hash AS txHash, r.status AS receiptStatus, r.mode AS receiptMode, r.error AS receiptError
+        r.tx_hash AS txHash, r.status AS receiptStatus, r.mode AS receiptMode, r.error AS receiptError,
+        l.payload_json AS scenePayloadJson, l.verified_channel AS sceneVerifiedChannel,
+        l.verified_code AS sceneVerifiedCode, l.verified_digest AS sceneVerifiedDigest,
+        rc.coverage_bps AS rcCoverageBps, rc.last_chapter_completed AS rcLastChapter,
+        rc.read_chapters_json AS rcReadChaptersJson, rc.current_chapter AS rcCurrentChapter,
+        rc.reading_claimed_at AS rcReadingClaimedAt, rc.review_claimed_at AS rcReviewClaimedAt,
+        rc.badge_token_id AS rcBadgeTokenId, rc.reward_reading_dsdemo AS rcRewardReading,
+        rc.reward_review_dsdemo AS rcRewardReview, rc.reading_tx_hash AS rcReadingTxHash,
+        rc.reading_block_number AS rcReadingBlockNumber, rc.reader_wallet AS rcReaderWallet,
+        rc.reading_proof_digest AS rcReadingProofDigest
       FROM participations p
       JOIN activities a ON a.id = p.activity_id
       LEFT JOIN completions c ON c.participation_id = p.id
       LEFT JOIN reflections f ON f.completion_id = c.id
       LEFT JOIN receipts r ON r.completion_id = c.id
+      LEFT JOIN activity_logs l ON l.participation_id = p.id
+      LEFT JOIN reading_challenges rc ON rc.participation_id = p.id
       WHERE p.user_id = ? ORDER BY p.created_at DESC, p.rowid DESC
     `).all(userOf(request).id) as Array<Record<string, unknown>>;
-    response.json(rows.map((row) => ({
-      participationId: row.participationId,
-      participationStatus: row.participationStatus,
-      joinedAt: row.joinedAt,
-      activity: { id: row.activityId, title: row.activityTitle, category: row.category, duration: row.duration, ruleVersion: row.ruleVersion },
-      completion: row.completionId ? {
-        id: row.completionId,
-        declaredAt: row.declaredAt,
-        verificationType: row.verificationType,
-        reflection: {
-          text: row.reflectionText,
-          visibility: row.visibility,
-          deletedAt: row.reflectionDeletedAt,
-        },
-        receipt: {
-          receiptId: row.receiptId,
-          chainId: row.chainId,
-          contractAddress: row.contractAddress,
-          txHash: row.txHash,
-          status: row.receiptStatus || 'not_requested',
-          mode: row.receiptMode || mode,
-          error: row.receiptError,
-        },
-      } : null,
-    })));
+    response.json(rows.map((row) => {
+      let scenePayload: Record<string, unknown> | null = null;
+      if (typeof row.scenePayloadJson === 'string') {
+        try { scenePayload = JSON.parse(row.scenePayloadJson) as Record<string, unknown>; } catch { scenePayload = null; }
+      }
+      let readChaptersCount = 0;
+      if (typeof row.rcReadChaptersJson === 'string') {
+        try {
+          const parsed = JSON.parse(row.rcReadChaptersJson);
+          if (Array.isArray(parsed)) readChaptersCount = parsed.length;
+        } catch { readChaptersCount = 0; }
+      }
+      const hasRc = typeof row.rcCoverageBps === 'number';
+      const readingClaimed = Boolean(row.rcReadingClaimedAt);
+      const reviewClaimed = Boolean(row.rcReviewClaimedAt);
+      const earnedDsdemo =
+        (readingClaimed ? Number(row.rcRewardReading ?? 10) : 0) +
+        (reviewClaimed ? Number(row.rcRewardReview ?? 2) : 0);
+
+      return {
+        participationId: row.participationId,
+        participationStatus: row.participationStatus,
+        joinedAt: row.joinedAt,
+        activity: { id: row.activityId, title: row.activityTitle, category: row.category, duration: row.duration, ruleVersion: row.ruleVersion },
+        sceneData: scenePayload ? {
+          payload: scenePayload,
+          verifiedChannel: row.sceneVerifiedChannel ?? null,
+          verifiedCode: row.sceneVerifiedCode ?? null,
+          verifiedDigest: row.sceneVerifiedDigest ?? null,
+        } : null,
+        readingSummary: hasRc ? {
+          readChaptersCount,
+          totalChapters: 27,
+          currentChapter: Number(row.rcCurrentChapter ?? 1),
+          coveragePercent: Math.round(Number(row.rcCoverageBps) / 100),
+          lastChapterCompleted: Number(row.rcLastChapter) === 1,
+          readingClaimed,
+          reviewClaimed,
+          badgeTokenId: row.rcBadgeTokenId ?? null,
+          readingTxHash: row.rcReadingTxHash ?? null,
+          readingBlockNumber: row.rcReadingBlockNumber ?? null,
+          readerWallet: row.rcReaderWallet ?? null,
+          readingProofDigest: row.rcReadingProofDigest ?? null,
+          readingClaimedAt: row.rcReadingClaimedAt ?? null,
+          earnedDsdemo,
+        } : null,
+        completion: row.completionId ? {
+          id: row.completionId,
+          declaredAt: row.declaredAt,
+          verificationType: row.verificationType,
+          reflection: {
+            text: row.reflectionText,
+            visibility: row.visibility,
+            deletedAt: row.reflectionDeletedAt,
+          },
+          receipt: {
+            receiptId: row.receiptId,
+            chainId: row.chainId,
+            contractAddress: row.contractAddress,
+            txHash: row.txHash,
+            status: row.receiptStatus || 'not_requested',
+            mode: row.receiptMode || mode,
+            error: row.receiptError,
+          },
+        } : null,
+      };
+    }));
   });
 
   app.delete('/api/account', requireAuth, (request, response) => {

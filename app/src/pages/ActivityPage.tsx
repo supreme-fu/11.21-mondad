@@ -3,6 +3,7 @@ import { ArrowLeft, ArrowRight, BookOpenCheck, Check, Clock3, ExternalLink, File
 import { Link, useParams } from 'react-router';
 import { toast } from 'sonner';
 import { ActivityGlyph } from '@/components/ActivityGlyph';
+import { LittlePrinceReader } from '@/components/LittlePrinceReader';
 import { Button } from '@/components/ui/button';
 import { useApp } from '@/context/AppContext';
 import { api } from '@/lib/api';
@@ -11,7 +12,7 @@ import type { ActivityDetail } from '@/types';
 
 export default function ActivityPage() {
   const { id = '' } = useParams();
-  const { refreshRecords } = useApp();
+  const { records, refreshRecords } = useApp();
   const [activity, setActivity] = useState<ActivityDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [pending, setPending] = useState(false);
@@ -57,6 +58,12 @@ export default function ActivityPage() {
   const history = activity.history ?? [];
   const latestCompletedId = history[0]?.participationId ?? (participation?.completionId ? participation.id : null);
   const dateFormat = new Intl.DateTimeFormat('zh-CN', { month: 'long', day: 'numeric' });
+  const readingParticipationId = activity.id === 'reading'
+    ? (activeParticipation?.id ?? latestCompletedId ?? participation?.id ?? null)
+    : null;
+  const readingRecord = readingParticipationId
+    ? records.find((item) => item.participationId === readingParticipationId) ?? null
+    : null;
 
   return (
     <div className="activity-page page-container">
@@ -94,6 +101,19 @@ export default function ActivityPage() {
           )}
         </aside>
       </section>
+
+      {activity.id === 'reading' && readingParticipationId && (
+        <section className="my-6" aria-label="《小王子》全本共读工作台">
+          <LittlePrinceReader
+            key={readingParticipationId}
+            participationId={readingParticipationId}
+            completion={readingRecord?.completion ?? null}
+            onRecordChanged={async () => {
+              await Promise.all([refreshRecords(), load()]);
+            }}
+          />
+        </section>
+      )}
 
       {history.length > 0 && (
         <section className="activity-history" aria-labelledby="activity-history-title">

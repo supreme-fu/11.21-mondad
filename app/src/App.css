@@ -958,3 +958,744 @@
 .gas-sponsorship-action button {
   @apply whitespace-normal text-left h-auto min-h-9 py-2;
 }
+
+/* ===== 2026-11-21 产品化工作台、全本《小王子》阅读器与三场景交互样式 ===== */
+.header-right-controls {
+  @apply flex items-center gap-2.5;
+}
+.network-status-pill {
+  @apply hidden md:inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[0.72rem] font-medium text-muted-foreground;
+  background: oklch(var(--secondary) / .55);
+}
+.status-dot-live {
+  @apply size-2 rounded-full;
+  background: oklch(var(--moss-700));
+}
+
+/* 首页：紧凑产品工作台 */
+.dashboard-page {
+  @apply grid gap-6 py-6 md:py-8;
+}
+.dash-profile-bar {
+  @apply flex flex-col gap-4 rounded-2xl border bg-card p-5 lg:flex-row lg:items-center lg:justify-between;
+}
+.dash-profile-main {
+  @apply flex items-start gap-3.5 min-w-0;
+}
+.dash-avatar {
+  @apply flex size-11 shrink-0 items-center justify-center rounded-full font-display text-lg font-semibold text-white;
+  background: oklch(var(--moss-700));
+}
+.dash-avatar.is-lg {
+  @apply size-14 text-xl;
+}
+.dash-name-row {
+  @apply flex flex-wrap items-center gap-2;
+}
+.dash-name-row h1 {
+  @apply font-display text-xl md:text-2xl font-semibold text-foreground;
+}
+.dash-did {
+  @apply rounded-md border px-2 py-0.5 text-[0.7rem] text-muted-foreground;
+  background: oklch(var(--secondary) / .5);
+}
+.dash-goal {
+  @apply mt-1 text-xs md:text-sm text-muted-foreground;
+}
+.dash-profile-stats {
+  @apply flex flex-wrap items-center gap-4 shrink-0;
+}
+.dash-stat {
+  @apply grid text-left;
+}
+.dash-stat strong {
+  @apply font-display text-lg font-semibold text-foreground leading-tight;
+}
+.dash-stat span {
+  @apply text-[0.7rem] text-muted-foreground;
+}
+.dash-archive-btn {
+  @apply text-xs px-3.5 py-2;
+}
+
+/* 主推《小王子》共读卡 */
+.dash-featured-reading {
+  @apply grid gap-5 rounded-2xl border bg-card p-5 md:grid-cols-[120px_1fr_auto] md:items-center;
+  border-color: oklch(var(--moss-700) / .3);
+  background: linear-gradient(135deg, oklch(var(--card)), oklch(var(--secondary) / .4));
+}
+.dash-book-cover {
+  @apply flex h-36 w-28 flex-col items-center justify-between rounded-xl border p-3 text-center shadow-sm;
+  background: linear-gradient(160deg, #1f2d27, #2f483d);
+  color: #f6efe2;
+  border-color: rgba(255, 255, 255, .14);
+}
+.dash-book-cover span {
+  @apply text-[0.65rem] tracking-[0.2em] opacity-75;
+}
+.dash-book-cover strong {
+  @apply font-display text-2xl tracking-wider;
+}
+.dash-book-cover small {
+  @apply text-[0.6rem] tracking-[0.14em] opacity-75;
+}
+.dash-book-body {
+  @apply grid gap-2.5 min-w-0;
+}
+.dash-book-tags {
+  @apply flex flex-wrap items-center gap-2;
+}
+.dash-book-body h2 {
+  @apply font-display text-xl md:text-2xl text-foreground;
+}
+.dash-book-sub {
+  @apply text-xs md:text-sm text-muted-foreground;
+}
+.dash-reading-progress-row {
+  @apply flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground;
+}
+.dash-book-actions {
+  @apply flex items-center;
+}
+
+/* 四大场景网格 */
+.dash-scenes-section {
+  @apply grid gap-3.5;
+}
+.dash-section-head {
+  @apply flex flex-wrap items-baseline justify-between gap-2;
+}
+.dash-section-head h2 {
+  @apply font-display text-xl text-foreground;
+}
+.dash-section-head span {
+  @apply text-xs text-muted-foreground;
+}
+.dash-scene-grid {
+  @apply grid gap-4 md:grid-cols-2;
+}
+.dash-scene-card {
+  @apply flex flex-col gap-2.5 rounded-2xl border bg-card p-5 transition-all hover:shadow-md;
+}
+.dash-scene-card:hover {
+  border-color: oklch(var(--moss-700) / .45);
+  transform: translateY(-1px);
+}
+.dash-scene-card-top {
+  @apply flex items-start justify-between gap-2;
+}
+.dash-scene-badges {
+  @apply flex flex-wrap justify-end gap-1.5;
+}
+.dash-scene-card h3 {
+  @apply font-display text-lg font-semibold text-foreground;
+}
+.dash-scene-cap {
+  @apply text-xs text-muted-foreground;
+}
+.dash-scene-latest {
+  @apply rounded-lg border px-2.5 py-1.5 text-xs text-foreground;
+  background: oklch(var(--secondary) / .45);
+}
+.dash-scene-cta {
+  @apply mt-auto pt-1 flex items-center justify-between text-xs font-medium;
+  color: oklch(var(--moss-700));
+}
+
+.dash-quick-strip {
+  @apply grid gap-3 md:grid-cols-3;
+}
+.dash-quick-tile {
+  @apply flex items-center gap-3 rounded-xl border bg-card px-4 py-3 text-xs transition-colors;
+}
+.dash-quick-tile > svg:first-child {
+  @apply shrink-0;
+  color: oklch(var(--moss-700));
+}
+.dash-quick-tile > div {
+  @apply grid gap-0.5 min-w-0 flex-1;
+}
+.dash-quick-tile strong {
+  @apply text-foreground font-medium;
+}
+.dash-quick-tile span {
+  @apply text-[0.7rem] text-muted-foreground truncate;
+}
+
+/* 工作台顶栏 */
+.activity-workspace-page {
+  @apply grid gap-5 py-5 md:py-6;
+}
+.workspace-topbar {
+  @apply flex flex-wrap items-center justify-between gap-3 border-b pb-4;
+}
+.workspace-topbar-left {
+  @apply flex flex-wrap items-center gap-4;
+}
+.workspace-title-block {
+  @apply flex items-center gap-3;
+}
+.workspace-title-block h1 {
+  @apply font-display text-xl md:text-2xl font-semibold text-foreground;
+}
+.workspace-title-block span {
+  @apply text-xs text-muted-foreground;
+}
+.workspace-topbar-actions {
+  @apply flex items-center gap-3;
+}
+
+/* 《小王子》三栏全本阅读器 */
+.reader-loading, .scene-loading {
+  @apply flex items-center justify-center gap-2.5 rounded-2xl border bg-card py-16 text-sm text-muted-foreground;
+}
+.lp-reader-shell {
+  @apply grid gap-4;
+}
+.lp-topbar {
+  @apply flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-card px-4 py-3;
+}
+.lp-topbar-left {
+  @apply flex items-center gap-3;
+}
+.lp-toc-toggle {
+  @apply inline-flex lg:hidden items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-medium;
+}
+.lp-book-title-group {
+  @apply flex flex-wrap items-baseline gap-2;
+}
+.lp-book-title-group strong {
+  @apply font-display text-base text-foreground;
+}
+.lp-book-title-group span {
+  @apply text-xs text-muted-foreground;
+}
+.lp-topbar-metrics {
+  @apply flex flex-wrap items-center gap-2;
+}
+.lp-pill {
+  @apply inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[0.72rem] font-medium text-muted-foreground;
+  background: oklch(var(--secondary) / .5);
+}
+.lp-pill.is-ok {
+  color: oklch(var(--moss-700));
+  border-color: oklch(var(--moss-700) / .35);
+  background: oklch(var(--moss-700) / .1);
+}
+.lp-pill.is-lock {
+  color: #9a5b13;
+  border-color: rgba(180, 110, 20, .35);
+  background: rgba(245, 190, 80, .14);
+}
+.lp-pill.is-reward {
+  color: oklch(var(--moss-700));
+  border-color: oklch(var(--moss-700) / .4);
+  background: oklch(var(--moss-700) / .12);
+}
+
+.lp-progress-bar {
+  @apply h-2 w-full overflow-hidden rounded-full;
+  background: oklch(var(--secondary));
+}
+.lp-progress-fill {
+  @apply h-full rounded-full transition-all duration-300;
+  background: oklch(var(--moss-700));
+}
+
+.lp-workspace-grid {
+  @apply grid gap-4 lg:grid-cols-[248px_minmax(0,1fr)_320px] items-start;
+}
+.lp-toc-panel {
+  @apply hidden lg:flex flex-col rounded-2xl border bg-card overflow-hidden lg:sticky lg:top-20 max-h-[calc(100vh-6rem)];
+}
+.lp-toc-panel.is-open {
+  @apply flex;
+}
+.lp-toc-head {
+  @apply grid gap-2.5 border-b p-3;
+}
+.lp-toc-quick {
+  @apply flex flex-wrap gap-1.5;
+}
+.lp-quick-btn {
+  @apply rounded-lg border px-2.5 py-1 text-[0.72rem] font-medium text-foreground transition-colors;
+}
+.lp-quick-btn.is-accent {
+  border-color: oklch(var(--moss-700) / .45);
+  color: oklch(var(--moss-700));
+  background: oklch(var(--moss-700) / .08);
+}
+.lp-toc-list {
+  @apply overflow-y-auto p-2 grid gap-1;
+}
+.lp-toc-item {
+  @apply flex w-full items-start gap-2.5 rounded-xl px-2.5 py-2 text-left transition-colors;
+}
+.lp-toc-item.is-active {
+  background: oklch(var(--moss-700) / .12);
+}
+.lp-toc-status {
+  @apply mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full border text-[0.65rem] font-medium text-muted-foreground;
+}
+.lp-toc-item.is-read .lp-toc-status {
+  background: oklch(var(--moss-700));
+  border-color: oklch(var(--moss-700));
+  color: #fff;
+}
+.lp-toc-label {
+  @apply grid min-w-0;
+}
+.lp-toc-label strong {
+  @apply text-xs font-medium text-foreground truncate;
+}
+.lp-toc-label small {
+  @apply text-[0.68rem] text-muted-foreground truncate;
+}
+
+.lp-book-stage {
+  @apply rounded-2xl border bg-card p-5 md:p-8 min-w-0;
+}
+.lp-chapter-header {
+  @apply flex flex-wrap items-start justify-between gap-3 border-b pb-4 mb-6;
+}
+.lp-chapter-kicker {
+  @apply text-[0.7rem] tracking-wider uppercase text-muted-foreground;
+}
+.lp-chapter-header h2 {
+  @apply mt-1 font-display text-xl md:text-2xl text-foreground;
+}
+.lp-font-controls {
+  @apply inline-flex rounded-lg border overflow-hidden;
+}
+.lp-font-controls button {
+  @apply px-2.5 py-1 text-xs text-muted-foreground;
+}
+.lp-font-controls button.is-active {
+  @apply font-semibold text-foreground;
+  background: oklch(var(--secondary));
+}
+.lp-dedication {
+  @apply mb-6 rounded-xl border-l-2 px-4 py-3 text-sm italic text-muted-foreground grid gap-2;
+  border-color: oklch(var(--moss-700) / .5);
+  background: oklch(var(--secondary) / .35);
+}
+.lp-paragraphs {
+  @apply grid gap-3.5 font-serif text-foreground;
+}
+.lp-book-stage.font-sm .lp-paragraphs { @apply text-[0.94rem] leading-7; }
+.lp-book-stage.font-md .lp-paragraphs { @apply text-[1.06rem] leading-8; }
+.lp-book-stage.font-lg .lp-paragraphs { @apply text-[1.18rem] leading-9; }
+
+.lp-para-wrap {
+  @apply relative cursor-pointer rounded-lg px-2.5 py-1.5 -mx-2.5 transition-colors;
+}
+.lp-para-wrap.is-selected {
+  background: oklch(var(--moss-700) / .1);
+}
+.lp-para-wrap p {
+  text-indent: 2em;
+}
+.lp-para-actions {
+  @apply mt-2 flex flex-wrap items-center gap-2;
+}
+.lp-para-actions button {
+  @apply inline-flex items-center gap-1 rounded-full border bg-card px-2.5 py-1 text-xs font-sans font-medium text-foreground shadow-sm;
+}
+
+.lp-chapter-footer {
+  @apply mt-8 flex flex-wrap items-center justify-between gap-3 border-t pt-5;
+}
+.lp-chapter-finish-group {
+  @apply flex items-center gap-2.5;
+}
+.lp-chapter-done-badge {
+  @apply inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium;
+  color: oklch(var(--moss-700));
+  background: oklch(var(--moss-700) / .12);
+}
+.lp-text-action {
+  @apply inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground underline-offset-2 hover:underline;
+}
+
+/* 右侧实时核验台 */
+.lp-console-panel {
+  @apply grid gap-3.5 lg:sticky lg:top-20;
+}
+.lp-card {
+  @apply rounded-2xl border bg-card p-4 grid gap-3;
+}
+.lp-card-head {
+  @apply flex items-center justify-between gap-2 text-xs font-semibold text-foreground;
+}
+.lp-card-head span {
+  @apply inline-flex items-center gap-1.5;
+}
+.lp-reward-num {
+  @apply text-xs font-semibold;
+  color: oklch(var(--moss-700));
+}
+.lp-criteria-list {
+  @apply grid gap-1.5 text-xs;
+}
+.lp-criteria-list li {
+  @apply flex items-center gap-2 rounded-lg px-2.5 py-1.5;
+}
+.lp-criteria-list li.is-pass {
+  color: oklch(var(--moss-700));
+  background: oklch(var(--moss-700) / .09);
+}
+.lp-criteria-list li.is-wait {
+  color: #9a5b13;
+  background: rgba(245, 190, 80, .14);
+}
+.lp-claimed-box {
+  @apply grid gap-1.5 rounded-xl border p-3 text-xs;
+  background: oklch(var(--secondary) / .45);
+}
+.lp-claimed-row {
+  @apply flex items-center justify-between gap-2;
+}
+.lp-claimed-row span { @apply text-muted-foreground; }
+.lp-claimed-row code { @apply text-[0.68rem] bg-card px-1.5 py-0.5 rounded; }
+
+.lp-review-input {
+  @apply w-full rounded-xl border bg-background px-3 py-2 text-xs leading-relaxed text-foreground focus:outline-none focus:ring-2;
+}
+.lp-review-meta {
+  @apply flex items-center justify-between text-[0.72rem] text-muted-foreground;
+}
+.lp-share-toggle {
+  @apply inline-flex items-center gap-1.5 text-xs text-muted-foreground cursor-pointer select-none;
+}
+.lp-review-actions {
+  @apply flex flex-wrap gap-2;
+}
+.lp-empty-hint {
+  @apply text-xs text-muted-foreground;
+}
+.lp-highlight-list {
+  @apply grid gap-2 max-h-52 overflow-y-auto;
+}
+.lp-highlight-list li {
+  @apply rounded-xl border p-2.5 text-xs grid gap-1.5;
+  background: oklch(var(--secondary) / .35);
+}
+.lp-highlight-list p {
+  @apply text-foreground leading-relaxed line-clamp-3;
+}
+.lp-highlight-foot {
+  @apply flex items-center justify-between text-[0.7rem] text-muted-foreground;
+}
+.lp-highlight-foot button {
+  @apply hover:text-foreground px-1;
+}
+.lp-highlight-foot > div {
+  @apply flex items-center gap-2;
+}
+.lp-echo-mini blockquote {
+  @apply text-xs leading-relaxed text-foreground italic border-l-2 pl-2.5;
+  border-color: oklch(var(--moss-700) / .45);
+}
+.lp-contract-chips {
+  @apply flex flex-wrap gap-1.5;
+}
+.lp-contract-chips a {
+  @apply inline-flex items-center gap-1 rounded-md border px-2 py-1 text-[0.68rem] text-muted-foreground hover:text-foreground;
+}
+
+/* 做菜 / 相见 / 出行 真实工作台 */
+.scene-workspace {
+  @apply grid gap-4;
+}
+.scene-grid {
+  @apply grid gap-4 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,0.85fr)] items-start;
+}
+.scene-side {
+  @apply grid gap-4;
+}
+.scene-card {
+  @apply rounded-2xl border bg-card p-5 grid gap-4;
+}
+.scene-card-head {
+  @apply flex items-center justify-between gap-2;
+}
+.scene-card-head h3 {
+  @apply inline-flex items-center gap-1.5 text-sm font-semibold text-foreground;
+}
+.scene-card-head > span {
+  @apply text-xs text-muted-foreground;
+}
+.scene-field {
+  @apply grid gap-2;
+}
+.scene-field label {
+  @apply text-xs font-medium text-foreground;
+}
+.scene-two-col {
+  @apply grid gap-3 sm:grid-cols-2;
+}
+.scene-chips {
+  @apply flex flex-wrap gap-1.5;
+}
+.scene-chip {
+  @apply rounded-full border px-2.5 py-1 text-xs text-muted-foreground transition-colors;
+}
+.scene-chip.is-active {
+  color: oklch(var(--moss-700));
+  border-color: oklch(var(--moss-700) / .45);
+  background: oklch(var(--moss-700) / .12);
+  font-weight: 500;
+}
+.scene-checklist {
+  @apply grid gap-1.5;
+}
+.scene-checklist li {
+  @apply flex items-center justify-between gap-2 rounded-xl border px-3 py-2 text-xs;
+  background: oklch(var(--secondary) / .28);
+}
+.scene-checklist li.is-done {
+  @apply opacity-75 line-through;
+}
+.scene-check-btn {
+  @apply flex items-center gap-2.5 text-left flex-1 min-w-0;
+}
+.scene-check-box {
+  @apply flex size-4 shrink-0 items-center justify-center rounded border;
+}
+.scene-checklist li.is-done .scene-check-box {
+  background: oklch(var(--moss-700));
+  border-color: oklch(var(--moss-700));
+  color: #fff;
+}
+.scene-remove-btn {
+  @apply text-muted-foreground hover:text-destructive p-1;
+}
+.scene-inline-add {
+  @apply flex items-center gap-2;
+}
+.scene-inline-add .form-field {
+  @apply flex-1;
+}
+.scene-timer-display {
+  @apply text-center font-mono text-4xl font-semibold tracking-wider text-foreground py-2;
+}
+.scene-timer-actions {
+  @apply flex items-center gap-2;
+}
+.scene-invite-preview {
+  @apply rounded-xl border p-3.5 text-xs leading-relaxed text-foreground italic;
+  background: oklch(var(--secondary) / .4);
+}
+.scene-submit-row {
+  @apply flex flex-wrap items-center justify-end gap-2 pt-2 border-t;
+}
+.compact-history {
+  @apply mt-2;
+}
+
+/* 个人档案头卡 */
+.profile-hero-card {
+  @apply grid gap-5 rounded-2xl border bg-card p-5 md:p-6 mb-6;
+}
+.profile-hero-top {
+  @apply flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between;
+}
+.profile-identity-left {
+  @apply flex items-start gap-4 min-w-0 flex-1;
+}
+.profile-bio {
+  @apply mt-1.5 text-sm text-foreground;
+}
+.profile-goal {
+  @apply mt-1 text-xs text-muted-foreground;
+}
+.profile-edit-form {
+  @apply mt-2 grid gap-2 max-w-lg;
+}
+.profile-edit-actions {
+  @apply flex items-center gap-2 pt-1;
+}
+.record-scene-summary, .completion-scene-summary {
+  @apply mt-1 text-xs font-medium;
+  color: oklch(var(--moss-700));
+}
+
+.dash-quick-tile:hover,
+.lp-quick-btn:hover,
+.lp-toc-item:hover,
+.lp-font-controls button:hover,
+.lp-para-wrap:hover,
+.lp-para-actions button:hover,
+.lp-contract-chips a:hover,
+.scene-chip:hover {
+  background: oklch(var(--secondary) / .55);
+}
+
+
+/* ===== 高光版 ReadingBadge 铸造仪式弹窗 & 链上镌刻铭牌 ===== */
+@keyframes mintHaloPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 1px rgba(196, 154, 72, .42), 0 24px 80px -16px rgba(196, 154, 72, .32), 0 0 42px rgba(var(--badge-glow, 90, 125, 102), .22);
+  }
+  50% {
+    box-shadow: 0 0 0 1px rgba(220, 178, 92, .72), 0 28px 92px -14px rgba(196, 154, 72, .48), 0 0 64px rgba(var(--badge-glow, 90, 125, 102), .34);
+  }
+}
+
+.badge-dialog.badge-dialog-spotlight {
+  border-color: rgba(196, 154, 72, .65);
+  animation: mintHaloPulse 3.2s ease-in-out infinite;
+}
+
+.badge-mint-banner {
+  @apply flex flex-wrap items-center justify-between gap-2 pl-5 pr-11 py-3 text-xs border-b rounded-t-xl;
+  background: linear-gradient(90deg, rgba(31, 56, 44, .95), rgba(54, 46, 26, .95));
+  color: #f7eedb;
+  border-color: rgba(212, 173, 94, .35);
+}
+.badge-mint-banner-left {
+  @apply inline-flex items-center gap-2;
+}
+.badge-mint-banner-left svg {
+  color: #e6c16c;
+}
+.badge-mint-banner-pill {
+  @apply inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[0.72rem] font-medium;
+  background: rgba(230, 193, 108, .18);
+  border: 1px solid rgba(230, 193, 108, .42);
+  color: #f7df9f;
+}
+
+.badge-stage-frame.is-minted-stage {
+  border-color: rgba(196, 154, 72, .45);
+  box-shadow: inset 0 0 56px rgba(212, 173, 94, .12);
+}
+
+.badge-stage-engraving {
+  @apply mx-4 mb-2 flex flex-wrap items-center justify-between gap-2 rounded-lg border px-3 py-1.5 font-mono text-[0.68rem] tracking-wider uppercase;
+  background: linear-gradient(90deg, rgba(24, 34, 29, .86), rgba(38, 34, 24, .88));
+  border-color: rgba(212, 173, 94, .38);
+  color: #e9d39c;
+}
+.badge-stage-engraving code {
+  color: #fff3d1;
+}
+
+.badge-inscription-plaque {
+  @apply rounded-xl border p-3.5 grid gap-2.5;
+  background: linear-gradient(145deg, oklch(var(--secondary) / .7), rgba(196, 154, 72, .08));
+  border-color: rgba(196, 154, 72, .42);
+}
+.badge-inscription-head {
+  @apply flex flex-wrap items-center justify-between gap-2 border-b pb-2 text-[0.7rem] font-semibold tracking-wide;
+  border-color: rgba(196, 154, 72, .25);
+  color: oklch(var(--foreground));
+}
+.badge-inscription-head > span:first-child {
+  @apply inline-flex items-center gap-1.5;
+  color: oklch(var(--moss-700));
+}
+.badge-inscription-chain {
+  @apply rounded-full border px-2 py-0.5 text-[0.65rem] font-medium text-muted-foreground;
+  background: oklch(var(--card));
+}
+.badge-inscription-grid {
+  @apply grid grid-cols-2 gap-x-3 gap-y-2.5 text-xs;
+}
+.badge-inscription-grid > div {
+  @apply grid gap-0.5 min-w-0;
+}
+.badge-inscription-grid > div.is-full {
+  @apply col-span-2;
+}
+.badge-inscription-grid dt {
+  @apply text-[0.66rem] uppercase tracking-wider text-muted-foreground;
+}
+.badge-inscription-grid dd {
+  @apply flex items-center gap-1.5 min-w-0 font-medium text-foreground;
+}
+.badge-inscription-grid code {
+  @apply rounded border bg-card px-1.5 py-0.5 font-mono text-[0.7rem] truncate;
+}
+.badge-soulbound-chip {
+  @apply rounded-full px-1.5 py-0.5 text-[0.62rem] font-medium;
+  background: oklch(var(--moss-700) / .14);
+  color: oklch(var(--moss-700));
+}
+.badge-inscription-link {
+  @apply inline-flex items-center gap-1 min-w-0 hover:underline;
+  color: oklch(var(--moss-700));
+}
+.badge-copy-mini {
+  @apply inline-flex size-6 shrink-0 items-center justify-center rounded-md border bg-card text-muted-foreground transition-colors;
+}
+.badge-copy-mini:hover {
+  color: oklch(var(--foreground));
+  background: oklch(var(--secondary) / .75);
+}
+
+
+/* ===== 上链扣点确认框 & 双勋章铸造仪式切换条 ===== */
+.onchain-confirm-dialog {
+  @apply max-w-lg;
+}
+.onchain-points-box {
+  @apply grid grid-cols-3 gap-2 rounded-xl border p-3.5 text-center text-xs;
+  background: oklch(var(--secondary) / .5);
+}
+.onchain-points-box > div {
+  @apply grid gap-1;
+}
+.onchain-points-box span {
+  @apply text-[0.7rem] text-muted-foreground;
+}
+.onchain-points-box strong {
+  @apply font-display text-lg text-foreground;
+}
+.onchain-points-box strong.is-cost {
+  color: #b45309;
+}
+.onchain-badges-preview {
+  @apply grid gap-2;
+}
+.onchain-badges-preview-title {
+  @apply text-xs font-medium text-foreground;
+}
+.onchain-badges-preview-grid {
+  @apply grid gap-2.5 sm:grid-cols-2;
+}
+.onchain-badge-preview-item {
+  @apply grid gap-1.5 rounded-xl border p-3 text-left;
+  background: oklch(var(--secondary) / .35);
+  border-color: rgba(196, 154, 72, .35);
+}
+.onchain-badge-preview-item strong {
+  @apply font-display text-sm text-foreground;
+}
+.onchain-badge-preview-item small {
+  @apply text-[0.7rem] text-muted-foreground;
+}
+
+.badge-ceremony-switcher {
+  @apply grid grid-cols-2 gap-2.5 px-5 py-3 border-b;
+  background: oklch(var(--secondary) / .45);
+}
+.badge-ceremony-tab {
+  @apply flex flex-col items-start gap-0.5 rounded-xl border px-3.5 py-2.5 text-left transition-all;
+  background: oklch(var(--card));
+}
+.badge-ceremony-tab.is-active {
+  border-color: rgba(196, 154, 72, .75);
+  box-shadow: 0 0 0 1px rgba(196, 154, 72, .35);
+  background: linear-gradient(135deg, oklch(var(--card)), rgba(212, 173, 94, .12));
+}
+.badge-ceremony-role {
+  @apply text-[0.66rem] font-semibold uppercase tracking-wider;
+  color: oklch(var(--moss-700));
+}
+.badge-ceremony-tab strong {
+  @apply font-display text-sm text-foreground;
+}
+.badge-ceremony-tab small {
+  @apply text-[0.68rem] text-muted-foreground;
+}

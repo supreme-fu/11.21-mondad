@@ -15,6 +15,8 @@ interface AppContextValue {
   setTheme: (theme: ThemeName) => void;
   selectAccount: (account: 'a' | 'b') => Promise<void>;
   refreshRecords: () => Promise<void>;
+  refreshSession: () => Promise<void>;
+  updateProfile: (payload: { displayName?: string; bio?: string; goal?: string }) => Promise<void>;
   clearUser: () => void;
 }
 
@@ -42,6 +44,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const refreshRecords = useCallback(async () => {
     const nextRecords = await api.records();
     setRecords(nextRecords);
+  }, []);
+
+  const refreshSession = useCallback(async () => {
+    const session = await api.session();
+    if (session.user) {
+      setUser(session.user);
+      setReceiptMode(session.receiptMode);
+    }
+  }, []);
+
+  const updateProfile = useCallback(async (payload: { displayName?: string; bio?: string; goal?: string }) => {
+    const { user: nextUser } = await api.updateProfile(payload);
+    setUser(nextUser);
   }, []);
 
   const selectAccount = useCallback(async (account: 'a' | 'b') => {
@@ -81,7 +96,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   return (
     <AppContext.Provider value={{
-      user, receiptMode, activities, records, loading, error, theme, setTheme, selectAccount, refreshRecords,
+      user, receiptMode, activities, records, loading, error, theme, setTheme, selectAccount, refreshRecords, refreshSession, updateProfile,
       clearUser: () => { setUser(null); setRecords([]); },
     }}>
       {children}
