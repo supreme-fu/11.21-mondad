@@ -924,3 +924,37 @@
 .record-provenance-badge {
   border-color: oklch(var(--moss-700) / .28);
 }
+
+/* 完成页与个人档案页：无感代付费用机制与 $6 / 60 次生活胶卷包 */
+.receipt-sponsorship-note {
+  @apply mt-2.5 rounded-lg border px-3 py-2 text-xs leading-relaxed text-muted-foreground;
+  background: oklch(var(--secondary) / .45);
+}
+.receipt-sponsorship-note strong {
+  @apply text-foreground;
+}
+.receipt-sponsorship-note code {
+  @apply rounded bg-card px-1 py-0.5 text-[0.68rem] text-foreground;
+}
+.gas-sponsorship-banner {
+  @apply flex flex-col gap-4 rounded-xl border p-4 lg:flex-row lg:items-center lg:justify-between;
+  background: oklch(var(--secondary) / .45);
+}
+.gas-sponsorship-copy {
+  @apply min-w-0 max-w-4xl grid gap-2;
+}
+.gas-sponsorship-copy p {
+  @apply text-xs leading-relaxed text-muted-foreground;
+}
+.gas-sponsorship-copy code {
+  @apply rounded bg-card px-1 py-0.5 text-[0.68rem] text-foreground;
+}
+.gas-quota-pills {
+  @apply flex flex-wrap items-center gap-2 pt-1;
+}
+.gas-sponsorship-action {
+  @apply shrink-0;
+}
+.gas-sponsorship-action button {
+  @apply whitespace-normal text-left h-auto min-h-9 py-2;
+}
