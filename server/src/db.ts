@@ -1,7 +1,7 @@
 import { DatabaseSync } from 'node:sqlite';
 import { mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
-import { id as keccakId, Wallet } from 'ethers';
+import { id as keccakId } from 'ethers';
 
 const now = () => new Date().toISOString();
 const hoursAgo = (hours: number) => new Date(Date.now() - hours * 60 * 60 * 1000).toISOString();
@@ -51,10 +51,10 @@ const activities = [
 
 export class Store {
   readonly database: DatabaseSync;
-  private readonly seedRichProfile: boolean;
+  readonly isRichDemoMode: boolean;
 
   constructor(path: string, options?: { seedRichProfile?: boolean }) {
-    this.seedRichProfile = Boolean(options?.seedRichProfile);
+    this.isRichDemoMode = Boolean(options?.seedRichProfile);
     if (path !== ':memory:') mkdirSync(dirname(path), { recursive: true });
     this.database = new DatabaseSync(path);
     this.database.exec('PRAGMA foreign_keys = ON; PRAGMA journal_mode = WAL;');
@@ -393,8 +393,6 @@ export class Store {
       '完成《小王子》27 章共读核验，持续沉淀真实生活上下文（LIFE CONTEXT）。',
     );
 
-    const tReadingStart = hoursAgo(14);
-    const tReadingUpdate = hoursAgo(1);
     const tUserBReading = hoursAgo(18);
 
     const insertPart = this.database.prepare(`
@@ -446,48 +444,8 @@ export class Store {
       }
     }
 
-    // 进行中的《小王子》共读：已读完第 1~26 章，当前打开即停在第 27/27 章末章，点击「确认读完」即可进入上链扣点与双勋章铸造仪式！
-    insertPart.run('demo-part-reading-active', 'user-a', 'reading', 'joined', tReadingStart);
-    const readerWallet = new Wallet(keccakId('do-something:demo-reader-wallet:user-a')).address;
-    const subjectHash = keccakId('do-something:reading:1:user-a');
-    const bookHash = keccakId('the-little-prince:do-something:v1');
-    const rulesHash = keccakId('coverage>=8000 AND lastChapter; eligible review; fixed rewards; v1');
-    const readChapters = Array.from({ length: 26 }, (_, i) => i + 1); // 1..26 已读，当前停在第 27/27 章
-    const highlights = [
-      {
-        id: 'hl-fox-1',
-        chapter: 21,
-        text: '“只有用心才能看得清。实质性的东西，用眼睛是看不见的。”',
-        createdAt: hoursAgo(3),
-      },
-      {
-        id: 'hl-fox-2',
-        chapter: 21,
-        text: '“正是你为你的玫瑰花费的时间，才使你的玫瑰变得如此重要。”',
-        createdAt: hoursAgo(2),
-      },
-    ];
-    this.database.prepare(`
-      INSERT OR REPLACE INTO reading_challenges (
-        participation_id, user_id, campaign_id, book_title, book_hash, rules_hash,
-        reader_wallet, subject_hash, enrolled_at, enrollment_digest, enrollment_sig,
-        already_completed, coverage_bps, last_chapter_completed,
-        read_chapters_json, current_chapter, reading_seconds, highlights_json,
-        reading_updated_at, mode
-      ) VALUES (?, 'user-a', 1, '《小王子》', ?, ?, ?, ?, ?, ?, ?, 0, 9630, 0, ?, 27, 3420, ?, ?, 'simulation')
-    `).run(
-      'demo-part-reading-active',
-      bookHash,
-      rulesHash,
-      readerWallet,
-      subjectHash,
-      tReadingStart,
-      keccakId(`do-something:enrollment:digest:${subjectHash}`),
-      `0x${'ab'.repeat(65)}`,
-      JSON.stringify(readChapters),
-      JSON.stringify(highlights),
-      tReadingUpdate,
-    );
+    // 不预置 reading 参与记录，确保进入「读完一本想读的短书」时与其他三个场景一样先展示「接受这个约定」按钮；
+    // 点击「接受这个约定」后，ReadingChallengeService 会自动初始化至第 27/27 章。
 
     // 5) 给对照账户「小舟」也准备一条已分享的《小王子》真实共读回响，让「阿黎」完成阅读后能真正相遇
     const userB = this.database.prepare("SELECT id FROM users WHERE id = 'user-b' AND status = 'active'").get();
@@ -521,7 +479,7 @@ export class Store {
       this.database.prepare('INSERT OR REPLACE INTO meta (key, value) VALUES (?, ?)')
         .run('demo_seed_echoes_v2', now());
     }
-    if (this.seedRichProfile) {
+    if (this.isRichDemoMode) {
       const seededRichV3 = this.database.prepare('SELECT value FROM meta WHERE key = ?')
         .get('demo_seed_rich_profile_v3') as { value: string } | undefined;
       if (!seededRichV3) {

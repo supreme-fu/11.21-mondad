@@ -521,6 +521,7 @@ export function createApp(options: AppOptions) {
             : null;
 
       response.json({
+        completionId: completionRow.id,
         state,
         deductedPoints: deducted,
         remainingPoints: updatedUser.points,

@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Award,
-  BookOpen,
   BookOpenCheck,
   Bookmark,
   BookmarkPlus,
@@ -12,14 +11,9 @@ import {
   ChevronRight,
   Coins,
   ExternalLink,
-  Eye,
-  EyeOff,
-  FileKey2,
   List,
   LoaderCircle,
   LockKeyhole,
-  Quote,
-  RefreshCw,
   Sparkles,
   Trash2,
 } from 'lucide-react';
@@ -29,6 +23,8 @@ import {
   type BadgeOnchainInscription,
   type CeremonyBadgeItem,
 } from '@/components/BadgeViewerDialog';
+import { EchoPanel } from '@/components/EchoPanel';
+import { ReflectionShareDialog } from '@/components/ReflectionShareDialog';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -42,7 +38,7 @@ import { useApp } from '@/context/AppContext';
 import { api } from '@/lib/api';
 import { loadBadges, type Badge } from '@/lib/badges';
 import { shortenHex } from '@/lib/reading-contracts';
-import type { BookData, Completion, Echo, ReadingChallengeState, ReadingRewardKind } from '@/types';
+import type { BookData, Completion, ReadingChallengeState } from '@/types';
 
 interface LittlePrinceReaderProps {
   participationId: string;
@@ -77,12 +73,7 @@ export function LittlePrinceReader({
   const [selectedParagraphIdx, setSelectedParagraphIdx] = useState<number | null>(null);
   const [busyAction, setBusyAction] = useState<string | null>(null);
 
-  // Review editor state
-  const [reviewText, setReviewText] = useState(completion?.reflection.text || '');
-  const [reviewShared, setReviewShared] = useState(completion?.reflection.visibility === 'shared');
-
-  // Echo & 3D badge modal state
-  const [echo, setEcho] = useState<Echo | null>(null);
+  // 3D badge ceremony & post-completion share flow
   const [allBadges, setAllBadges] = useState<Badge[]>([]);
   const [readingBadgeAsset, setReadingBadgeAsset] = useState<Badge | null>(null);
   const [showBadgeDialog, setShowBadgeDialog] = useState(false);
@@ -90,16 +81,18 @@ export function LittlePrinceReader({
   const [ceremonyBadges, setCeremonyBadges] = useState<CeremonyBadgeItem[] | null>(null);
   const [pointsSummary, setPointsSummary] = useState<string | null>(null);
   const [showOnchainConfirm, setShowOnchainConfirm] = useState(false);
-  const badgeBtnRef = useRef<HTMLButtonElement | null>(null);
 
+  // Share dialog -> EchoPanel reveal sequence
+  const [shareCompletionId, setShareCompletionId] = useState<string | null>(null);
+  const [pendingShareAfterCeremony, setPendingShareAfterCeremony] = useState(false);
+  const [showShareDialog, setShowShareDialog] = useState(false);
+  const [echoRevealed, setEchoRevealed] = useState(Boolean(completion));
+
+  const badgeBtnRef = useRef<HTMLButtonElement | null>(null);
   const chapterStartRef = useRef<number>(Date.now());
   const contentTopRef = useRef<HTMLDivElement | null>(null);
+  const echoSectionRef = useRef<HTMLDivElement | null>(null);
   const completionKeyRef = useRef(crypto.randomUUID());
-
-  useEffect(() => {
-    setReviewText(completion?.reflection.text || '');
-    setReviewShared(completion?.reflection.visibility === 'shared');
-  }, [completion?.reflection.text, completion?.reflection.visibility, completion?.reflection.deletedAt]);
 
   const loadAll = useCallback(async () => {
     setError('');
@@ -125,15 +118,6 @@ export function LittlePrinceReader({
   useEffect(() => {
     void loadAll();
   }, [loadAll]);
-
-  useEffect(() => {
-    if (!completion) return;
-    let active = true;
-    api.echo('reading').then((res) => {
-      if (active) setEcho(res.echo);
-    }).catch(() => {});
-    return () => { active = false; };
-  }, [completion]);
 
   const readSet = useMemo(() => new Set(state?.readChapters ?? []), [state?.readChapters]);
   const chapterObj = useMemo(
@@ -173,7 +157,7 @@ export function LittlePrinceReader({
 
   async function handleFinishChapter() {
     if (!chapterObj) return;
-    // 第 27/27 章点击「确认读完」时，直接询问是否上链（提示扣除 1 点数）
+    // 第 27/27 章点击「确认读完」时，弹出是否上链确认框（提示扣除 1 点数）
     if (chapterObj.index === 27 && !state?.readingClaimed) {
       setShowOnchainConfirm(true);
       return;
@@ -190,11 +174,12 @@ export function LittlePrinceReader({
       setState(next);
 
       if (chapterObj.index === 27) {
-        await ensureCompleted();
+        const compId = await ensureCompleted();
         await onRecordChanged();
         const refreshed = await api.readingChallenge(participationId);
         setState(refreshed);
-        toast.success('已确认读完《小王子》第 27/27 章。');
+        setShareCompletionId(compId);
+        setShowShareDialog(true);
       } else {
         const nextIdx = Math.min(27, chapterObj.index + 1);
         setActiveChapter(nextIdx);
@@ -222,12 +207,15 @@ export function LittlePrinceReader({
         chapter: 27,
         readingSecondsDelta: delta,
       });
-      await ensureCompleted();
+      const compId = await ensureCompleted();
       await onRecordChanged();
       const refreshed = await api.readingChallenge(participationId);
       setState(refreshed);
       setShowOnchainConfirm(false);
-      toast.success('已本地确认读完《小王子》（未扣除点数，后续仍可随时上链铸造勋章）。');
+      // 暂不上链：完成确认后立刻弹出「是否分享感受/评论」弹窗
+      setEchoRevealed(false);
+      setShareCompletionId(compId);
+      setShowShareDialog(true);
     } catch (reason) {
       const msg = reason instanceof Error ? reason.message : '保存完成状态失败。';
       setError(msg);
@@ -260,7 +248,7 @@ export function LittlePrinceReader({
         holderAddress: result.state.readerWallet,
         proofDigest: result.state.readingProofDigest,
         claimedAt: result.state.readingClaimedAt,
-        rewardSummary: `+${result.state.rewardReadingDsdemo} DSDEMO`,
+        rewardSummary: 'Soulbound 勋章',
         contractAddress: result.state.contracts.readingBadge.address,
         explorerBaseUrl: result.state.contracts.explorerBaseUrl,
         justMinted: true,
@@ -294,6 +282,9 @@ export function LittlePrinceReader({
       );
       setCeremonyBadges(ceremonyList.length > 0 ? ceremonyList : null);
       if (readingAsset) setReadingBadgeAsset(readingAsset);
+      setEchoRevealed(false);
+      setShareCompletionId(result.completionId);
+      setPendingShareAfterCeremony(true);
       setJustMintedSpotlight(true);
       setShowBadgeDialog(true);
 
@@ -352,83 +343,6 @@ export function LittlePrinceReader({
     }
   }
 
-  function quoteIntoReview(quoteText: string, chapterNum: number) {
-    const snippet = `读到第 ${chapterNum} 章「${quoteText.slice(0, 60)}${quoteText.length > 60 ? '…' : ''}」时很有共鸣：`;
-    setReviewText((prev) => (prev.trim() ? `${prev.trim()}\n${snippet}` : snippet).slice(0, 500));
-    setSelectedParagraphIdx(null);
-    toast.success('已引用到右侧书评框，可继续写下你的想法');
-  }
-
-  async function handleSaveReview() {
-    const trimmed = reviewText.trim();
-    if (!trimmed) {
-      toast.error('请先写一句书评或点击书中段落引用金句');
-      return;
-    }
-    setBusyAction('save-review');
-    setError('');
-    try {
-      const completionId = await ensureCompleted();
-      await api.saveReflection(completionId, trimmed, reviewShared ? 'shared' : 'private');
-      await onRecordChanged();
-      const refreshed = await api.readingChallenge(participationId);
-      setState(refreshed);
-      toast.success(reviewShared ? '书评已保存并分享给同读者，现可领取 2 DSDEMO 书评奖' : '书评已私密保存，现可领取 2 DSDEMO 书评奖');
-    } catch (reason) {
-      const msg = reason instanceof Error ? reason.message : '保存书评失败';
-      setError(msg);
-      toast.error(msg);
-    } finally {
-      setBusyAction(null);
-    }
-  }
-
-  async function handleClaim(kind: ReadingRewardKind) {
-    setBusyAction(`claim:${kind}`);
-    setError('');
-    try {
-      if (kind === 'reading') {
-        await ensureCompleted();
-      }
-      const next = await api.claimReadingReward(participationId, kind);
-      setState(next);
-      await onRecordChanged();
-      if (kind === 'reading') {
-        toast.success(`铸造确认！+10 DSDEMO · ReadingBadge #${next.badgeTokenId}`);
-        // 领奖确认瞬间自动弹出高光版「一页之间」3D 可旋转器物与链上铭牌
-        if (readingBadgeAsset) {
-          setJustMintedSpotlight(true);
-          setShowBadgeDialog(true);
-        } else {
-          const loaded = await loadBadges().catch(() => [] as Badge[]);
-          const rb = loaded.find((b) => b.id === 'reading') ?? null;
-          if (rb) {
-            setReadingBadgeAsset(rb);
-            setJustMintedSpotlight(true);
-            setShowBadgeDialog(true);
-          }
-        }
-      } else {
-        toast.success('书评奖领奖成功！+2 DSDEMO');
-      }
-    } catch (reason) {
-      const msg = reason instanceof Error ? reason.message : '领奖失败';
-      setError(msg);
-      toast.error(msg);
-    } finally {
-      setBusyAction(null);
-    }
-  }
-
-  async function handleNextEcho() {
-    try {
-      const res = await api.echo('reading', echo?.text);
-      setEcho(res.echo);
-    } catch {
-      toast.error('暂时没有更多同读者字条');
-    }
-  }
-
   if (loading) {
     return (
       <div className="reader-loading">
@@ -444,9 +358,18 @@ export function LittlePrinceReader({
 
   const isCurrentRead = readSet.has(chapterObj.index);
   const coverageOk = state.coverageBps >= 8000;
+  const totalCompletedSoFar = records.filter((r) => r.completion !== null).length;
+  const nextTotalCompleted = totalCompletedSoFar + (completion ? 0 : 1);
 
   return (
     <div className="lp-reader-shell" data-testid="little-prince-reader">
+      {/* 是否分享选择结束后，直接展现原版截图样式的同路人公开分享 */}
+      {echoRevealed && (
+        <div ref={echoSectionRef}>
+          <EchoPanel activityId="reading" />
+        </div>
+      )}
+
       {/* 顶部紧凑工具栏 */}
       <div className="lp-topbar">
         <div className="lp-topbar-left">
@@ -474,9 +397,6 @@ export function LittlePrinceReader({
           <span className="lp-pill is-reward" data-testid="reader-user-points">
             <Coins size={13} />
             当前点数：{user?.points ?? 100} 点
-          </span>
-          <span className="lp-pill" data-testid="reading-earned-dsdemo">
-            {state.earnedDsdemo} / 12 DSDEMO
           </span>
         </div>
       </div>
@@ -546,7 +466,7 @@ export function LittlePrinceReader({
             <div>
               <span className="lp-chapter-kicker">
                 CHAPTER {chapterObj.roman} · {chapterObj.charCount} 字
-                {chapterObj.index === 27 && ' · 合约核验末章'}
+                {chapterObj.index === 27 && ' · 第 27 / 27 章'}
               </span>
               <h2>{chapterObj.title} · {chapterObj.subtitle}</h2>
             </div>
@@ -591,13 +511,6 @@ export function LittlePrinceReader({
                       >
                         <BookmarkPlus size={13} />
                         收藏金句
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => quoteIntoReview(para, chapterObj.index)}
-                      >
-                        <Quote size={13} />
-                        引用写书评
                       </button>
                     </div>
                   )}
@@ -667,13 +580,12 @@ export function LittlePrinceReader({
           </footer>
         </article>
 
-        {/* 右栏：实时合约核验、书评与领奖台 */}
-        <aside className="lp-console-panel" aria-label="共读核验与领奖台">
-          {/* 1. 阅读达标奖 */}
+        {/* 右栏：纯净勋章核验与金句摘录（已移除 DSDEMO 与书评奖励） */}
+        <aside className="lp-console-panel" aria-label="阅读核验与勋章铸造">
           <section className="lp-card" data-testid="reading-reward-card">
             <div className="lp-card-head">
-              <span><Award size={15} /> 阅读达标奖</span>
-              <strong className="lp-reward-num">10 DSDEMO + 勋章</strong>
+              <span><Award size={15} /> 阅读勋章核验</span>
+              <strong className="lp-reward-num">Soulbound 勋章</strong>
             </div>
 
             <ul className="lp-criteria-list">
@@ -683,7 +595,7 @@ export function LittlePrinceReader({
               </li>
               <li className={state.lastChapterCompleted ? 'is-pass' : 'is-wait'}>
                 {state.lastChapterCompleted ? <CheckCircle2 size={14} /> : <LockKeyhole size={14} />}
-                <span>读完第 27 章末章（{state.lastChapterCompleted ? '已达标' : '待读完第 27 章'}）</span>
+                <span>读完第 27 章末章（{state.lastChapterCompleted ? '已达标' : '当前第 27/27 章'}）</span>
               </li>
             </ul>
 
@@ -747,87 +659,18 @@ export function LittlePrinceReader({
                 ) : (
                   <Sparkles size={16} />
                 )}
-                {state.canClaimReading ? '确认上链并铸造双勋章（-1 点数）' : '确认读完并上链（-1 点数）'}
+                确认读完并上链（-1 点数）
               </Button>
             )}
           </section>
 
-          {/* 2. 书评感受奖 */}
-          <section className="lp-card" data-testid="review-reward-card">
-            <div className="lp-card-head">
-              <span><BookOpen size={15} /> 书评感受奖</span>
-              <strong className="lp-reward-num">+2 DSDEMO</strong>
-            </div>
-
-            <textarea
-              className="lp-review-input"
-              rows={4}
-              maxLength={500}
-              value={reviewText}
-              onChange={(e) => setReviewText(e.target.value)}
-              placeholder="点击左侧任意段落可一键引用金句，或直接写下读完《小王子》的感受…"
-              data-testid="reader-review-textarea"
-            />
-            <div className="lp-review-meta">
-              <label className="lp-share-toggle">
-                <input
-                  type="checkbox"
-                  checked={reviewShared}
-                  onChange={(e) => setReviewShared(e.target.checked)}
-                />
-                {reviewShared ? <Eye size={13} /> : <EyeOff size={13} />}
-                <span>{reviewShared ? '分享给同读者' : '仅自己可见'}</span>
-              </label>
-              <span>{reviewText.length}/500</span>
-            </div>
-
-            <div className="lp-review-actions">
-              <Button
-                type="button"
-                size="sm"
-                variant="secondary"
-                disabled={Boolean(busyAction)}
-                onClick={() => void handleSaveReview()}
-                data-testid="save-reader-review-btn"
-              >
-                {busyAction === 'save-review' ? <LoaderCircle className="animate-spin" size={14} /> : '保存书评'}
-              </Button>
-              {!state.reviewClaimed && (
-                <Button
-                  type="button"
-                  size="sm"
-                  disabled={!state.canClaimReview || Boolean(busyAction)}
-                  onClick={() => void handleClaim('review')}
-                  data-testid="claim-review-reward-btn"
-                >
-                  {busyAction === 'claim:review' ? <LoaderCircle className="animate-spin" size={14} /> : <FileKey2 size={14} />}
-                  领取 2 DSDEMO
-                </Button>
-              )}
-            </div>
-
-            {state.reviewClaimed && (
-              <div className="lp-claimed-box mt-2" data-testid="review-proof-box">
-                <div className="lp-claimed-row">
-                  <span>已到账</span>
-                  <strong>+2 DSDEMO（链下正文随时可删）</strong>
-                </div>
-                <div className="lp-claimed-row">
-                  <span>EIP-712 Digest</span>
-                  <code title={state.reviewProofDigest ?? ''}>{shortenHex(state.reviewProofDigest ?? '', 10, 6)}</code>
-                </div>
-              </div>
-            )}
-          </section>
-
-          {/* 3. 本书摘录 */}
           <section className="lp-card">
             <div className="lp-card-head">
               <span><Bookmark size={15} /> 我的金句摘录</span>
               <small>{state.highlights.length} 条</small>
             </div>
             {state.highlights.length === 0 ? (
-              <p className="lp-empty-hint">点击左侧书中任意段落即可收藏金句或引用写书评。</p>
+              <p className="lp-empty-hint">点击左侧书中任意段落即可收藏金句。</p>
             ) : (
               <ul className="lp-highlight-list">
                 {state.highlights.map((item) => (
@@ -837,14 +680,9 @@ export function LittlePrinceReader({
                       <button type="button" onClick={() => void jumpToChapter(item.chapter)}>
                         第 {item.chapter} 章
                       </button>
-                      <div>
-                        <button type="button" onClick={() => quoteIntoReview(item.text, item.chapter)}>
-                          引用
-                        </button>
-                        <button type="button" onClick={() => void handleRemoveHighlight(item.id)} aria-label="删除摘录">
-                          <Trash2 size={12} />
-                        </button>
-                      </div>
+                      <button type="button" onClick={() => void handleRemoveHighlight(item.id)} aria-label="删除摘录">
+                        <Trash2 size={12} />
+                      </button>
                     </div>
                   </li>
                 ))}
@@ -852,20 +690,6 @@ export function LittlePrinceReader({
             )}
           </section>
 
-          {/* 4. 同读者字条（完成后展示） */}
-          {echo && (
-            <section className="lp-card lp-echo-mini">
-              <div className="lp-card-head">
-                <span>同读者字条 · {echo.displayName}</span>
-                <button type="button" className="lp-text-action" onClick={() => void handleNextEcho()}>
-                  <RefreshCw size={12} /> 换一条
-                </button>
-              </div>
-              <blockquote>“{echo.text}”</blockquote>
-            </section>
-          )}
-
-          {/* 5. 紧凑链上溯源 */}
           <section className="lp-card lp-chain-mini">
             <div className="lp-card-head">
               <span>Monad Testnet · Chain {state.contracts.chainId}</span>
@@ -878,9 +702,6 @@ export function LittlePrinceReader({
               <a href={state.contracts.readingBadge.explorerUrl} target="_blank" rel="noreferrer">
                 ReadingBadge <ExternalLink size={11} />
               </a>
-              <a href={state.contracts.rewardToken.explorerUrl} target="_blank" rel="noreferrer">
-                DSDEMO <ExternalLink size={11} />
-              </a>
             </div>
           </section>
 
@@ -888,7 +709,7 @@ export function LittlePrinceReader({
         </aside>
       </div>
 
-      {/* 是否上链确认弹窗（提示扣除 1 点数并预告两枚勋章） */}
+      {/* 1) 是否上链确认弹窗（扣除 1 点数，预告双勋章） */}
       <Dialog open={showOnchainConfirm} onOpenChange={setShowOnchainConfirm}>
         <DialogContent className="onchain-confirm-dialog" data-testid="onchain-confirm-dialog">
           <DialogHeader>
@@ -919,14 +740,12 @@ export function LittlePrinceReader({
               <div className="onchain-badge-preview-item">
                 <span className="lp-pill is-reward">对应主题勋章</span>
                 <strong>一页之间</strong>
-                <small>Soulbound ReadingBadge + 10 DSDEMO</small>
+                <small>Soulbound ReadingBadge 不可转让勋章</small>
               </div>
               <div className="onchain-badge-preview-item">
                 <span className="lp-pill is-ok">里程碑勋章</span>
                 <strong>10 次 · 铜色起步</strong>
-                <small>
-                  累计完成 {records.filter((r) => r.completion !== null).length + (completion ? 0 : 1)} / 10 次行动解锁
-                </small>
+                <small>累计完成 {nextTotalCompleted} / 10 次行动解锁</small>
               </div>
             </div>
           </div>
@@ -958,6 +777,7 @@ export function LittlePrinceReader({
         </DialogContent>
       </Dialog>
 
+      {/* 2) 上链确认瞬间的双勋章高光 3D 铸造仪式弹窗 */}
       {showBadgeDialog && readingBadgeAsset && (
         <BadgeViewerDialog
           badge={readingBadgeAsset}
@@ -967,6 +787,11 @@ export function LittlePrinceReader({
             setShowBadgeDialog(false);
             setJustMintedSpotlight(false);
             setCeremonyBadges(null);
+            // 关闭高光铸造仪式后，自动弹出「分享感受/评论」选择弹窗
+            if (pendingShareAfterCeremony) {
+              setPendingShareAfterCeremony(false);
+              setShowShareDialog(true);
+            }
           }}
           restoreFocusTo={() => badgeBtnRef.current?.focus()}
           onchainInscription={
@@ -978,7 +803,7 @@ export function LittlePrinceReader({
                 holderAddress: state.readerWallet,
                 proofDigest: state.readingProofDigest,
                 claimedAt: state.readingClaimedAt,
-                rewardSummary: `+${state.rewardReadingDsdemo} DSDEMO`,
+                rewardSummary: 'Soulbound 勋章',
                 contractAddress: state.contracts.readingBadge.address,
                 explorerBaseUrl: state.contracts.explorerBaseUrl,
                 justMinted: justMintedSpotlight,
@@ -987,6 +812,21 @@ export function LittlePrinceReader({
           }
         />
       )}
+
+      {/* 3) 确认完成后（无论是否上链）统一弹出：是否分享感受/评论 */}
+      <ReflectionShareDialog
+        open={showShareDialog}
+        completionId={shareCompletionId ?? completion?.id ?? null}
+        activityTitle="读完一本想读的短书 · 《小王子》"
+        onCompleteChoice={async () => {
+          setShowShareDialog(false);
+          await onRecordChanged();
+          setEchoRevealed(true);
+          window.setTimeout(() => {
+            echoSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }, 80);
+        }}
+      />
     </div>
   );
 }

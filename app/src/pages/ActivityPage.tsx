@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { ArrowLeft, ArrowRight, BookOpenCheck, Check, Clock3, ExternalLink, FileKey2, HeartHandshake, History, LoaderCircle, ShieldCheck, Sparkles } from 'lucide-react';
+import { ArrowLeft, ArrowRight, BookOpenCheck, Check, Clock3, ExternalLink, FileKey2, HeartHandshake, History, LoaderCircle, ShieldCheck } from 'lucide-react';
 import { Link, useParams } from 'react-router';
 import { toast } from 'sonner';
 import { ActivityGlyph } from '@/components/ActivityGlyph';
@@ -14,6 +14,7 @@ export default function ActivityPage() {
   const { id = '' } = useParams();
   const { records, refreshRecords } = useApp();
   const [activity, setActivity] = useState<ActivityDetail | null>(null);
+  const [sessionReadingId, setSessionReadingId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState('');
@@ -24,12 +25,18 @@ export default function ActivityPage() {
     catch (reason) { setError(reason instanceof Error ? reason.message : '主题加载失败。'); }
     finally { setLoading(false); }
   }, [id]);
-  useEffect(() => { void load(); }, [load]);
+  useEffect(() => {
+    setSessionReadingId(null);
+    void load();
+  }, [load]);
 
   async function join() {
     setPending(true);
     try {
-      await api.join(id);
+      const created = await api.join(id);
+      if (id === 'reading') {
+        setSessionReadingId(created.id);
+      }
       await Promise.all([load(), refreshRecords()]);
       toast.success('约定已收下。按自己的节奏去做就好。');
     } catch (reason) { toast.error(reason instanceof Error ? reason.message : '暂时无法加入。'); }
@@ -59,7 +66,7 @@ export default function ActivityPage() {
   const latestCompletedId = history[0]?.participationId ?? (participation?.completionId ? participation.id : null);
   const dateFormat = new Intl.DateTimeFormat('zh-CN', { month: 'long', day: 'numeric' });
   const readingParticipationId = activity.id === 'reading'
-    ? (activeParticipation?.id ?? latestCompletedId ?? participation?.id ?? null)
+    ? (activeParticipation?.id ?? sessionReadingId)
     : null;
   const readingRecord = readingParticipationId
     ? records.find((item) => item.participationId === readingParticipationId) ?? null
@@ -153,31 +160,14 @@ export default function ActivityPage() {
             <div>
               <span className="eyebrow">
                 <BookOpenCheck aria-hidden="true" />
-                本期共读实验 · 《小王子》× Monad 链上核验
+                本期共读 · 《小王子》× Monad 链上勋章核验
               </span>
-              <h2 id="reading-preview-title">可选叠加链上 EIP-712 核验，不影响你的自报完成</h2>
+              <h2 id="reading-preview-title">接受约定后直接阅读全本《小王子》，读完可选择上链铸造勋章</h2>
               <p>
-                完成自报声明后，可在完成页进入《小王子》共读核验实验室：将阅读进度同步至合约核验门限，或留下一句感受并分别领取可叠加的激励凭证与 Soulbound 共读勋章。
+                内置全 27 章中文正文；确认读完后可自主选择是否上链（上链扣除 1 点数并铸造「一页之间」Soulbound 勋章，达到累计次数同步解锁里程碑勋章），随后可选择是否分享感受并看到同路人的分享。
               </p>
             </div>
             <span className="reading-chain-pill">Monad Testnet · Chain ID {LITTLE_PRINCE_CONTRACTS.chainId}</span>
-          </div>
-
-          <div className="reading-preview-rules">
-            <article className="reading-preview-rule">
-              <div className="reading-preview-rule-title">
-                <Sparkles aria-hidden="true" />
-                <strong>阅读达标奖励 · 10 DSDEMO + Soulbound 共读勋章</strong>
-              </div>
-              <p>≥80% 覆盖率 + 读完正文末章 → 10 DSDEMO + Soulbound 共读勋章（ReadingBadge，不可转让）。</p>
-            </article>
-            <article className="reading-preview-rule">
-              <div className="reading-preview-rule-title">
-                <FileKey2 aria-hidden="true" />
-                <strong>读书感受激励 · 2 DSDEMO（最高共 12 DSDEMO）</strong>
-              </div>
-              <p>留下读书感受/书评 → 可叠加 2 DSDEMO。书评原文仅留在链下且随时可删，EIP-712 凭证只对匿名摘要计算哈希。</p>
-            </article>
           </div>
 
           <div className="reading-contract-links">
@@ -189,11 +179,6 @@ export default function ActivityPage() {
             <a href={LITTLE_PRINCE_CONTRACTS.readingBadge.explorerUrl} target="_blank" rel="noreferrer" className="reading-contract-chip">
               <span>ReadingBadge</span>
               <code>{shortenHex(LITTLE_PRINCE_CONTRACTS.readingBadge.address)}</code>
-              <ExternalLink aria-hidden="true" />
-            </a>
-            <a href={LITTLE_PRINCE_CONTRACTS.rewardToken.explorerUrl} target="_blank" rel="noreferrer" className="reading-contract-chip">
-              <span>DemoRewardToken (DSDEMO)</span>
-              <code>{shortenHex(LITTLE_PRINCE_CONTRACTS.rewardToken.address)}</code>
               <ExternalLink aria-hidden="true" />
             </a>
           </div>

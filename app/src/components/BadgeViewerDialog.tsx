@@ -90,7 +90,7 @@ export function BadgeViewerDialog({
       holderAddress: rs.readerWallet || '0x2C5222B2Ad434AcAAa747e1b7b3b6c081706C6F3',
       proofDigest: rs.readingProofDigest ?? null,
       claimedAt: rs.readingClaimedAt ?? null,
-      rewardSummary: `${rs.earnedDsdemo || 10} DSDEMO`,
+      rewardSummary: 'Soulbound 勋章',
       contractAddress: LITTLE_PRINCE_CONTRACTS.readingBadge.address,
       explorerBaseUrl: MONAD_TESTNET_EXPLORER,
       justMinted: false,
@@ -261,7 +261,7 @@ export function BadgeViewerDialog({
             <span className="badge-mint-banner-pill">
               <Award size={14} aria-hidden="true" />
               {pointsSummary ? `${pointsSummary} · ` : ''}
-              {resolvedInscription.rewardSummary || '+10 DSDEMO'} · Block #{resolvedInscription.blockNumber.toLocaleString('en-US')}
+              {resolvedInscription.rewardSummary ? `${resolvedInscription.rewardSummary} · ` : ''}Block #{resolvedInscription.blockNumber.toLocaleString('en-US')}
             </span>
           </div>
         )}

@@ -415,12 +415,35 @@ export class ReadingChallengeService {
     const enrollmentDigest = TypedDataEncoder.hash(domain, enrollmentTypes, enrollment);
     const enrollmentSig = await this.attestorWallet.signTypedData(domain, enrollmentTypes, enrollment);
 
+    const initialCoverageBps = this.store.isRichDemoMode ? 9630 : 6200;
+    const initialChapters = this.store.isRichDemoMode
+      ? JSON.stringify(Array.from({ length: 26 }, (_, i) => i + 1))
+      : '[]';
+    const initialCurrentChapter = this.store.isRichDemoMode ? 27 : 1;
+    const initialHighlights = this.store.isRichDemoMode
+      ? JSON.stringify([
+        {
+          id: 'hl-fox-1',
+          chapter: 21,
+          text: '“只有用心才能看得清。实质性的东西，用眼睛是看不见的。”',
+          createdAt: enrolledAt,
+        },
+        {
+          id: 'hl-fox-2',
+          chapter: 21,
+          text: '“正是你为你的玫瑰花费的时间，才使你的玫瑰变得如此重要。”',
+          createdAt: enrolledAt,
+        },
+      ])
+      : '[]';
+
     this.store.database.prepare(`
       INSERT OR IGNORE INTO reading_challenges (
         participation_id, user_id, campaign_id, book_title, book_hash, rules_hash,
         reader_wallet, subject_hash, enrolled_at, enrollment_digest, enrollment_sig,
-        already_completed, coverage_bps, last_chapter_completed, mode
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 6200, 0, ?)
+        already_completed, coverage_bps, last_chapter_completed,
+        read_chapters_json, current_chapter, highlights_json, mode
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, 0, ?, ?, ?, ?)
     `).run(
       participationId,
       userId,
@@ -433,6 +456,10 @@ export class ReadingChallengeService {
       enrolledAt,
       enrollmentDigest,
       enrollmentSig,
+      initialCoverageBps,
+      initialChapters,
+      initialCurrentChapter,
+      initialHighlights,
       this.mode,
     );
 

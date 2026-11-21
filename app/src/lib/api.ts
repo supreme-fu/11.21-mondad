@@ -85,6 +85,7 @@ export const api = {
     }),
   onchainMintReading: (participationId: string) =>
     request<{
+      completionId: string;
       state: ReadingChallengeState;
       deductedPoints: number;
       remainingPoints: number;
