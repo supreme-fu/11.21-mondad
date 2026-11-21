@@ -93,6 +93,7 @@
 
 ## 2026-11-21 面向 Agent 时代的个人链上身份档案与三维徽章墙基线记录
 
+- **专项基线说明文档**：详见 [docs/agent-identity-and-badge-wall-20261121.md](file:///Users/abeam/一些尝试/区块链黑客松/docs/agent-identity-and-badge-wall-20261121.md)。
 - **核心定位升级**：明确主产品为**面向 Agent 时代的个人链上身份档案（`LIFE CONTEXT · Onchain Personal Identity & Agent Context Archive`）**；将读书（《小王子》共读）、做菜、相见、出行统一收敛为补充个人档案中“活动执行与多源凭证采集”环节的交互演示模块。
 - **涉及文件与能力**：
   1. **三维器物徽章墙（[badges.ts](file:///Users/abeam/一些尝试/区块链黑客松/app/src/lib/badges.ts)、[HoloBadgeCard.tsx](file:///Users/abeam/一些尝试/区块链黑客松/app/src/components/HoloBadgeCard.tsx)、[BadgeViewerDialog.tsx](file:///Users/abeam/一些尝试/区块链黑客松/app/src/components/BadgeViewerDialog.tsx)、[RecordsPage.tsx](file:///Users/abeam/一些尝试/区块链黑客松/app/src/pages/RecordsPage.tsx)）**：

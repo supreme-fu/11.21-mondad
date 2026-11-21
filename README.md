@@ -96,6 +96,7 @@ npm run test:all      # 全部自动化回归（含 58 + 14 + 22 = 94 项；另 
 - [审查结论与同步清单](docs/teammate-prototype-review-20261119.md)
 - [多活动原型交互架构](docs/teammate-prototype/index.html)
 - [共读与多活动合约本地验证](integrations/teammate-chain/README.md)
+- [2026-11-21 面向 Agent 时代的个人链上身份档案、三维徽章墙与商业闭环基线说明](docs/agent-identity-and-badge-wall-20261121.md)
 
 ## 凭证模式
 
